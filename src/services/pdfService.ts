@@ -43,11 +43,17 @@ function renderQuestion(q: TestPaper['questions'][0], idx: number, showAnswer: b
   return h;
 }
 
+const FONT_IMPORTS = `
+@import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+`;
+
 const CSS = `
+${FONT_IMPORTS}
 @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  font-family: 'NanumSquareNeo', 'Noto Sans KR', 'KoPub Dotum', 'Apple SD Gothic Neo', sans-serif;
   color: #1a1a1a; font-size: 11.5pt; line-height: 1.65;
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
@@ -148,11 +154,21 @@ body {
   margin-right: 6px; font-size: 9pt;
 }
 
-/* ── Footer ── */
-.footer {
-  text-align: center; font-size: 8pt; color: #aaa;
-  margin-top: 18px; padding-top: 8px;
-  border-top: 1px solid #e0e0e0;
+/* ── Memo section ── */
+.memo {
+  page-break-before: auto; margin-top: 24px;
+  border: 1.5px solid #ccc; border-radius: 4px; padding: 12px 14px;
+}
+.memo-title {
+  font-size: 10pt; font-weight: 700; color: #444;
+  margin-bottom: 8px; padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+}
+.memo-lines {
+  height: 120px;
+  background-image: repeating-linear-gradient(
+    transparent, transparent 23px, #e5e5e5 23px, #e5e5e5 24px
+  );
 }
 `;
 
@@ -212,6 +228,14 @@ export function generateTestPaperHTML(test: TestPaper, subjectName: string, show
       html += renderQuestion(q, idx, showAnswerKey);
       idx++;
     }
+  }
+
+  // Memo section (test paper only)
+  if (!showAnswerKey) {
+    html += `<div class="memo">
+      <div class="memo-title">오답 정리 / 메모</div>
+      <div class="memo-lines"></div>
+    </div>`;
   }
 
   html += `</div></body></html>`;
