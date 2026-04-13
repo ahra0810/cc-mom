@@ -1,86 +1,195 @@
 import type { TestPaper } from '../types';
 import { QUESTION_TYPE_LABELS, DIFFICULTY_LABELS } from '../types';
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+function esc(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+const CIRCLE = ['\u2460', '\u2461', '\u2462', '\u2463'];
+
 function renderQuestion(q: TestPaper['questions'][0], idx: number, showAnswer: boolean): string {
-  let html = `<div class="question-item" style="margin-bottom:18px;page-break-inside:avoid;">`;
-  html += `<p style="margin:0 0 6px;font-weight:600;font-size:13px;line-height:1.7;">`;
-  html += `${idx + 1}. ${escapeHtml(q.question)}</p>`;
+  let h = `<div class="q">`;
+  h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
+  h += `<div class="q-body">`;
+  h += `<p class="q-text">${esc(q.question)}</p>`;
 
   if (q.type === 'multiple-choice' && q.options) {
-    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 24px;padding-left:20px;font-size:12.5px;line-height:1.7;">`;
-    const labels = ['\u2460', '\u2461', '\u2462', '\u2463'];
+    h += `<div class="opts">`;
     q.options.forEach((opt, i) => {
-      const isAnswer = showAnswer && opt === q.answer;
-      html += `<div style="${isAnswer ? 'font-weight:700;color:#1D4ED8;' : ''}">${labels[i]} ${escapeHtml(opt)}</div>`;
+      const cls = showAnswer && opt === q.answer ? ' class="correct"' : '';
+      h += `<div${cls}>${CIRCLE[i]} ${esc(opt)}</div>`;
     });
-    html += `</div>`;
+    h += `</div>`;
   } else if (q.type === 'true-false') {
-    html += `<div style="padding-left:20px;font-size:12.5px;line-height:1.7;">`;
-    const oStyle = showAnswer && q.answer === 'O' ? 'font-weight:700;color:#1D4ED8;' : '';
-    const xStyle = showAnswer && q.answer === 'X' ? 'font-weight:700;color:#1D4ED8;' : '';
-    html += `<span style="margin-right:24px;${oStyle}">\u2460 O</span>`;
-    html += `<span style="${xStyle}">\u2461 X</span>`;
-    html += `</div>`;
-  } else if (showAnswer) {
-    html += `<div style="padding-left:20px;font-size:12px;color:#1D4ED8;font-weight:600;line-height:1.7;">`;
-    html += `\u2192 ${escapeHtml(q.answer)}</div>`;
+    h += `<div class="opts opts-tf">`;
+    h += `<div${showAnswer && q.answer === 'O' ? ' class="correct"' : ''}>${CIRCLE[0]} O (맞다)</div>`;
+    h += `<div${showAnswer && q.answer === 'X' ? ' class="correct"' : ''}>${CIRCLE[1]} X (틀리다)</div>`;
+    h += `</div>`;
+  } else if (q.type === 'fill-blank' || q.type === 'short-answer') {
+    if (!showAnswer) {
+      h += `<div class="answer-line"></div>`;
+    }
+  }
+
+  if (showAnswer && (q.type === 'fill-blank' || q.type === 'short-answer')) {
+    h += `<div class="answer-box">정답: ${esc(q.answer)}</div>`;
   }
 
   if (showAnswer && q.explanation) {
-    html += `<div style="padding-left:20px;margin-top:4px;font-size:11px;color:#6B7280;line-height:1.6;background:#F9FAFB;padding:6px 12px;border-radius:4px;">`;
-    html += `\uD83D\uDCA1 ${escapeHtml(q.explanation)}</div>`;
+    h += `<div class="explain"><span class="explain-label">해설</span>${esc(q.explanation)}</div>`;
   }
 
-  html += `</div>`;
-  return html;
+  h += `</div></div>`;
+  return h;
 }
 
+const CSS = `
+@page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  color: #1a1a1a; font-size: 11.5pt; line-height: 1.65;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.page { max-width: 170mm; margin: 0 auto; }
+
+/* ── Header ── */
+.header {
+  text-align: center; padding-bottom: 14px;
+  border-bottom: 2.5px solid #222; margin-bottom: 6px;
+}
+.header h1 {
+  font-size: 19pt; font-weight: 800; letter-spacing: 0.5px;
+  margin-bottom: 5px; color: #111;
+}
+.header-sub {
+  font-size: 9pt; color: #666; letter-spacing: 0.3px;
+}
+.header-sub span { margin: 0 6px; }
+.header-sub span:not(:last-child)::after {
+  content: '|'; margin-left: 12px; color: #ccc;
+}
+
+/* ── Info row ── */
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1.5px solid #ddd; border-radius: 3px;
+  padding: 7px 14px; margin: 10px 0 14px; font-size: 10pt; color: #444;
+}
+.info-row .field { display: flex; align-items: center; gap: 4px; }
+.info-row .blank {
+  display: inline-block; width: 90px; border-bottom: 1px solid #999;
+  margin-left: 2px; height: 16px;
+}
+.info-row .score-blank {
+  display: inline-block; width: 36px; border-bottom: 1px solid #999;
+  margin: 0 2px; height: 16px; text-align: center;
+}
+
+/* ── Answer key banner ── */
+.answer-banner {
+  text-align: center; font-size: 11pt; font-weight: 700; color: #1a1a1a;
+  border: 2px solid #222; padding: 7px 0; margin: 10px 0 14px;
+  letter-spacing: 2px;
+}
+
+/* ── Section title ── */
+.sec-title {
+  font-size: 10pt; font-weight: 700; color: #333;
+  padding: 5px 0 4px; margin: 14px 0 6px;
+  border-bottom: 1.5px solid #333;
+}
+
+/* ── Question ── */
+.q {
+  display: flex; gap: 8px; margin-bottom: 14px;
+  page-break-inside: avoid;
+}
+.q-num {
+  flex-shrink: 0; width: 22px; font-size: 10pt;
+  font-weight: 700; color: #555; padding-top: 1px; text-align: right;
+}
+.q-body { flex: 1; min-width: 0; }
+.q-text {
+  font-size: 11pt; font-weight: 600; line-height: 1.7;
+  margin-bottom: 5px; color: #1a1a1a;
+}
+
+/* ── Options ── */
+.opts {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px 20px; padding-left: 2px;
+  font-size: 10.5pt; line-height: 1.7; color: #333;
+}
+.opts-tf { grid-template-columns: auto auto; justify-content: start; gap: 1px 32px; }
+.opts .correct { font-weight: 700; color: #000; }
+
+/* ── Short answer line ── */
+.answer-line {
+  width: 60%; height: 1px; border-bottom: 1px solid #999;
+  margin: 6px 0 4px 2px;
+}
+
+/* ── Answer box (answer key) ── */
+.answer-box {
+  display: inline-block; font-size: 10pt; font-weight: 700;
+  color: #000; margin-top: 2px;
+  border-bottom: 1.5px solid #000; padding-bottom: 1px;
+}
+
+/* ── Explanation ── */
+.explain {
+  margin-top: 5px; font-size: 9.5pt; color: #444;
+  line-height: 1.6; padding: 5px 8px;
+  background: #f5f5f5; border-left: 3px solid #bbb;
+}
+.explain-label {
+  display: inline-block; font-weight: 700; color: #333;
+  margin-right: 6px; font-size: 9pt;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center; font-size: 8pt; color: #aaa;
+  margin-top: 18px; padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+`;
+
 export function generateTestPaperHTML(test: TestPaper, subjectName: string, showAnswerKey: boolean): string {
-  const date = new Date(test.createdAt).toLocaleDateString('ko-KR');
-  const diffLabel = DIFFICULTY_LABELS[test.difficulty];
+  const date = new Date(test.createdAt).toLocaleDateString('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
+  const diffLabel = DIFFICULTY_LABELS[test.difficulty].replace(/\s*\(.*?\)/, '');
+  const totalScore = test.questions.length * 10;
 
   let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
-<style>
-@page { size: A4; margin: 20mm 15mm; }
-body { font-family: 'Malgun Gothic','Pretendard',sans-serif; margin:0; padding:0; color:#1E293B; }
-.page { width:170mm; margin:0 auto; }
-.header { text-align:center; border-bottom:2px solid #1E293B; padding-bottom:12px; margin-bottom:16px; }
-.header h1 { font-size:20px; margin:0 0 4px; letter-spacing:1px; }
-.header .meta { font-size:11px; color:#64748B; }
-.name-row { display:flex; justify-content:space-between; border:1px solid #CBD5E1; padding:8px 16px; margin-bottom:16px; font-size:12px; border-radius:4px; }
-.name-row span { min-width:120px; }
-.section-title { font-size:13px; font-weight:700; color:#1E40AF; margin:16px 0 8px; padding:4px 0; border-bottom:1px solid #BFDBFE; }
-.footer { text-align:center; font-size:10px; color:#94A3B8; margin-top:20px; padding-top:8px; border-top:1px solid #E2E8F0; }
-</style></head><body><div class="page">`;
+<title>${esc(test.title)}</title>
+<style>${CSS}</style></head><body><div class="page">`;
 
   // Header
   html += `<div class="header">
-    <h1>${escapeHtml(test.title)}</h1>
-    <div class="meta">${escapeHtml(subjectName)} | ${escapeHtml(diffLabel)} | ${date} | 총 ${test.questions.length}문항</div>
+    <h1>${esc(test.title)}</h1>
+    <div class="header-sub">
+      <span>${esc(subjectName)}</span>
+      <span>${esc(diffLabel)}</span>
+      <span>${date}</span>
+      <span>${test.questions.length}문항</span>
+    </div>
   </div>`;
 
-  // Name row
+  // Info row or answer banner
   if (!showAnswerKey) {
-    html += `<div class="name-row">
-      <span>이름: _______________</span>
-      <span>날짜: _______________</span>
-      <span>점수: _____ / ${test.questions.length * 10}</span>
+    html += `<div class="info-row">
+      <div class="field">이름 <span class="blank"></span></div>
+      <div class="field">날짜 <span class="blank"></span></div>
+      <div class="field">점수 <span class="score-blank"></span> / ${totalScore}</div>
     </div>`;
   } else {
-    html += `<div style="text-align:center;background:#EFF6FF;padding:8px;border-radius:6px;margin-bottom:12px;font-size:13px;font-weight:700;color:#1D4ED8;">
-      \uD83D\uDD11 답안지 및 해설
-    </div>`;
+    html += `<div class="answer-banner">답안 및 해설</div>`;
   }
 
-  // Group by type
+  // Group by type if mixed
   const typeGroups = new Map<string, typeof test.questions>();
   test.questions.forEach((q) => {
     const group = typeGroups.get(q.type) || [];
@@ -88,55 +197,44 @@ body { font-family: 'Malgun Gothic','Pretendard',sans-serif; margin:0; padding:0
     typeGroups.set(q.type, group);
   });
 
-  let globalIdx = 0;
+  let idx = 0;
   if (typeGroups.size > 1) {
     for (const [type, questions] of typeGroups) {
-      html += `<div class="section-title">${QUESTION_TYPE_LABELS[type as keyof typeof QUESTION_TYPE_LABELS]} (${questions.length}문항)</div>`;
-      questions.forEach((q) => {
-        html += renderQuestion(q, globalIdx, showAnswerKey);
-        globalIdx++;
-      });
+      const label = QUESTION_TYPE_LABELS[type as keyof typeof QUESTION_TYPE_LABELS];
+      html += `<div class="sec-title">${esc(label)} (${questions.length}문항)</div>`;
+      for (const q of questions) {
+        html += renderQuestion(q, idx, showAnswerKey);
+        idx++;
+      }
     }
   } else {
-    test.questions.forEach((q) => {
-      html += renderQuestion(q, globalIdx, showAnswerKey);
-      globalIdx++;
-    });
+    for (const q of test.questions) {
+      html += renderQuestion(q, idx, showAnswerKey);
+      idx++;
+    }
   }
 
-  html += `<div class="footer">퀴즈 메이커로 제작됨</div>`;
   html += `</div></body></html>`;
   return html;
 }
 
 export async function exportToPDF(test: TestPaper, subjectName: string): Promise<void> {
-  // Generate test paper
-  const testHtml = generateTestPaperHTML(test, subjectName, false);
-  const testWindow = window.open('', '_blank');
-  if (!testWindow) {
-    alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.');
-    return;
-  }
-  testWindow.document.write(testHtml);
-  testWindow.document.close();
-
-  // Auto-trigger print dialog
-  setTimeout(() => {
-    testWindow.print();
-  }, 500);
+  const html = generateTestPaperHTML(test, subjectName, false);
+  openPrintWindow(html);
 }
 
 export async function exportAnswerKeyToPDF(test: TestPaper, subjectName: string): Promise<void> {
-  const answerHtml = generateTestPaperHTML(test, subjectName, true);
-  const answerWindow = window.open('', '_blank');
-  if (!answerWindow) {
+  const html = generateTestPaperHTML(test, subjectName, true);
+  openPrintWindow(html);
+}
+
+function openPrintWindow(html: string) {
+  const win = window.open('', '_blank');
+  if (!win) {
     alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.');
     return;
   }
-  answerWindow.document.write(answerHtml);
-  answerWindow.document.close();
-
-  setTimeout(() => {
-    answerWindow.print();
-  }, 500);
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
 }
