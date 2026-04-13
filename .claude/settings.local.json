@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(cp -r /c/Users/정아라/cc-mom-temp/* /c/Users/정아라/cc-mom/)",
+      "Bash(cp /c/Users/정아라/cc-mom-temp/.gitignore /c/Users/정아라/cc-mom/)",
+      "Bash(rm -rf /c/Users/정아라/cc-mom-temp)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(gh auth:*)",
+      "Bash(winget install:*)",
+      "Bash(choco install:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(git add:*)"
+    ]
+  }
+}
