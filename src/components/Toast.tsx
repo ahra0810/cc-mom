@@ -61,16 +61,20 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
+  /* 여러 줄 메시지는 더 오래 노출 */
+  const isMultiline = toast.message.includes('\n');
+  const duration = isMultiline ? 6000 : 3000;
+
   useEffect(() => {
-    const timer = setTimeout(() => onDismiss(toast.id), 3000);
+    const timer = setTimeout(() => onDismiss(toast.id), duration);
     return () => clearTimeout(timer);
-  }, [toast.id, onDismiss]);
+  }, [toast.id, onDismiss, duration]);
 
   return (
-    <div className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium animate-slideUp ${STYLES[toast.type]}`}>
-      {ICONS[toast.type]}
-      <span>{toast.message}</span>
-      <button onClick={() => onDismiss(toast.id)} className="ml-2 opacity-70 hover:opacity-100 p-0.5">
+    <div className={`pointer-events-auto flex items-start gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium animate-slideUp max-w-md ${STYLES[toast.type]}`}>
+      <span className="flex-shrink-0 mt-0.5">{ICONS[toast.type]}</span>
+      <span className="whitespace-pre-line leading-relaxed flex-1">{toast.message}</span>
+      <button onClick={() => onDismiss(toast.id)} className="flex-shrink-0 ml-1 opacity-70 hover:opacity-100 p-0.5 mt-0.5">
         <X size={14} />
       </button>
     </div>

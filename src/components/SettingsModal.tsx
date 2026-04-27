@@ -74,7 +74,22 @@ export default function SettingsModal({ onClose }: Props) {
       try {
         const text = await file.text();
         const result = importData(text);
-        toast('success', `${result.questions}문항, ${result.subjects}과목을 불러왔습니다`);
+        const { taggingStats } = result;
+
+        /* 토스트 메시지 — 매칭/생성 결과 요약 */
+        const lines: string[] = [];
+        lines.push(`✅ ${result.questions}문항을 가져왔습니다`);
+        if (taggingStats.matched > 0) {
+          lines.push(`📌 ${taggingStats.matched}개는 기존 과목에 자동 매칭`);
+        }
+        if (result.subjectsAdded > 0) {
+          lines.push(`🆕 새 과목 ${result.subjectsAdded}개 추가: ${result.newSubjectNames.slice(0, 3).join(', ')}${result.newSubjectNames.length > 3 ? ` 외 ${result.newSubjectNames.length - 3}개` : ''}`);
+        }
+        const fallbackCount = taggingStats.byMethod.fallback;
+        if (fallbackCount > 0) {
+          lines.push(`⚠️ ${fallbackCount}개는 미분류로 처리됨`);
+        }
+        toast('success', lines.join('\n'));
       } catch (err) {
         toast('error', err instanceof Error ? err.message : '가져오기 실패');
       }
@@ -547,13 +562,17 @@ const MASTER_PROMPT = `당신은 초등학교 3~6학년 학생을 위한 학습 
   ]
 }
 
-[과목 ID 표]
+[과목 ID 표] — 정확한 ID를 그대로 입력해야 자동 매칭됩니다
 - 세계사 → world-history
 - 사자성어 → four-char-idiom
 - 관용구 → idiom
 - 속담 → proverb
 - 맞춤법 → spelling
 - 어휘 → vocabulary
+- 중학 국어(문학) → middle-literature   ← 작품 분석/문학 문제는 이것
+
+(만약 이 목록에 없는 과목이라면, 새 ID(예: "middle-history")를 그대로 적어주세요.
+ 가져올 때 자동으로 새 과목이 만들어집니다.)
 
 [유형 ID 표]
 - 객관식 → multiple-choice  (options 4개 필수, answer는 options 중 하나와 동일)

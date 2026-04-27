@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { Question, Subject, Difficulty, QuestionType } from '../types';
 import { DEFAULT_SUBJECTS } from '../types';
 import { defaultQuestions } from '../data/defaultQuestions';
+import { resolveSubjectForQuestion, type TaggingStats } from '../services/autoTag';
 
 interface QuestionFilters {
   subjectId: string | null;
@@ -36,7 +37,14 @@ interface QuestionStore {
 
   // Data export/import
   exportData: () => string;
-  importData: (jsonStr: string) => { questions: number; subjects: number };
+  importData: (jsonStr: string) => ImportReport;
+}
+
+export interface ImportReport {
+  questions: number;
+  subjectsAdded: number;
+  newSubjectNames: string[];
+  taggingStats: TaggingStats;
 }
 
 export const useQuestionStore = create<QuestionStore>()(
@@ -155,25 +163,75 @@ export const useQuestionStore = create<QuestionStore>()(
         }
 
         const VALID_TYPES = ['multiple-choice', 'true-false', 'fill-blank', 'short-answer', 'sentence-making'];
-        const VALID_DIFF = ['easy', 'medium', 'hard'];
+        const VALID_DIFF = ['easy', 'medium', 'hard', 'advanced', 'expert'];
 
-        // Validate and auto-fill missing fields
+        const currentSubjects = get().subjects;
+
+        /* ─── JSON에 명시된 subjects는 먼저 흡수 ─── */
+        const explicitNewSubjects: Subject[] = [];
+        if (Array.isArray(data.subjects)) {
+          const existingIds = new Set(currentSubjects.map((s) => s.id));
+          for (let i = 0; i < data.subjects.length; i++) {
+            const raw = data.subjects[i] as Record<string, unknown>;
+            const id = typeof raw.id === 'string' ? raw.id : `imported-sub-${Date.now()}-${i}`;
+            if (existingIds.has(id)) continue;
+            explicitNewSubjects.push({
+              id,
+              name: typeof raw.name === 'string' ? raw.name : `과목${i + 1}`,
+              icon: typeof raw.icon === 'string' ? raw.icon : '📝',
+              color: typeof raw.color === 'string' ? raw.color : '#6366F1',
+            });
+            existingIds.add(id);
+          }
+        }
+
+        /* ─── 자동 태깅 — 매칭/생성 과정 ─── */
+        const autoCreatedSubjects: Subject[] = [];
+        const taggingStats: TaggingStats = {
+          total: 0,
+          matched: 0,
+          newSubjects: [],
+          byMethod: { exact: 0, normalized: 0, name: 0, keyword: 0, 'work-title': 0, created: 0, fallback: 0 },
+        };
+
         const newQuestions: Question[] = data.questions.map((raw, idx) => {
           const q = raw as Record<string, unknown>;
           if (typeof q.question !== 'string' || !q.question.trim()) {
             throw new Error(`${idx + 1}번 문항: "question" 필드가 필요합니다.`);
           }
           const type = (typeof q.type === 'string' && VALID_TYPES.includes(q.type)) ? q.type : 'multiple-choice';
-          // Sentence-making allows missing answer (it's a sample answer)
           if (type !== 'sentence-making' && typeof q.answer !== 'string' && !Array.isArray(q.answer)) {
             throw new Error(`${idx + 1}번 문항: "answer" 필드가 필요합니다.`);
           }
           const difficulty = (typeof q.difficulty === 'string' && VALID_DIFF.includes(q.difficulty)) ? q.difficulty : 'medium';
 
+          /* 임시 Question 객체 — 태깅 매칭에 사용 */
+          const partialQ: Partial<Question> = {
+            question: String(q.question).trim(),
+            subjectId: typeof q.subjectId === 'string' ? q.subjectId : undefined,
+            tags: Array.isArray(q.tags) ? q.tags.map(String) : [],
+            passage: typeof q.passage === 'string' ? q.passage : undefined,
+            workTitle: typeof q.workTitle === 'string' ? q.workTitle : undefined,
+            workAuthor: typeof q.workAuthor === 'string' ? q.workAuthor : undefined,
+          };
+
+          /* 자동 태깅 실행 */
+          const allKnownSubjects = [...currentSubjects, ...explicitNewSubjects, ...autoCreatedSubjects];
+          const result = resolveSubjectForQuestion(partialQ, allKnownSubjects, []);
+
+          if (result.newSubject && !autoCreatedSubjects.some((s) => s.id === result.newSubject!.id)) {
+            autoCreatedSubjects.push(result.newSubject);
+          }
+          taggingStats.total += 1;
+          taggingStats.byMethod[result.matchedBy] += 1;
+          if (result.matchedBy !== 'created' && result.matchedBy !== 'fallback') {
+            taggingStats.matched += 1;
+          }
+
           return {
             id: typeof q.id === 'string' ? q.id : `imported-${Date.now()}-${idx}`,
             type: type as Question['type'],
-            subjectId: typeof q.subjectId === 'string' ? q.subjectId : '',
+            subjectId: result.subjectId,
             difficulty: difficulty as Question['difficulty'],
             question: String(q.question).trim(),
             options: Array.isArray(q.options) ? q.options.map(String) : undefined,
@@ -188,24 +246,16 @@ export const useQuestionStore = create<QuestionStore>()(
           };
         });
 
-        const newSubjects: Subject[] = Array.isArray(data.subjects)
-          ? data.subjects.map((raw, idx) => {
-              const s = raw as Record<string, unknown>;
-              return {
-                id: typeof s.id === 'string' ? s.id : `imported-sub-${Date.now()}-${idx}`,
-                name: typeof s.name === 'string' ? s.name : `과목${idx + 1}`,
-                icon: typeof s.icon === 'string' ? s.icon : '📝',
-                color: typeof s.color === 'string' ? s.color : '#6366F1',
-              };
-            })
-          : [];
+        const allNewSubjects = [...explicitNewSubjects, ...autoCreatedSubjects];
+        taggingStats.newSubjects = autoCreatedSubjects;
 
+        /* ─── 상태 적용 ─── */
         set((state) => {
-          const existingIds = new Set(state.questions.map((q) => q.id));
-          const uniqueQuestions = newQuestions.filter((q) => !existingIds.has(q.id));
+          const existingQIds = new Set(state.questions.map((q) => q.id));
+          const uniqueQuestions = newQuestions.filter((q) => !existingQIds.has(q.id));
 
-          const existingSubjectIds = new Set(state.subjects.map((s) => s.id));
-          const uniqueSubjects = newSubjects.filter((s) => !existingSubjectIds.has(s.id));
+          const existingSIds = new Set(state.subjects.map((s) => s.id));
+          const uniqueSubjects = allNewSubjects.filter((s) => !existingSIds.has(s.id));
 
           return {
             questions: [...uniqueQuestions, ...state.questions],
@@ -213,7 +263,12 @@ export const useQuestionStore = create<QuestionStore>()(
           };
         });
 
-        return { questions: newQuestions.length, subjects: newSubjects.length };
+        return {
+          questions: newQuestions.length,
+          subjectsAdded: allNewSubjects.length,
+          newSubjectNames: allNewSubjects.map((s) => `${s.icon} ${s.name}`),
+          taggingStats,
+        };
       },
     }),
     {
@@ -224,10 +279,19 @@ export const useQuestionStore = create<QuestionStore>()(
       }),
       merge: (persisted: unknown, current) => {
         const p = persisted as Partial<QuestionStore> | undefined;
+        /* 저장된 과목 목록과 현재 기본 과목을 병합 — 새로 추가된 default subject가
+           기존 사용자에게도 자동으로 보이도록 함 (merge bug 수정).
+           단, 사용자가 의도적으로 삭제한 과목을 다시 살리지는 않도록
+           "_removedDefaults" 마커(추후 확장)를 사용할 수도 있음. */
+        const persistedSubjects = p?.subjects ?? current.subjects;
+        const persistedIds = new Set(persistedSubjects.map((s) => s.id));
+        const missingDefaults = current.subjects.filter((s) => !persistedIds.has(s.id));
+        const mergedSubjects = [...persistedSubjects, ...missingDefaults];
+
         return {
           ...current,
           questions: p?.questions ?? current.questions,
-          subjects: p?.subjects ?? current.subjects,
+          subjects: mergedSubjects,
         };
       },
     }

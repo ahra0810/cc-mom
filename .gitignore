@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 디자인 레퍼런스 (대용량, 외부 이미지)
+template-references.html
+template-references-embedded.html
