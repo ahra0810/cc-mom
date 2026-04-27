@@ -105,37 +105,44 @@ export default function App() {
         <ConfirmDialogProvider>
           <div className="flex flex-col h-screen">
             {/* Top bar */}
-            <header className="bg-white border-b border-gray-200 px-3 py-2 flex items-center justify-between flex-shrink-0 shadow-sm gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <button
-                  className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors"
-                  onClick={() => setLeftCollapsed(!leftCollapsed)}
-                  title={leftCollapsed ? '좌측 패널 펼치기' : '좌측 패널 접기'}
-                  aria-label={leftCollapsed ? '좌측 패널 펼치기' : '좌측 패널 접기'}
-                >
-                  {leftCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
-                </button>
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <GraduationCap size={16} className="text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <h1 className="text-sm font-bold text-gray-800 leading-tight truncate">퀴즈 메이커</h1>
-                    <p className="text-[10px] text-gray-400 truncate">학습 문제 생성기</p>
-                  </div>
+            <header className="bg-white border-b border-gray-200 h-12 px-3 flex items-center gap-2 flex-shrink-0 shadow-sm">
+              {/* Left toggle */}
+              <button
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                onClick={() => setLeftCollapsed(!leftCollapsed)}
+                title={leftCollapsed ? '좌측 패널 펼치기' : '좌측 패널 접기'}
+                aria-label={leftCollapsed ? '좌측 패널 펼치기' : '좌측 패널 접기'}
+              >
+                {leftCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+              </button>
+
+              {/* Brand */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <GraduationCap size={17} className="text-white" />
+                </div>
+                <div className="flex flex-col min-w-0 leading-none">
+                  <h1 className="text-[14px] font-extrabold text-gray-800 truncate tracking-tight">
+                    퀴즈 메이커
+                  </h1>
+                  <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                    초등 3 ~ 중학 3학년 학습 문제 생성기
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[11px] text-gray-400 hidden md:inline">초등 3 ~ 중학 3학년</span>
-                <button
-                  className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors"
-                  onClick={() => setRightCollapsed(!rightCollapsed)}
-                  title={rightCollapsed ? '우측 패널 펼치기' : '우측 패널 접기'}
-                  aria-label={rightCollapsed ? '우측 패널 펼치기' : '우측 패널 접기'}
-                >
-                  {rightCollapsed ? <PanelRightOpen size={15} /> : <PanelRightClose size={15} />}
-                </button>
-              </div>
+
+              {/* Spacer */}
+              <div className="flex-1" />
+
+              {/* Right toggle */}
+              <button
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                onClick={() => setRightCollapsed(!rightCollapsed)}
+                title={rightCollapsed ? '우측 패널 펼치기' : '우측 패널 접기'}
+                aria-label={rightCollapsed ? '우측 패널 펼치기' : '우측 패널 접기'}
+              >
+                {rightCollapsed ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
+              </button>
             </header>
 
             {/* Main 3-panel layout */}
