@@ -527,9 +527,10 @@ const MASTER_PROMPT = `당신은 초등학교 3~6학년 학생을 위한 학습 
 난이도: [easy / medium / hard]
 주제(선택): [예: 고대 이집트 / 친구에 관한 사자성어]
 
-반드시 아래 JSON 형식으로만 응답해주세요.
-인사말, 설명, \`\`\`json\`\`\` 같은 코드블록 표시도 모두 빼고
-순수 JSON만 출력하세요.
+결과는 반드시 \`\`\`json ... \`\`\` 코드블록 한 개로만 감싸서 출력하세요.
+(이렇게 출력하면 ChatGPT / Claude / Gemini 응답 우측의 "Copy" 또는 "Download .json"
+버튼을 눌러 별도 파일 작성 없이 바로 .json 파일을 내려받을 수 있습니다.)
+코드블록 밖에는 인사말·설명을 절대 추가하지 마세요.
 
 {
   "questions": [
@@ -577,7 +578,9 @@ const SUBJECT_PROMPTS: { id: string; icon: string; name: string; description: st
 난이도는 easy(고대문명 기초) 5개 + medium(중세·근대) 5개로 섞어 주세요.
 다양한 시대(고대 이집트, 그리스, 로마, 중국, 인도, 중세 유럽, 대항해시대, 산업혁명 등)를 골고루 다뤄주세요.
 
-JSON 외 텍스트는 절대 포함하지 마세요.
+반드시 JSON 내용 전체를 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 출력하세요.
+(코드블록 우측에 표시되는 "Copy" 또는 "Download" 버튼으로 바로 .json 파일을 받을 수 있습니다.)
+코드블록 외에는 다른 설명 텍스트를 넣지 마세요.
 
 {
   "questions": [
@@ -612,7 +615,9 @@ JSON 외 텍스트는 절대 포함하지 마세요.
 
 난이도: easy 4개, medium 4개, hard 2개
 
-JSON 외 텍스트는 절대 포함하지 마세요.
+반드시 JSON 내용 전체를 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 출력하세요.
+(코드블록 우측에 표시되는 "Copy" 또는 "Download" 버튼으로 바로 .json 파일을 받을 수 있습니다.)
+코드블록 외에는 다른 설명 텍스트를 넣지 마세요.
 
 {
   "questions": [
@@ -650,7 +655,7 @@ JSON 외 텍스트는 절대 포함하지 마세요.
 
 신체(눈, 귀, 입, 손, 발, 간 등) 관용구 위주로 작성하되, 다양한 주제도 포함해 주세요.
 
-JSON만 출력하세요.
+출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
 
 {
   "questions": [
@@ -691,7 +696,7 @@ JSON만 출력하세요.
 - 객관식 3개 (속담 뜻 고르기)
 - 서술형 2개 ("다음 속담을 사용해서 문장을 만들어 보세요: ___")
 
-JSON만 출력해 주세요.
+출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
 
 {
   "questions": [
@@ -724,7 +729,7 @@ JSON만 출력해 주세요.
 
 다루면 좋은 주제: 됐어/됬어, 왠지/웬지, 어이없다/어의없다, 갈게/갈께, 이따가/있다가, 금세/금새, 일찍이/일찌기 등
 
-JSON만 출력해 주세요.
+출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
 
 {
   "questions": [
@@ -821,7 +826,7 @@ JSON만 출력해 주세요.
 
 다룰 단어 예: 호기심, 공감, 절약, 용기, 감사, 후회, 즐겁다, 꼼꼼하다 등
 
-JSON만 출력해 주세요.
+출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
 
 {
   "questions": [
@@ -874,8 +879,11 @@ function PromptGuide() {
                 {' '}<a className="text-primary-600 underline" href="https://gemini.google.com" target="_blank" rel="noreferrer">Gemini</a> 등에 붙여넣고 결과를 받으세요. (필요시 개수·주제 수정)
               </Step>
               <Step n={3}>
-                받은 JSON을 <strong>.json 파일</strong>로 저장한 뒤, 위쪽
-                {' '}<strong className="text-primary-700">"가져오기"</strong> 버튼으로 업로드하세요.
+                AI 응답의 <strong>코드블록 우측 [Download .json]</strong> 버튼으로 파일을 받거나,
+                {' '}<strong>[Copy]</strong> → 메모장에 붙여넣고 <code className="bg-white px-1 rounded">.json</code> 확장자로 저장하세요.
+              </Step>
+              <Step n={4}>
+                위쪽 <strong className="text-primary-700">"가져오기"</strong> 버튼으로 그 .json 파일을 업로드하면 끝!
               </Step>
             </ol>
           </div>

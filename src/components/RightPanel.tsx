@@ -10,6 +10,7 @@ import { useConfirm } from './ConfirmDialog';
 import type { Difficulty } from '../types';
 import { DIFFICULTY_LABELS } from '../types';
 import { exportToPDF, exportAnswerKeyToPDF } from '../services/pdfService';
+import { ELEMENTARY_TEMPLATES, MIDDLE_TEMPLATES, getDefaultTemplateForDifficulty } from '../services/pdfTemplates';
 
 interface Props {
   onOpenSettings: () => void;
@@ -236,6 +237,15 @@ function ExportSection() {
   const { subjects } = useQuestionStore();
   const { toast } = useToast();
 
+  // 시험지 난이도에 따라 기본 템플릿 자동 선택
+  const defaultTpl = currentTest
+    ? getDefaultTemplateForDifficulty(currentTest.difficulty)
+    : ELEMENTARY_TEMPLATES[0];
+  const [audience, setAudience] = useState<'elementary' | 'middle'>(defaultTpl.audience);
+  const [templateId, setTemplateId] = useState<string>(defaultTpl.id);
+
+  const templates = audience === 'elementary' ? ELEMENTARY_TEMPLATES : MIDDLE_TEMPLATES;
+
   const getSubjectLabel = () => {
     if (!currentTest) return '';
     const names = currentTest.subjectIds
@@ -249,7 +259,7 @@ function ExportSection() {
       toast('warning', '먼저 문항을 추가하세요');
       return;
     }
-    exportToPDF(currentTest, getSubjectLabel());
+    exportToPDF(currentTest, getSubjectLabel(), templateId);
   };
 
   const handleExportAnswerKey = () => {
@@ -257,13 +267,69 @@ function ExportSection() {
       toast('warning', '먼저 문항을 추가하세요');
       return;
     }
-    exportAnswerKeyToPDF(currentTest, getSubjectLabel());
+    exportAnswerKeyToPDF(currentTest, getSubjectLabel(), templateId);
   };
 
   const disabled = !currentTest || currentTest.questions.length === 0;
 
   return (
     <Section title="PDF 내보내기" icon={<FileDown size={13} />} defaultOpen={!disabled}>
+      {/* 대상 토글 (초등/중학) */}
+      <div>
+        <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">
+          대상
+        </label>
+        <div className="grid grid-cols-2 gap-1 p-0.5 bg-gray-100 rounded-lg">
+          {(['elementary', 'middle'] as const).map((a) => (
+            <button
+              key={a}
+              onClick={() => {
+                setAudience(a);
+                const list = a === 'elementary' ? ELEMENTARY_TEMPLATES : MIDDLE_TEMPLATES;
+                setTemplateId(list[0].id);
+              }}
+              className={`py-1 rounded-md text-[11px] font-semibold transition-colors ${
+                audience === a
+                  ? 'bg-white text-primary-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {a === 'elementary' ? '🎒 초등용' : '🎓 중학용'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 템플릿 선택 */}
+      <div>
+        <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">
+          템플릿 ({templates.length}종)
+        </label>
+        <div className="grid grid-cols-2 gap-1 max-h-44 overflow-y-auto pr-0.5">
+          {templates.map((t) => {
+            const selected = templateId === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTemplateId(t.id)}
+                className={`text-left p-1.5 rounded-md border text-[10px] transition-all ${
+                  selected
+                    ? 'border-2 bg-primary-50 shadow-sm'
+                    : 'border border-gray-200 bg-white hover:border-gray-400'
+                }`}
+                title={t.description}
+                style={selected ? { borderColor: t.primaryColor } : undefined}
+              >
+                <div className="font-bold truncate" style={{ color: t.primaryColor }}>
+                  {t.name}
+                </div>
+                <div className="text-[9px] text-gray-500 truncate">{t.description}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <button className="btn btn-primary w-full" onClick={handleExportPDF} disabled={disabled}>
         <FileDown size={13} /> 시험지 PDF
       </button>
