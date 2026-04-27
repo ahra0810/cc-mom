@@ -439,4 +439,103 @@ export const defaultQuestions: Question[] = [
     explanation: '"공감(共感)"은 다른 사람의 감정이나 의견에 대해 자기도 그렇다고 느끼는 것입니다.',
     tags: ['한자어', '감정'], createdAt: Date.now(), source: 'preset'
   },
+
+  // === 서술형: 사자성어 사용 문장 만들기 ===
+  {
+    id: 'sm-fc-001', type: 'sentence-making', subjectId: 'four-char-idiom', difficulty: 'medium',
+    question: '다음 사자성어를 사용해서 문장을 만들어 보세요: 죽마고우',
+    answer: '나와 민호는 어릴 때부터 함께 놀던 죽마고우다.',
+    explanation: '죽마고우(竹馬故友): 어릴 때부터 함께 놀던 친한 친구.',
+    tags: ['친구', '관계', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-fc-002', type: 'sentence-making', subjectId: 'four-char-idiom', difficulty: 'medium',
+    question: '다음 사자성어를 사용해서 문장을 만들어 보세요: 일석이조',
+    answer: '운동을 하면 건강도 좋아지고 체중도 줄어드니 일석이조다.',
+    explanation: '일석이조(一石二鳥): 한 가지 일로 두 가지 이득을 얻음.',
+    tags: ['이득', '효율', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-fc-003', type: 'sentence-making', subjectId: 'four-char-idiom', difficulty: 'medium',
+    question: '다음 사자성어를 사용해서 문장을 만들어 보세요: 자화자찬',
+    answer: '오늘 발표를 잘했다고 누나가 자화자찬했다.',
+    explanation: '자화자찬(自畫自讚): 자기가 한 일을 스스로 칭찬함.',
+    tags: ['자기', '칭찬', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-fc-004', type: 'sentence-making', subjectId: 'four-char-idiom', difficulty: 'hard',
+    question: '다음 사자성어를 사용해서 문장을 만들어 보세요: 대기만성',
+    answer: '꾸준히 노력하면 대기만성이라는 말처럼 큰 인물이 될 수 있다.',
+    explanation: '대기만성(大器晩成): 큰 그릇은 늦게 완성된다는 뜻으로, 큰 사람은 천천히 이루어짐.',
+    tags: ['성장', '인내', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-fc-005', type: 'sentence-making', subjectId: 'four-char-idiom', difficulty: 'medium',
+    question: '다음 사자성어를 사용해서 문장을 만들어 보세요: 일취월장',
+    answer: '동생은 한 달 만에 피아노 실력이 일취월장했다.',
+    explanation: '일취월장(日就月將): 날마다 달마다 발전함.',
+    tags: ['성장', '발전', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+
+  // === 서술형: 관용구 사용 문장 만들기 ===
+  {
+    id: 'sm-id-001', type: 'sentence-making', subjectId: 'idiom', difficulty: 'easy',
+    question: '다음 관용구를 사용해서 문장을 만들어 보세요: 발이 넓다',
+    answer: '우리 삼촌은 발이 넓어서 어디를 가도 아는 사람이 많다.',
+    explanation: '"발이 넓다"는 아는 사람이 많고 활동 범위가 넓다는 뜻입니다.',
+    tags: ['신체', '관계', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-id-002', type: 'sentence-making', subjectId: 'idiom', difficulty: 'medium',
+    question: '다음 관용구를 사용해서 문장을 만들어 보세요: 손이 크다',
+    answer: '엄마는 손이 커서 친구들이 놀러 오면 음식을 가득 차려 주신다.',
+    explanation: '"손이 크다"는 씀씀이가 크고 후하다는 뜻입니다.',
+    tags: ['신체', '성격', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-id-003', type: 'sentence-making', subjectId: 'idiom', difficulty: 'medium',
+    question: '다음 관용구를 사용해서 문장을 만들어 보세요: 귀가 얇다',
+    answer: '내 동생은 귀가 얇아서 광고를 보면 다 사고 싶어한다.',
+    explanation: '"귀가 얇다"는 다른 사람의 말에 쉽게 넘어간다는 뜻입니다.',
+    tags: ['신체', '성격', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+
+  // === 서술형: 속담 사용 문장 만들기 ===
+  {
+    id: 'sm-pv-001', type: 'sentence-making', subjectId: 'proverb', difficulty: 'medium',
+    question: '다음 속담을 사용해서 문장을 만들어 보세요: 백지장도 맞들면 낫다',
+    answer: '백지장도 맞들면 낫다고, 친구들과 함께 청소를 했더니 금방 끝났다.',
+    explanation: '쉬운 일도 협력하면 더 잘 된다는 뜻입니다.',
+    tags: ['협력', '도움', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-pv-002', type: 'sentence-making', subjectId: 'proverb', difficulty: 'medium',
+    question: '다음 속담을 사용해서 문장을 만들어 보세요: 가는 말이 고와야 오는 말이 곱다',
+    answer: '가는 말이 고와야 오는 말이 곱다는 말처럼, 친구에게 친절하게 말하니 친구도 다정하게 답해 주었다.',
+    explanation: '내가 좋게 말해야 상대방도 좋게 말한다는 뜻입니다.',
+    tags: ['말', '예절', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+
+  // === 서술형: 어휘 사용 문장 만들기 ===
+  {
+    id: 'sm-vc-001', type: 'sentence-making', subjectId: 'vocabulary', difficulty: 'easy',
+    question: '다음 단어를 사용해서 문장을 만들어 보세요: 호기심',
+    answer: '나는 우주에 대한 호기심이 많아서 별에 관한 책을 자주 읽는다.',
+    explanation: '"호기심"은 새롭고 신기한 것에 끌리는 마음입니다.',
+    tags: ['감정', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-vc-002', type: 'sentence-making', subjectId: 'vocabulary', difficulty: 'medium',
+    question: '다음 단어를 사용해서 문장을 만들어 보세요: 공감',
+    answer: '친구가 슬퍼할 때 옆에서 이야기를 들어 주며 공감해 주었다.',
+    explanation: '"공감"은 다른 사람의 감정을 함께 느끼는 것입니다.',
+    tags: ['감정', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'sm-vc-003', type: 'sentence-making', subjectId: 'vocabulary', difficulty: 'medium',
+    question: '다음 단어를 사용해서 문장을 만들어 보세요: 절약',
+    answer: '용돈을 절약해서 모은 돈으로 좋아하는 책을 샀다.',
+    explanation: '"절약"은 물건이나 돈을 아껴 쓰는 것입니다.',
+    tags: ['경제', '행동', '문장만들기'], createdAt: Date.now(), source: 'preset'
+  },
 ];

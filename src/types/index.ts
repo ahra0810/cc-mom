@@ -1,4 +1,4 @@
-export type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank' | 'short-answer';
+export type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank' | 'short-answer' | 'sentence-making';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -46,6 +46,7 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   'true-false': 'OX 퀴즈',
   'fill-blank': '빈칸 채우기',
   'short-answer': '단답형',
+  'sentence-making': '서술형 (문장 만들기)',
 };
 
 export const DEFAULT_SUBJECTS: Subject[] = [

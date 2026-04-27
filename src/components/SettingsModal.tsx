@@ -120,6 +120,15 @@ export default function SettingsModal({ onClose }: Props) {
           question: "\"매우 기쁘고 신나는 것\"을 나타내는 두 글자 단어는?",
           answer: "즐겁다",
           tags: ["감정"]
+        },
+        {
+          type: "sentence-making",
+          subjectId: "four-char-idiom",
+          difficulty: "medium",
+          question: "다음 사자성어를 사용해서 문장을 만들어 보세요: 자화자찬",
+          answer: "오늘 발표를 잘했다고 친구가 자화자찬했다.",
+          explanation: "자화자찬은 자기가 한 일을 스스로 칭찬한다는 뜻입니다.",
+          tags: ["자기", "칭찬"]
         }
       ],
       subjects: [
@@ -321,6 +330,14 @@ const SAMPLE_JSON = `{
       "answer": "피라미드",
       "explanation": "피라미드는 파라오의 무덤입니다.",
       "tags": ["이집트", "고대문명"]
+    },
+    {
+      "type": "sentence-making",
+      "subjectId": "four-char-idiom",
+      "difficulty": "medium",
+      "question": "다음 사자성어를 사용해서 문장을 만들어 보세요: 자화자찬",
+      "answer": "친구가 자기 그림을 자화자찬했다.",
+      "tags": ["자기", "칭찬"]
     }
   ],
   "subjects": [
@@ -386,8 +403,9 @@ function FormatGuide() {
 
             <FieldRow name="type" required>
               문제 유형. 다음 중 하나:
-              <code className="block mt-1 bg-gray-100 px-2 py-1 rounded text-[10px]">
-                "multiple-choice" · "true-false" · "fill-blank" · "short-answer"
+              <code className="block mt-1 bg-gray-100 px-2 py-1 rounded text-[10px] leading-relaxed">
+                "multiple-choice" · "true-false" · "fill-blank"<br />
+                "short-answer" · "sentence-making"
               </code>
             </FieldRow>
 
@@ -396,11 +414,12 @@ function FormatGuide() {
             </FieldRow>
 
             <FieldRow name="answer" required>
-              정답 (문자열).
+              정답 (문자열). <span className="text-gray-400">서술형은 선택</span>
               <ul className="mt-1 ml-3 list-disc space-y-0.5 text-[10px] text-gray-500">
                 <li>객관식: options 중 정답과 동일한 문자열</li>
                 <li>OX 퀴즈: <code className="bg-gray-100 px-1 rounded">"O"</code> 또는 <code className="bg-gray-100 px-1 rounded">"X"</code></li>
                 <li>빈칸/단답형: 정답 문자열</li>
+                <li>서술형: 예시 답안 문자열 (생략 가능)</li>
               </ul>
             </FieldRow>
 

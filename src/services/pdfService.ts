@@ -29,10 +29,18 @@ function renderQuestion(q: TestPaper['questions'][0], idx: number, showAnswer: b
     if (!showAnswer) {
       h += `<div class="answer-line"></div>`;
     }
+  } else if (q.type === 'sentence-making') {
+    if (!showAnswer) {
+      // Provide 3 lined writing lines
+      h += `<div class="writing-lines"></div>`;
+    }
   }
 
   if (showAnswer && (q.type === 'fill-blank' || q.type === 'short-answer')) {
     h += `<div class="answer-box">정답: ${esc(q.answer)}</div>`;
+  }
+  if (showAnswer && q.type === 'sentence-making' && q.answer) {
+    h += `<div class="answer-box">예시 답안: ${esc(q.answer)}</div>`;
   }
 
   if (showAnswer && q.explanation) {
@@ -134,6 +142,14 @@ body {
 .answer-line {
   width: 60%; height: 1px; border-bottom: 1px solid #999;
   margin: 6px 0 4px 2px;
+}
+
+/* -- Writing lines for sentence-making -- */
+.writing-lines {
+  height: 72px; margin: 6px 0 6px 2px;
+  background-image: repeating-linear-gradient(
+    transparent, transparent 23px, #888 23px, #888 24px
+  );
 }
 
 /* -- Answer box (answer key) -- */

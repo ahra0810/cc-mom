@@ -15,7 +15,8 @@ const DIFF_SHORT: Record<Difficulty, string> = {
   easy: '쉬움', medium: '보통', hard: '어려움',
 };
 const TYPE_SHORT: Record<QuestionType, string> = {
-  'multiple-choice': '객관식', 'true-false': 'OX', 'fill-blank': '빈칸', 'short-answer': '단답형',
+  'multiple-choice': '객관식', 'true-false': 'OX', 'fill-blank': '빈칸',
+  'short-answer': '단답형', 'sentence-making': '서술형',
 };
 
 interface Props {

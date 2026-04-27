@@ -34,7 +34,8 @@ export default function QuestionEditor({ question, duplicateSource, onClose }: P
 
   const handleSave = () => {
     if (!questionText.trim()) return;
-    if (!answer.trim()) return;
+    // Sentence-making allows empty answer (it's a sample answer)
+    if (type !== 'sentence-making' && !answer.trim()) return;
 
     const q: Question = {
       id: question?.id || nanoid(),
@@ -202,6 +203,24 @@ export default function QuestionEditor({ question, duplicateSource, onClose }: P
             </div>
           )}
 
+          {/* Sample answer (for sentence-making) */}
+          {type === 'sentence-making' && (
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1.5 block">
+                예시 답안 <span className="text-gray-400 font-normal">(선택)</span>
+              </label>
+              <textarea
+                className="input-field text-xs min-h-[60px] resize-y"
+                placeholder='예시: "오늘 발표 잘했다고 자화자찬했다."'
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+              />
+              <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">
+                학생이 직접 문장을 작성하는 서술형 문제입니다. 답안지 PDF에 예시 답안이 표시됩니다.
+              </p>
+            </div>
+          )}
+
           {/* Explanation */}
           <div>
             <label className="text-xs font-medium text-gray-700 mb-1.5 block">해설 (선택)</label>
@@ -220,7 +239,7 @@ export default function QuestionEditor({ question, duplicateSource, onClose }: P
           <button
             className="btn btn-primary"
             onClick={handleSave}
-            disabled={!questionText.trim() || !answer.trim()}
+            disabled={!questionText.trim() || (type !== 'sentence-making' && !answer.trim())}
           >
             <Save size={14} />
             {isEdit ? '수정 완료' : '문항 추가'}

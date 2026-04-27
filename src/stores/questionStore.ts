@@ -154,7 +154,7 @@ export const useQuestionStore = create<QuestionStore>()(
           throw new Error('"questions" 필드가 없거나 배열이 아닙니다.');
         }
 
-        const VALID_TYPES = ['multiple-choice', 'true-false', 'fill-blank', 'short-answer'];
+        const VALID_TYPES = ['multiple-choice', 'true-false', 'fill-blank', 'short-answer', 'sentence-making'];
         const VALID_DIFF = ['easy', 'medium', 'hard'];
 
         // Validate and auto-fill missing fields
@@ -163,10 +163,11 @@ export const useQuestionStore = create<QuestionStore>()(
           if (typeof q.question !== 'string' || !q.question.trim()) {
             throw new Error(`${idx + 1}번 문항: "question" 필드가 필요합니다.`);
           }
-          if (typeof q.answer !== 'string' && !Array.isArray(q.answer)) {
+          const type = (typeof q.type === 'string' && VALID_TYPES.includes(q.type)) ? q.type : 'multiple-choice';
+          // Sentence-making allows missing answer (it's a sample answer)
+          if (type !== 'sentence-making' && typeof q.answer !== 'string' && !Array.isArray(q.answer)) {
             throw new Error(`${idx + 1}번 문항: "answer" 필드가 필요합니다.`);
           }
-          const type = (typeof q.type === 'string' && VALID_TYPES.includes(q.type)) ? q.type : 'multiple-choice';
           const difficulty = (typeof q.difficulty === 'string' && VALID_DIFF.includes(q.difficulty)) ? q.difficulty : 'medium';
 
           return {
@@ -176,7 +177,7 @@ export const useQuestionStore = create<QuestionStore>()(
             difficulty: difficulty as Question['difficulty'],
             question: String(q.question).trim(),
             options: Array.isArray(q.options) ? q.options.map(String) : undefined,
-            answer: Array.isArray(q.answer) ? q.answer.join(',') : String(q.answer),
+            answer: Array.isArray(q.answer) ? q.answer.join(',') : (typeof q.answer === 'string' ? q.answer : ''),
             explanation: typeof q.explanation === 'string' ? q.explanation : undefined,
             tags: Array.isArray(q.tags) ? q.tags.map(String) : [],
             createdAt: typeof q.createdAt === 'number' ? q.createdAt : Date.now(),

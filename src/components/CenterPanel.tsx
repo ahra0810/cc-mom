@@ -138,6 +138,21 @@ function QuestionPreviewTab({ question, onEdit }: { question: Question | null; o
               정답: {question.answer}
             </div>
           )}
+          {question.type === 'sentence-making' && (
+            <div className="mt-4 space-y-2">
+              <div className="text-[11px] text-gray-500 italic">
+                직접 문장을 작성하는 서술형 문제
+              </div>
+              <div className="border border-dashed border-gray-300 rounded-lg p-3 text-sm text-gray-400 italic min-h-[60px]">
+                답안 작성 영역
+              </div>
+              {question.answer && (
+                <div className="px-3 py-2 rounded-lg border border-primary-300 bg-primary-50 text-primary-700 text-sm">
+                  <strong>예시 답안:</strong> {question.answer}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Explanation */}
@@ -389,6 +404,16 @@ function TestQuestionCard({
           )}
           {showAnswer && (q.type === 'fill-blank' || q.type === 'short-answer') && (
             <div className="text-[11px] text-primary-600 font-bold mt-1.5">정답: {q.answer}</div>
+          )}
+          {q.type === 'sentence-making' && (
+            <>
+              <div className="text-[10px] text-gray-400 italic mt-1">서술형 (직접 작성)</div>
+              {showAnswer && q.answer && (
+                <div className="text-[11px] text-primary-600 font-medium mt-1">
+                  예시: {q.answer}
+                </div>
+              )}
+            </>
           )}
           {showAnswer && q.explanation && (
             <div className="text-[10px] text-gray-500 bg-gray-50 rounded px-2 py-1 mt-1.5">{q.explanation}</div>
