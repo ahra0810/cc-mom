@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Trash2, RotateCcw, Tag, Database, Upload, Download, FileText, ChevronDown, ChevronRight, Copy } from 'lucide-react';
+import { X, Plus, Trash2, RotateCcw, Tag, Database, Upload, Download, FileText, ChevronDown, ChevronRight, Copy, Sparkles } from 'lucide-react';
 import { nanoid } from 'nanoid';
 import { useQuestionStore } from '../stores/questionStore';
 import { useToast } from './Toast';
@@ -292,6 +292,9 @@ export default function SettingsModal({ onClose }: Props) {
                 </button>
               </div>
 
+              {/* AI Prompt Guide - 처음 사용자를 위한 핵심 가이드 */}
+              <PromptGuide />
+
               {/* Format Guide */}
               <FormatGuide />
 
@@ -494,6 +497,410 @@ function FieldRow({ name, required, children }: { name: string; required?: boole
         {required && <span className="text-[9px] text-red-500 font-bold">필수</span>}
       </div>
       <div className="pl-1">{children}</div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   AI 프롬프트 가이드
+   ChatGPT, Claude, Gemini 등에 붙여넣어 JSON으로 결과를
+   받기 위한 미리 작성된 프롬프트 모음
+   ═══════════════════════════════════════════════════ */
+
+const MASTER_PROMPT = `당신은 초등학교 3~6학년 학생을 위한 학습 문제를 만드는 한국 교육 전문가입니다.
+
+[과목명] 분야에서 [유형] 문제를 [개수]개 만들어 주세요.
+난이도: [easy / medium / hard]
+주제(선택): [예: 고대 이집트 / 친구에 관한 사자성어]
+
+반드시 아래 JSON 형식으로만 응답해주세요.
+인사말, 설명, \`\`\`json\`\`\` 같은 코드블록 표시도 모두 빼고
+순수 JSON만 출력하세요.
+
+{
+  "questions": [
+    {
+      "type": "multiple-choice",
+      "subjectId": "world-history",
+      "difficulty": "easy",
+      "question": "문제 내용",
+      "options": ["선택지1","선택지2","선택지3","선택지4"],
+      "answer": "정답",
+      "explanation": "초등학생이 이해할 수 있는 쉬운 해설",
+      "tags": ["키워드1","키워드2"]
+    }
+  ]
+}
+
+[과목 ID 표]
+- 세계사 → world-history
+- 사자성어 → four-char-idiom
+- 관용구 → idiom
+- 속담 → proverb
+- 맞춤법 → spelling
+- 어휘 → vocabulary
+
+[유형 ID 표]
+- 객관식 → multiple-choice  (options 4개 필수, answer는 options 중 하나와 동일)
+- OX 퀴즈 → true-false       (options 생략, answer는 "O" 또는 "X")
+- 빈칸 채우기 → fill-blank   (문제에 (   ) 표시, answer는 빈칸 단어)
+- 단답형 → short-answer      (options 생략, answer는 짧은 단어)
+- 서술형 → sentence-making   (options 생략, "다음 ___을 사용해서 문장을 만들어 보세요: 키워드" 형식, answer는 예시 문장)
+
+[필수 사항]
+1. 모든 문제에 explanation 작성
+2. tags는 2~3개의 핵심 키워드
+3. 초등학생이 이해할 수 있는 쉬운 단어와 문장
+4. 너무 어려운 한자어 사용 금지`;
+
+const SUBJECT_PROMPTS: { id: string; icon: string; name: string; description: string; prompt: string }[] = [
+  {
+    id: 'world-history',
+    icon: '🌍',
+    name: '세계사',
+    description: '시대·지역별 객관식 위주',
+    prompt: `초등 3~6학년용 세계사 객관식 4지선다 문제 10개를 만들어 주세요.
+난이도는 easy(고대문명 기초) 5개 + medium(중세·근대) 5개로 섞어 주세요.
+다양한 시대(고대 이집트, 그리스, 로마, 중국, 인도, 중세 유럽, 대항해시대, 산업혁명 등)를 골고루 다뤄주세요.
+
+JSON 외 텍스트는 절대 포함하지 마세요.
+
+{
+  "questions": [
+    {
+      "type": "multiple-choice",
+      "subjectId": "world-history",
+      "difficulty": "easy",
+      "question": "...",
+      "options": ["...","...","...","..."],
+      "answer": "...",
+      "explanation": "...",
+      "tags": ["...","..."]
+    }
+  ]
+}
+
+규칙:
+- options는 정확히 4개
+- answer는 options 중 하나와 동일한 문자열
+- tags는 시대/지역/주제 중심 (예: ["이집트","고대문명"])`
+  },
+  {
+    id: 'four-char-idiom',
+    icon: '📜',
+    name: '사자성어',
+    description: '객관식 + 빈칸 + 서술형 혼합',
+    prompt: `초등 3~6학년용 사자성어 문제 10개를 만들어 주세요.
+유형은 다음과 같이 섞어 주세요:
+- 객관식 4개 (뜻 맞추기)
+- 빈칸 채우기 3개 (사자성어 자체를 빈칸에)
+- 서술형 3개 ("다음 사자성어를 사용해서 문장을 만들어 보세요: ___")
+
+난이도: easy 4개, medium 4개, hard 2개
+
+JSON 외 텍스트는 절대 포함하지 마세요.
+
+{
+  "questions": [
+    { "type": "multiple-choice", "subjectId": "four-char-idiom", "difficulty": "easy",
+      "question": "...", "options": ["...","...","...","..."],
+      "answer": "...", "explanation": "...",
+      "tags": ["사자성어","..."] },
+
+    { "type": "fill-blank", "subjectId": "four-char-idiom", "difficulty": "medium",
+      "question": "어릴 때부터 친한 친구를 (    )(이)라고 한다.",
+      "answer": "죽마고우",
+      "explanation": "...", "tags": ["친구"] },
+
+    { "type": "sentence-making", "subjectId": "four-char-idiom", "difficulty": "medium",
+      "question": "다음 사자성어를 사용해서 문장을 만들어 보세요: 일석이조",
+      "answer": "운동을 하면 건강도 좋아지고 살도 빠지니 일석이조다.",
+      "explanation": "...", "tags": ["문장만들기","효율"] }
+  ]
+}
+
+규칙:
+- 사자성어 한자 표기는 하지 말고 한글만 사용
+- explanation에 한자 뜻풀이를 간단히 적어도 OK
+- 너무 어려운 사자성어(고전·전문용어) 제외`
+  },
+  {
+    id: 'idiom',
+    icon: '💬',
+    name: '관용구',
+    description: '뜻 고르기 + 문장 만들기',
+    prompt: `초등 3~6학년용 관용구 문제 10개를 만들어 주세요.
+유형은:
+- 객관식 5개 (관용구의 뜻 고르기)
+- 서술형 5개 ("다음 관용구를 사용해서 문장을 만들어 보세요: ___")
+
+신체(눈, 귀, 입, 손, 발, 간 등) 관용구 위주로 작성하되, 다양한 주제도 포함해 주세요.
+
+JSON만 출력하세요.
+
+{
+  "questions": [
+    {
+      "type": "multiple-choice",
+      "subjectId": "idiom",
+      "difficulty": "easy",
+      "question": "\\"발이 넓다\\"는 무슨 뜻일까요?",
+      "options": ["아는 사람이 많다","발이 크다","걸음이 빠르다","여행을 많이 다닌다"],
+      "answer": "아는 사람이 많다",
+      "explanation": "...",
+      "tags": ["신체","관계"]
+    },
+    {
+      "type": "sentence-making",
+      "subjectId": "idiom",
+      "difficulty": "medium",
+      "question": "다음 관용구를 사용해서 문장을 만들어 보세요: 손이 크다",
+      "answer": "엄마는 손이 커서 음식을 항상 푸짐하게 차리신다.",
+      "explanation": "...",
+      "tags": ["신체","성격","문장만들기"]
+    }
+  ]
+}
+
+규칙:
+- 비속어·부정적 관용구 제외
+- 초등학생이 일상에서 쓸 만한 관용구 중심`
+  },
+  {
+    id: 'proverb',
+    icon: '📖',
+    name: '속담',
+    description: '빈칸 + 객관식 + 서술형',
+    prompt: `초등 3~6학년용 속담 문제 10개를 만들어 주세요.
+유형은:
+- 빈칸 채우기 5개 (속담의 일부를 빈칸으로)
+- 객관식 3개 (속담 뜻 고르기)
+- 서술형 2개 ("다음 속담을 사용해서 문장을 만들어 보세요: ___")
+
+JSON만 출력해 주세요.
+
+{
+  "questions": [
+    {
+      "type": "fill-blank",
+      "subjectId": "proverb",
+      "difficulty": "easy",
+      "question": "가는 말이 고와야 (     )이 곱다.",
+      "answer": "오는 말",
+      "explanation": "남에게 좋게 말해야 남도 좋게 말한다는 뜻.",
+      "tags": ["말","예절"]
+    }
+  ]
+}
+
+규칙:
+- 익숙한 한국 전통 속담 위주
+- 빈칸은 가장 핵심 단어로
+- 너무 길거나 어려운 속담 제외`
+  },
+  {
+    id: 'spelling',
+    icon: '✏️',
+    name: '맞춤법',
+    description: '객관식 + OX 위주',
+    prompt: `초등 3~6학년이 자주 헷갈리는 한글 맞춤법 문제 10개를 만들어 주세요.
+유형은:
+- 객관식 6개 (4개 보기 중 올바른 표기 고르기)
+- OX 4개 (진위 판단)
+
+다루면 좋은 주제: 됐어/됬어, 왠지/웬지, 어이없다/어의없다, 갈게/갈께, 이따가/있다가, 금세/금새, 일찍이/일찌기 등
+
+JSON만 출력해 주세요.
+
+{
+  "questions": [
+    {
+      "type": "multiple-choice",
+      "subjectId": "spelling",
+      "difficulty": "easy",
+      "question": "맞춤법이 올바른 것은?",
+      "options": ["됐어","됬어","댔어","되써"],
+      "answer": "됐어",
+      "explanation": "\\"되었어\\"의 줄임말은 \\"됐어\\"입니다.",
+      "tags": ["줄임말"]
+    },
+    {
+      "type": "true-false",
+      "subjectId": "spelling",
+      "difficulty": "easy",
+      "question": "\\"금새\\"가 아니라 \\"금세\\"가 맞는 표현이다.",
+      "answer": "O",
+      "explanation": "\\"금시에\\"의 줄임말은 \\"금세\\"입니다.",
+      "tags": ["혼동","부사"]
+    }
+  ]
+}`
+  },
+  {
+    id: 'vocabulary',
+    icon: '📚',
+    name: '어휘',
+    description: '유의어·반의어·뜻 혼합',
+    prompt: `초등 3~6학년용 어휘력 문제 10개를 만들어 주세요.
+다양한 유형으로 섞어 주세요:
+- 유의어/반의어 객관식 4개
+- 단어 뜻 객관식 3개
+- 빈칸 채우기 2개
+- 서술형 1개 ("다음 단어를 사용해서 문장을 만들어 보세요: ___")
+
+다룰 단어 예: 호기심, 공감, 절약, 용기, 감사, 후회, 즐겁다, 꼼꼼하다 등
+
+JSON만 출력해 주세요.
+
+{
+  "questions": [
+    {
+      "type": "multiple-choice",
+      "subjectId": "vocabulary",
+      "difficulty": "easy",
+      "question": "\\"꼼꼼하다\\"와 반대되는 뜻을 가진 단어는?",
+      "options": ["덤벙대다","조심하다","차분하다","깔끔하다"],
+      "answer": "덤벙대다",
+      "explanation": "...",
+      "tags": ["반의어","성격"]
+    }
+  ]
+}`
+  },
+];
+
+function PromptGuide() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="border-t border-gray-200 pt-4">
+      <button
+        className="w-full flex items-center justify-between gap-2 text-left"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-1.5">
+          <Sparkles size={13} className="text-primary-600" />
+          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+            AI로 문항 만들기 (프롬프트 가이드)
+          </h3>
+        </div>
+        {open ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-4 animate-fadeIn">
+          {/* Workflow */}
+          <div className="bg-gradient-to-br from-primary-50 to-indigo-50 border border-primary-100 rounded-lg p-3">
+            <h4 className="text-xs font-bold text-primary-800 mb-2">📌 사용 방법 (3단계)</h4>
+            <ol className="space-y-2 text-[11px] text-gray-700 leading-relaxed">
+              <Step n={1}>
+                아래 <strong>프롬프트 [복사]</strong> 버튼을 눌러 원하는 과목의 프롬프트를 복사하세요.
+              </Step>
+              <Step n={2}>
+                <a className="text-primary-600 underline" href="https://chat.openai.com" target="_blank" rel="noreferrer">ChatGPT</a>,
+                {' '}<a className="text-primary-600 underline" href="https://claude.ai" target="_blank" rel="noreferrer">Claude</a>,
+                {' '}<a className="text-primary-600 underline" href="https://gemini.google.com" target="_blank" rel="noreferrer">Gemini</a> 등에 붙여넣고 결과를 받으세요. (필요시 개수·주제 수정)
+              </Step>
+              <Step n={3}>
+                받은 JSON을 <strong>.json 파일</strong>로 저장한 뒤, 위쪽
+                {' '}<strong className="text-primary-700">"가져오기"</strong> 버튼으로 업로드하세요.
+              </Step>
+            </ol>
+          </div>
+
+          {/* Tips */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-[11px] text-amber-800 leading-relaxed">
+            <strong className="block mb-1">💡 팁</strong>
+            <ul className="list-disc ml-4 space-y-0.5">
+              <li>한 번에 5~15개 정도가 가장 안정적입니다</li>
+              <li>"JSON 외 절대 출력 금지" 문구를 꼭 유지하세요</li>
+              <li>같은 종류 더 받으려면: <em>"위와 같은 형식으로 10개 더, 겹치지 않게"</em> 추가</li>
+              <li>특정 주제에 집중하려면 <em>"주제: 한국 위인"</em>처럼 지정하세요</li>
+            </ul>
+          </div>
+
+          {/* Master prompt */}
+          <PromptCard
+            label="🎯 마스터 프롬프트 (모든 과목·유형 공통)"
+            description="[ ]에 원하는 값만 채우면 어떤 과목/유형에도 사용 가능"
+            prompt={MASTER_PROMPT}
+            highlighted
+          />
+
+          {/* Subject-specific prompts */}
+          <div>
+            <h4 className="text-xs font-bold text-gray-700 mb-2">과목별 즉시 사용 프롬프트</h4>
+            <div className="space-y-2">
+              {SUBJECT_PROMPTS.map((p) => (
+                <PromptCard
+                  key={p.id}
+                  label={`${p.icon} ${p.name}`}
+                  description={p.description}
+                  prompt={p.prompt}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Step({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2">
+      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-primary-600 text-white text-[9px] font-bold flex items-center justify-center mt-0.5">
+        {n}
+      </span>
+      <span>{children}</span>
+    </li>
+  );
+}
+
+function PromptCard({ label, description, prompt, highlighted = false }: {
+  label: string; description?: string; prompt: string; highlighted?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prompt);
+    toast('success', '프롬프트를 복사했습니다');
+  };
+
+  return (
+    <div className={`border rounded-lg overflow-hidden ${
+      highlighted ? 'border-primary-300 bg-primary-50/30' : 'border-gray-200 bg-white'
+    }`}>
+      <div className="flex items-center justify-between gap-2 px-3 py-2">
+        <button
+          className="flex items-center gap-1.5 flex-1 text-left min-w-0"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+        >
+          {open ? <ChevronDown size={11} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={11} className="text-gray-400 flex-shrink-0" />}
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-gray-800 truncate">{label}</div>
+            {description && <div className="text-[10px] text-gray-500 truncate">{description}</div>}
+          </div>
+        </button>
+        <button
+          onClick={handleCopy}
+          className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 transition-colors"
+          title="프롬프트 복사"
+        >
+          <Copy size={10} /> 복사
+        </button>
+      </div>
+      {open && (
+        <div className="border-t border-gray-200 bg-gray-900">
+          <pre className="text-gray-100 text-[10px] leading-relaxed p-3 overflow-x-auto font-mono whitespace-pre-wrap break-keep max-h-72">
+{prompt}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
