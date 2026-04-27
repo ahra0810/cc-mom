@@ -7,22 +7,24 @@ import { useQuestionStore } from '../stores/questionStore';
 import { useTestStore } from '../stores/testStore';
 
 interface Props {
-  question?: Question | null; // null = create new
+  question?: Question | null; // null = create new (or duplicate)
+  duplicateSource?: Question | null; // pre-fill from this question
   onClose: () => void;
 }
 
-export default function QuestionEditor({ question, onClose }: Props) {
+export default function QuestionEditor({ question, duplicateSource, onClose }: Props) {
   const { subjects, addQuestion, updateQuestion } = useQuestionStore();
   const { currentTest, addQuestionToTest, updateQuestionInTest } = useTestStore();
   const isEdit = !!question;
+  const seed = question || duplicateSource;
 
-  const [type, setType] = useState<QuestionType>(question?.type || 'multiple-choice');
-  const [subjectId, setSubjectId] = useState(question?.subjectId || currentTest?.subjectId || subjects[0]?.id || '');
-  const [difficulty, setDifficulty] = useState<Difficulty>(question?.difficulty || currentTest?.difficulty || 'easy');
-  const [questionText, setQuestionText] = useState(question?.question || '');
-  const [options, setOptions] = useState<string[]>(question?.options || ['', '', '', '']);
-  const [answer, setAnswer] = useState(question?.answer || '');
-  const [explanation, setExplanation] = useState(question?.explanation || '');
+  const [type, setType] = useState<QuestionType>(seed?.type || 'multiple-choice');
+  const [subjectId, setSubjectId] = useState(seed?.subjectId || currentTest?.subjectId || subjects[0]?.id || '');
+  const [difficulty, setDifficulty] = useState<Difficulty>(seed?.difficulty || currentTest?.difficulty || 'easy');
+  const [questionText, setQuestionText] = useState(seed?.question || '');
+  const [options, setOptions] = useState<string[]>(seed?.options || ['', '', '', '']);
+  const [answer, setAnswer] = useState(seed?.answer || '');
+  const [explanation, setExplanation] = useState(seed?.explanation || '');
 
   useEffect(() => {
     if (type === 'true-false' && !question) {
@@ -43,7 +45,7 @@ export default function QuestionEditor({ question, onClose }: Props) {
       options: type === 'multiple-choice' ? options.filter((o) => o.trim()) : undefined,
       answer: answer.trim(),
       explanation: explanation.trim() || undefined,
-      tags: question?.tags || [],
+      tags: question?.tags || seed?.tags || [],
       createdAt: question?.createdAt || Date.now(),
       source: question?.source || 'manual',
     };

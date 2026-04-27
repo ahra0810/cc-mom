@@ -59,7 +59,7 @@ body {
 }
 .page { max-width: 170mm; margin: 0 auto; }
 
-/* ── Header ── */
+/* -- Header -- */
 .header {
   text-align: center; padding-bottom: 14px;
   border-bottom: 2.5px solid #222; margin-bottom: 6px;
@@ -76,7 +76,7 @@ body {
   content: '|'; margin-left: 12px; color: #ccc;
 }
 
-/* ── Info row ── */
+/* -- Info row -- */
 .info-row {
   display: flex; justify-content: space-between; align-items: center;
   border: 1.5px solid #ddd; border-radius: 3px;
@@ -92,21 +92,21 @@ body {
   margin: 0 2px; height: 16px; text-align: center;
 }
 
-/* ── Answer key banner ── */
+/* -- Answer key banner -- */
 .answer-banner {
   text-align: center; font-size: 11pt; font-weight: 700; color: #1a1a1a;
   border: 2px solid #222; padding: 7px 0; margin: 10px 0 14px;
   letter-spacing: 2px;
 }
 
-/* ── Section title ── */
+/* -- Section title -- */
 .sec-title {
   font-size: 10pt; font-weight: 700; color: #333;
   padding: 5px 0 4px; margin: 14px 0 6px;
   border-bottom: 1.5px solid #333;
 }
 
-/* ── Question ── */
+/* -- Question -- */
 .q {
   display: flex; gap: 8px; margin-bottom: 14px;
   page-break-inside: avoid;
@@ -121,7 +121,7 @@ body {
   margin-bottom: 5px; color: #1a1a1a;
 }
 
-/* ── Options ── */
+/* -- Options -- */
 .opts {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 1px 20px; padding-left: 2px;
@@ -130,20 +130,20 @@ body {
 .opts-tf { grid-template-columns: auto auto; justify-content: start; gap: 1px 32px; }
 .opts .correct { font-weight: 700; color: #000; }
 
-/* ── Short answer line ── */
+/* -- Short answer line -- */
 .answer-line {
   width: 60%; height: 1px; border-bottom: 1px solid #999;
   margin: 6px 0 4px 2px;
 }
 
-/* ── Answer box (answer key) ── */
+/* -- Answer box (answer key) -- */
 .answer-box {
   display: inline-block; font-size: 10pt; font-weight: 700;
   color: #000; margin-top: 2px;
   border-bottom: 1.5px solid #000; padding-bottom: 1px;
 }
 
-/* ── Explanation ── */
+/* -- Explanation -- */
 .explain {
   margin-top: 5px; font-size: 9.5pt; color: #444;
   line-height: 1.6; padding: 5px 8px;
@@ -154,7 +154,7 @@ body {
   margin-right: 6px; font-size: 9pt;
 }
 
-/* ── Memo section ── */
+/* -- Memo section -- */
 .memo {
   page-break-before: auto; margin-top: 24px;
   border: 1.5px solid #ccc; border-radius: 4px; padding: 12px 14px;
@@ -180,7 +180,7 @@ export function generateTestPaperHTML(test: TestPaper, subjectName: string, show
   const totalScore = test.questions.length * 10;
 
   let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
-<title>${esc(test.title)}</title>
+<title>${esc(test.title)}${showAnswerKey ? ' - 답안지' : ''}</title>
 <style>${CSS}</style></head><body><div class="page">`;
 
   // Header
@@ -242,23 +242,37 @@ export function generateTestPaperHTML(test: TestPaper, subjectName: string, show
   return html;
 }
 
-export async function exportToPDF(test: TestPaper, subjectName: string): Promise<void> {
+function generateFileName(test: TestPaper, isAnswerKey: boolean): string {
+  const date = new Date().toISOString().slice(0, 10);
+  const title = test.title.replace(/[\\/:*?"<>|]/g, '_');
+  return `${title}${isAnswerKey ? '_답안지' : ''}_${date}.pdf`;
+}
+
+export async function exportToPDF(test: TestPaper, subjectName: string): Promise<boolean> {
   const html = generateTestPaperHTML(test, subjectName, false);
-  openPrintWindow(html);
+  return openPrintWindow(html, generateFileName(test, false));
 }
 
-export async function exportAnswerKeyToPDF(test: TestPaper, subjectName: string): Promise<void> {
+export async function exportAnswerKeyToPDF(test: TestPaper, subjectName: string): Promise<boolean> {
   const html = generateTestPaperHTML(test, subjectName, true);
-  openPrintWindow(html);
+  return openPrintWindow(html, generateFileName(test, true));
 }
 
-function openPrintWindow(html: string) {
+function openPrintWindow(html: string, _fileName: string): boolean {
   const win = window.open('', '_blank');
   if (!win) {
-    alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.');
-    return;
+    return false; // popup blocked
   }
   win.document.write(html);
   win.document.close();
-  setTimeout(() => win.print(), 500);
+
+  // Wait for fonts to load before printing
+  if (win.document.fonts && win.document.fonts.ready) {
+    win.document.fonts.ready.then(() => {
+      setTimeout(() => win.print(), 300);
+    });
+  } else {
+    setTimeout(() => win.print(), 800);
+  }
+  return true;
 }

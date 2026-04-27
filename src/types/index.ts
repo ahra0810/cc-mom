@@ -2,7 +2,7 @@ export type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank' | 'sh
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
-export type QuestionSource = 'ai' | 'manual' | 'preset';
+export type QuestionSource = 'manual' | 'preset';
 
 export interface Subject {
   id: string;
@@ -33,12 +33,6 @@ export interface TestPaper {
   questions: Question[];
   createdAt: number;
   showAnswerKey: boolean;
-}
-
-export interface AISettings {
-  provider: 'anthropic' | 'openai' | 'google';
-  apiKey: string;
-  model: string;
 }
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {

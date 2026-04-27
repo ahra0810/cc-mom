@@ -19,6 +19,8 @@ interface QuestionStore {
 
   // Actions
   setFilters: (filters: Partial<QuestionFilters>) => void;
+  clearFilters: () => void;
+  hasActiveFilters: () => boolean;
   addQuestion: (question: Question) => void;
   addQuestions: (questions: Question[]) => void;
   updateQuestion: (id: string, updates: Partial<Question>) => void;
@@ -26,10 +28,15 @@ interface QuestionStore {
   toggleSelectQuestion: (id: string) => void;
   selectAllFiltered: () => void;
   clearSelection: () => void;
-  addSubject: (subject: Subject) => void;
+  addSubject: (subject: Subject) => boolean; // returns false if duplicate
   removeSubject: (id: string) => void;
   getFilteredQuestions: () => Question[];
   resetToDefaults: () => void;
+  getSubjectQuestionCount: (subjectId: string) => number;
+
+  // Data export/import
+  exportData: () => string;
+  importData: (jsonStr: string) => { questions: number; subjects: number };
 }
 
 export const useQuestionStore = create<QuestionStore>()(
@@ -49,6 +56,16 @@ export const useQuestionStore = create<QuestionStore>()(
         set((state) => ({
           filters: { ...state.filters, ...newFilters },
         })),
+
+      clearFilters: () =>
+        set({
+          filters: { subjectId: null, difficulty: null, type: null, search: '' },
+        }),
+
+      hasActiveFilters: () => {
+        const { filters } = get();
+        return !!(filters.subjectId || filters.difficulty || filters.type || filters.search);
+      },
 
       addQuestion: (question) =>
         set((state) => ({
@@ -93,10 +110,15 @@ export const useQuestionStore = create<QuestionStore>()(
 
       clearSelection: () => set({ selectedQuestionIds: new Set() }),
 
-      addSubject: (subject) =>
-        set((state) => ({
-          subjects: [...state.subjects, subject],
-        })),
+      addSubject: (subject) => {
+        const { subjects } = get();
+        // Duplicate name check
+        if (subjects.some((s) => s.name.trim().toLowerCase() === subject.name.trim().toLowerCase())) {
+          return false;
+        }
+        set({ subjects: [...subjects, subject] });
+        return true;
+      },
 
       removeSubject: (id) =>
         set((state) => ({
@@ -111,6 +133,39 @@ export const useQuestionStore = create<QuestionStore>()(
           subjects: DEFAULT_SUBJECTS,
           selectedQuestionIds: new Set(),
         }),
+
+      getSubjectQuestionCount: (subjectId) => {
+        return get().questions.filter((q) => q.subjectId === subjectId).length;
+      },
+
+      exportData: () => {
+        const { questions, subjects } = get();
+        return JSON.stringify({ questions, subjects }, null, 2);
+      },
+
+      importData: (jsonStr) => {
+        const data = JSON.parse(jsonStr);
+        if (!data.questions || !Array.isArray(data.questions)) {
+          throw new Error('올바른 형식이 아닙니다.');
+        }
+        const newQuestions = data.questions as Question[];
+        const newSubjects = (data.subjects as Subject[]) || [];
+
+        set((state) => {
+          const existingIds = new Set(state.questions.map((q) => q.id));
+          const uniqueQuestions = newQuestions.filter((q) => !existingIds.has(q.id));
+
+          const existingSubjectIds = new Set(state.subjects.map((s) => s.id));
+          const uniqueSubjects = newSubjects.filter((s) => !existingSubjectIds.has(s.id));
+
+          return {
+            questions: [...uniqueQuestions, ...state.questions],
+            subjects: [...state.subjects, ...uniqueSubjects],
+          };
+        });
+
+        return { questions: newQuestions.length, subjects: newSubjects.length };
+      },
     }),
     {
       name: 'quiz-maker-questions',

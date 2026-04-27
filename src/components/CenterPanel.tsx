@@ -13,40 +13,47 @@ interface Props {
   onTabChange: (tab: 'preview' | 'test') => void;
   previewQuestion: Question | null;
   onEditQuestion: (q: Question) => void;
+  onDuplicateQuestion?: (q: Question) => void;
 }
 
-export default function CenterPanel({ activeTab, onTabChange, previewQuestion, onEditQuestion }: Props) {
+export default function CenterPanel({ activeTab, onTabChange, previewQuestion, onEditQuestion, onDuplicateQuestion }: Props) {
+  // onDuplicateQuestion is accepted for future use; suppress unused warning
+  void onDuplicateQuestion;
   const { currentTest } = useTestStore();
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 bg-white flex-shrink-0">
-        <button
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${
-            activeTab === 'preview'
-              ? 'text-primary-600 border-b-2 border-primary-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => onTabChange('preview')}
-        >
-          <Eye size={13} /> 문항 미리보기
-        </button>
-        <button
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${
-            activeTab === 'test'
-              ? 'text-primary-600 border-b-2 border-primary-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => onTabChange('test')}
-        >
-          <FileText size={13} /> 시험지 미리보기
-          {currentTest && currentTest.questions.length > 0 && (
-            <span className="bg-primary-100 text-primary-700 text-[10px] px-1.5 rounded-full">
-              {currentTest.questions.length}
-            </span>
-          )}
-        </button>
+      {/* Inline pill toggle (saves vertical space, doesn't wrap on narrow screens) */}
+      <div className="flex items-center justify-center gap-1 px-3 py-2 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
+          <button
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors ${
+              activeTab === 'test'
+                ? 'bg-white text-primary-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => onTabChange('test')}
+          >
+            <FileText size={12} /> 시험지
+            {currentTest && currentTest.questions.length > 0 && (
+              <span className={`text-[10px] px-1 rounded-full ${
+                activeTab === 'test' ? 'bg-primary-100 text-primary-700' : 'bg-gray-200 text-gray-600'
+              }`}>
+                {currentTest.questions.length}
+              </span>
+            )}
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors ${
+              activeTab === 'preview'
+                ? 'bg-white text-primary-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => onTabChange('preview')}
+          >
+            <Eye size={12} /> 문항
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden flex flex-col">
@@ -94,7 +101,6 @@ function QuestionPreviewTab({ question, onEdit }: { question: Question | null; o
           <span className="badge bg-blue-50 text-blue-700 text-xs">
             {QUESTION_TYPE_LABELS[question.type]}
           </span>
-          {question.source === 'ai' && <span className="badge bg-purple-100 text-purple-600 text-xs">AI 생성</span>}
         </div>
 
         {/* Question */}
