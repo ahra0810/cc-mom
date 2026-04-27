@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Plus, Save, Trash2, FolderOpen, FileDown, FileText, Settings,
-  ChevronDown, ChevronRight, Pencil, Check, X,
+  ChevronDown, ChevronRight, Pencil, Check, X, Eye,
 } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
 import { useQuestionStore } from '../stores/questionStore';
@@ -10,7 +10,8 @@ import { useConfirm } from './ConfirmDialog';
 import type { Difficulty } from '../types';
 import { DIFFICULTY_LABELS } from '../types';
 import { exportToPDF, exportAnswerKeyToPDF } from '../services/pdfService';
-import { ELEMENTARY_TEMPLATES, MIDDLE_TEMPLATES, getDefaultTemplateForDifficulty } from '../services/pdfTemplates';
+import { ELEMENTARY_TEMPLATES, MIDDLE_TEMPLATES, getDefaultTemplateForDifficulty, type PDFTemplate } from '../services/pdfTemplates';
+import TemplatePreviewModal from './TemplatePreviewModal';
 
 interface Props {
   onOpenSettings: () => void;
@@ -243,6 +244,7 @@ function ExportSection() {
     : ELEMENTARY_TEMPLATES[0];
   const [audience, setAudience] = useState<'elementary' | 'middle'>(defaultTpl.audience);
   const [templateId, setTemplateId] = useState<string>(defaultTpl.id);
+  const [previewTpl, setPreviewTpl] = useState<PDFTemplate | null>(null);
 
   const templates = audience === 'elementary' ? ELEMENTARY_TEMPLATES : MIDDLE_TEMPLATES;
 
@@ -303,28 +305,53 @@ function ExportSection() {
       {/* 템플릿 선택 */}
       <div>
         <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">
-          템플릿 ({templates.length}종)
+          템플릿 ({templates.length}종) — 카드 클릭=선택, 👁=미리보기
         </label>
-        <div className="grid grid-cols-2 gap-1 max-h-44 overflow-y-auto pr-0.5">
+        <div className="grid grid-cols-2 gap-1 max-h-56 overflow-y-auto pr-0.5">
           {templates.map((t) => {
             const selected = templateId === t.id;
+            const swatch = t.preview?.swatch || [t.primaryColor, t.accentColor, t.bgAccent];
             return (
-              <button
+              <div
                 key={t.id}
-                onClick={() => setTemplateId(t.id)}
-                className={`text-left p-1.5 rounded-md border text-[10px] transition-all ${
+                className={`group relative text-left p-1.5 rounded-md border text-[10px] transition-all cursor-pointer ${
                   selected
                     ? 'border-2 bg-primary-50 shadow-sm'
                     : 'border border-gray-200 bg-white hover:border-gray-400'
                 }`}
-                title={t.description}
                 style={selected ? { borderColor: t.primaryColor } : undefined}
+                onClick={() => setTemplateId(t.id)}
+                title={t.description}
               >
+                {/* 색상 스와치 */}
+                <div className="flex gap-0.5 mb-1">
+                  {swatch.slice(0, 3).map((c, i) => (
+                    <div
+                      key={i}
+                      className="w-3 h-3 rounded-sm border border-white shadow-sm"
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
                 <div className="font-bold truncate" style={{ color: t.primaryColor }}>
                   {t.name}
                 </div>
                 <div className="text-[9px] text-gray-500 truncate">{t.description}</div>
-              </button>
+                {/* 미리보기 버튼 (hover/selected 시 표시) */}
+                <button
+                  className={`absolute top-1 right-1 p-1 rounded bg-white/95 border border-gray-200 hover:bg-primary-50 hover:border-primary-300 transition-all shadow-sm ${
+                    selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewTpl(t);
+                  }}
+                  title="미리보기"
+                  aria-label={`${t.name} 미리보기`}
+                >
+                  <Eye size={10} className="text-gray-600" />
+                </button>
+              </div>
             );
           })}
         </div>
@@ -339,6 +366,20 @@ function ExportSection() {
       <p className="text-[10px] text-gray-400 leading-relaxed">
         새 창에서 인쇄 대화상자가 열립니다. <strong>"PDF로 저장"</strong> 옵션을 선택하세요.
       </p>
+
+      {/* 템플릿 미리보기 모달 */}
+      {previewTpl && (
+        <TemplatePreviewModal
+          template={previewTpl}
+          test={currentTest}
+          subjectName={getSubjectLabel()}
+          onClose={() => setPreviewTpl(null)}
+          onUseTemplate={() => {
+            setTemplateId(previewTpl.id);
+            setAudience(previewTpl.audience);
+          }}
+        />
+      )}
     </Section>
   );
 }

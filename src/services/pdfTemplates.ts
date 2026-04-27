@@ -27,19 +27,45 @@ export interface PDFTemplate {
   headerWeight: number;      // 제목 굵기
 
   /* 헤더 */
-  headerStyle: 'classic' | 'banner' | 'minimal' | 'side-stripe' | 'rounded' | 'school' | 'newspaper';
+  headerStyle:
+    | 'classic'
+    | 'banner'
+    | 'minimal'
+    | 'side-stripe'
+    | 'rounded'
+    | 'school'
+    | 'newspaper'
+    | 'tab-with-title'    // 사선 탭 + 둥근 작품 제목 (사랑손님과 어머니 풍)
+    | 'decorative-band'   // 키 패턴 띠 (한국사 학습지 풍)
+    | 'illustrated';      // 일러스트 풍 동화/명작 (구두장이와 요정들 풍)
 
   /* 문항 */
   questionStyle: 'plain' | 'boxed' | 'shaded' | 'circle-num' | 'square-num' | 'pill-num';
 
   /* 지문 */
-  passageStyle: 'side-border' | 'boxed' | 'shaded' | 'paper-fold' | 'double-line';
+  passageStyle:
+    | 'side-border'
+    | 'boxed'
+    | 'shaded'
+    | 'paper-fold'
+    | 'double-line'
+    | 'gray-section-box'  // 라벨 + 회색 음영 (사랑손님과 어머니 풍 작품 해설)
+    | 'info-table';       // 작품 정보 표 (작가/갈래/시점/배경/주제 등)
 
   /* 장식 */
-  decoration: 'none' | 'dots' | 'stars' | 'corner-marks' | 'page-border' | 'wave-top';
+  decoration: 'none' | 'dots' | 'stars' | 'corner-marks' | 'page-border' | 'wave-top' | 'greek-key';
 
   /* 밀도 */
   density: 'loose' | 'normal' | 'dense';
+
+  /* 답란 너비 — 초등용일수록 큼 */
+  answerSpacing?: 'compact' | 'normal' | 'roomy' | 'large';
+
+  /* 보조 메타 — 미리보기용 */
+  preview?: {
+    /** 한국 학습지 풍 색상 그룹 (미리보기 카드 미니어처에 사용) */
+    swatch?: string[];
+  };
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -57,7 +83,34 @@ export const ELEMENTARY_TEMPLATES: PDFTemplate[] = [
     fontStack: "'NanumSquareNeo','Pretendard','Noto Sans KR',sans-serif",
     baseFontSize: 12, headerWeight: 800,
     headerStyle: 'classic', questionStyle: 'plain', passageStyle: 'boxed',
-    decoration: 'none', density: 'loose',
+    decoration: 'none', density: 'loose', answerSpacing: 'roomy',
+    preview: { swatch: ['#2563EB','#EFF6FF','#FFFFFF'] },
+  },
+
+  /* ─── 사진 기반 신규 템플릿 (초등) ─── */
+  {
+    id: 'elem-greek-band',
+    name: '비교 학습 (한국사 풍)',
+    description: '키 패턴 띠 헤더 + 큰 답란, 표 비교에 최적',
+    audience: 'elementary',
+    primaryColor: '#B45309', accentColor: '#F59E0B', bgAccent: '#FEF3C7', textColor: '#1F2937',
+    fontStack: "'NanumSquareNeo','Pretendard','Noto Sans KR',sans-serif",
+    baseFontSize: 13, headerWeight: 800,
+    headerStyle: 'decorative-band', questionStyle: 'shaded', passageStyle: 'boxed',
+    decoration: 'greek-key', density: 'loose', answerSpacing: 'large',
+    preview: { swatch: ['#B45309','#F59E0B','#FEF3C7'] },
+  },
+  {
+    id: 'elem-storybook',
+    name: '동화·명작 (씨앗독서 풍)',
+    description: '일러스트 헤더 + 컬러 빈칸 박스, 명작·국어 활동지에 최적',
+    audience: 'elementary',
+    primaryColor: '#15803D', accentColor: '#84CC16', bgAccent: '#F0FDF4', textColor: '#1F2937',
+    fontStack: "'NanumSquareNeo','Pretendard',sans-serif",
+    baseFontSize: 13, headerWeight: 900,
+    headerStyle: 'illustrated', questionStyle: 'circle-num', passageStyle: 'shaded',
+    decoration: 'wave-top', density: 'loose', answerSpacing: 'large',
+    preview: { swatch: ['#15803D','#84CC16','#F0FDF4'] },
   },
   {
     id: 'elem-star',
@@ -175,7 +228,34 @@ export const MIDDLE_TEMPLATES: PDFTemplate[] = [
     fontStack: "'NanumSquareNeo','Pretendard','Noto Serif KR',serif",
     baseFontSize: 11, headerWeight: 800,
     headerStyle: 'school', questionStyle: 'plain', passageStyle: 'boxed',
-    decoration: 'none', density: 'normal',
+    decoration: 'none', density: 'normal', answerSpacing: 'normal',
+    preview: { swatch: ['#0F172A','#334155','#F1F5F9'] },
+  },
+
+  /* ─── 사진 기반 신규 템플릿 (중학) ─── */
+  {
+    id: 'mid-literature-intro',
+    name: '문학 입문 (학습지)',
+    description: '사선 탭 + 작품제목 박스 + 작품정보 표 — 국어·문학 작품 학습용',
+    audience: 'middle',
+    primaryColor: '#15803D', accentColor: '#22C55E', bgAccent: '#F1F5F4', textColor: '#1F2937',
+    fontStack: "'Noto Serif KR','NanumSquareNeo',serif",
+    baseFontSize: 11, headerWeight: 800,
+    headerStyle: 'tab-with-title', questionStyle: 'plain', passageStyle: 'gray-section-box',
+    decoration: 'none', density: 'normal', answerSpacing: 'roomy',
+    preview: { swatch: ['#15803D','#22C55E','#F1F5F4'] },
+  },
+  {
+    id: 'mid-literature-info',
+    name: '작품 정보 카드',
+    description: '작가·갈래·시점·배경·주제 표 강조 — 작품 분석 활동지',
+    audience: 'middle',
+    primaryColor: '#0F766E', accentColor: '#14B8A6', bgAccent: '#F0FDFA', textColor: '#134E4A',
+    fontStack: "'Noto Serif KR','NanumSquareNeo',serif",
+    baseFontSize: 11, headerWeight: 800,
+    headerStyle: 'tab-with-title', questionStyle: 'square-num', passageStyle: 'info-table',
+    decoration: 'none', density: 'normal', answerSpacing: 'roomy',
+    preview: { swatch: ['#0F766E','#14B8A6','#F0FDFA'] },
   },
   {
     id: 'mid-mock',
@@ -301,6 +381,14 @@ export function buildTemplateCSS(t: PDFTemplate): string {
     dense: { qGap: '10px', qPad: '0', headerPad: '10px' },
   }[t.density];
 
+  /* 답란 너비/높이 — 답을 쓰는 칸 크기 (학년별 조정) */
+  const answer = {
+    compact: { lineWidth: '50%', writingHeight: '60px', writeLineGap: 22 },
+    normal:  { lineWidth: '60%', writingHeight: '72px', writeLineGap: 24 },
+    roomy:   { lineWidth: '75%', writingHeight: '96px', writeLineGap: 28 },
+    large:   { lineWidth: '90%', writingHeight: '120px', writeLineGap: 32 },
+  }[t.answerSpacing || 'normal'];
+
   return `
 /* ═══ Base ═══ */
 @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
@@ -358,10 +446,10 @@ ${buildPassageCSS(t)}
 .opts-tf { grid-template-columns: auto auto; justify-content: start; gap: 1px 32px; }
 .opts .correct { font-weight: 800; color: ${t.primaryColor}; }
 
-.answer-line { width: 60%; height: 1px; border-bottom: 1px solid ${t.accentColor}; margin: 6px 0 4px 2px; }
+.answer-line { width: ${answer.lineWidth}; height: 1px; border-bottom: 1px solid ${t.accentColor}; margin: 8px 0 6px 2px; }
 .writing-lines {
-  height: 72px; margin: 6px 0 6px 2px;
-  background-image: repeating-linear-gradient(transparent, transparent 23px, ${t.accentColor}88 23px, ${t.accentColor}88 24px);
+  height: ${answer.writingHeight}; margin: 6px 0 6px 2px;
+  background-image: repeating-linear-gradient(transparent, transparent ${answer.writeLineGap - 1}px, ${t.accentColor}aa ${answer.writeLineGap - 1}px, ${t.accentColor}aa ${answer.writeLineGap}px);
 }
 .answer-box {
   display: inline-block; font-size: ${t.baseFontSize - 1}pt; font-weight: 700;
@@ -435,6 +523,84 @@ function buildHeaderCSS(t: PDFTemplate, d: { headerPad: string }): string {
 .header-sub span { margin: 0 6px; }
 .header-sub span:not(:last-child)::after { content: '·'; margin-left: 12px; }`;
 
+    case 'tab-with-title':
+      /* 사선 탭 (좌상단) + 둥근 사각 작품제목 (가운데, 사진 3 모티프) */
+      return `.header {
+  position: relative; padding: 12px 0 8px; margin-bottom: 14px;
+}
+.header::before {
+  content: '학습지'; position: absolute; left: -16px; top: -8px;
+  background: ${t.primaryColor}; color: white; font-size: ${t.baseFontSize - 2}pt;
+  font-weight: 800; padding: 4px 14px 6px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  letter-spacing: 1px;
+}
+.header h1 {
+  display: inline-block; padding: 8px 28px;
+  font-size: ${t.baseFontSize + 5}pt; font-weight: ${t.headerWeight}; color: white;
+  background: linear-gradient(135deg, ${t.primaryColor} 0%, ${t.primaryColor}dd 100%);
+  border-radius: 999px; margin: 14px auto 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.header { text-align: center; }
+.header-sub {
+  font-size: ${t.baseFontSize - 2.5}pt; color: ${t.textColor}88; margin-top: 4px;
+}
+.header-sub span { margin: 0 6px; }
+.header-sub span:not(:last-child)::after { content: '·'; margin-left: 12px; color: ${t.accentColor}; }`;
+
+    case 'decorative-band':
+      /* 키 패턴 띠 (사진 1 — 한국사 학습지 모티프) */
+      return `.header { padding-top: 0; margin-bottom: 14px; }
+.header::before {
+  content: ''; display: block; height: 18px; margin-bottom: 12px;
+  background-image:
+    linear-gradient(45deg, ${t.primaryColor} 25%, transparent 25%),
+    linear-gradient(-45deg, ${t.primaryColor} 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, ${t.accentColor} 75%),
+    linear-gradient(-45deg, transparent 75%, ${t.accentColor} 75%);
+  background-size: 18px 18px;
+  background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+  border-bottom: 2px solid ${t.primaryColor};
+}
+.header { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px 8px; border-bottom: 1.5px solid ${t.primaryColor}; }
+.header h1 {
+  font-size: ${t.baseFontSize + 4}pt; font-weight: ${t.headerWeight}; color: ${t.primaryColor};
+  letter-spacing: 0.5px;
+}
+.header-sub {
+  font-size: ${t.baseFontSize - 2}pt; color: ${t.textColor}88;
+  text-align: right;
+}
+.header-sub span { display: block; }`;
+
+    case 'illustrated':
+      /* 일러스트 풍 (사진 4 — 동화/명작 모티프) */
+      return `.header {
+  position: relative; background: ${t.bgAccent};
+  padding: 16px 20px; border-radius: 16px; margin-bottom: 16px;
+  border: 1.5px solid ${t.accentColor}66;
+  overflow: hidden;
+}
+.header::before {
+  content: '✦  ✦  ✦'; position: absolute; top: 8px; right: 16px;
+  color: ${t.accentColor}; font-size: ${t.baseFontSize}pt; letter-spacing: 6px;
+}
+.header::after {
+  content: '🌱'; position: absolute; bottom: 8px; left: 16px;
+  font-size: ${t.baseFontSize + 4}pt;
+}
+.header h1 {
+  font-size: ${t.baseFontSize + 6}pt; font-weight: ${t.headerWeight};
+  color: ${t.primaryColor}; margin-bottom: 4px; padding-left: 36px;
+}
+.header h1::before {
+  content: '🧚'; margin-right: 6px;
+}
+.header-sub { font-size: ${t.baseFontSize - 2}pt; color: ${t.textColor}99; padding-left: 36px; }
+.header-sub span { margin-right: 8px; }
+.header-sub span:not(:last-child)::after { content: '·'; margin-left: 8px; color: ${t.accentColor}; }`;
+
     case 'classic':
     default:
       return `.header { text-align: center; padding-bottom: 14px; border-bottom: 2.5px solid ${t.textColor}; margin-bottom: 12px; }
@@ -477,6 +643,54 @@ function buildPassageCSS(t: PDFTemplate): string {
     case 'double-line':
       return `.passage { border-top: 3px double ${t.primaryColor}; border-bottom: 3px double ${t.primaryColor}; padding: 8px 12px; margin-bottom: 8px; font-size: ${t.baseFontSize - 0.5}pt; line-height: 1.75; page-break-inside: avoid; }
 .passage-text { color: ${t.textColor}; } .passage-cite { margin-top: 6px; text-align: right; font-size: ${t.baseFontSize - 1.5}pt; color: ${t.textColor}99; font-style: italic; }`;
+    case 'gray-section-box':
+      /* 라벨 + 회색 음영 박스 (사진 3 — 작품 해설 모티프) */
+      return `.passage {
+  background: #F1F5F4; padding: 10px 14px; margin-bottom: 10px;
+  border-radius: 4px; font-size: ${t.baseFontSize - 0.5}pt; line-height: 1.75;
+  page-break-inside: avoid; position: relative;
+}
+.passage::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: ${t.primaryColor};
+  border-radius: 4px 0 0 4px;
+}
+.passage-text { color: ${t.textColor}; }
+.passage-cite {
+  margin-top: 8px; padding-top: 6px; border-top: 1px dashed #94a3b8;
+  text-align: right; font-size: ${t.baseFontSize - 1.5}pt; color: #64748B;
+  font-style: italic;
+}`;
+
+    case 'info-table':
+      /* 작품 정보 표 — 작가/갈래/시점/배경/주제 형식 (사진 3 모티프).
+         passage 내용을 줄바꿈 기준으로 파싱해 라벨:값 표로 표시 */
+      return `.passage {
+  margin-bottom: 12px; page-break-inside: avoid;
+  border: 1.5px solid ${t.primaryColor}; border-radius: 6px; overflow: hidden;
+}
+.passage-text {
+  display: grid; grid-template-columns: 80px 1fr; gap: 0;
+  font-size: ${t.baseFontSize - 0.5}pt;
+}
+.passage-text br { display: none; }
+/* 사용자가 'key: value' 형식으로 입력 시 자동 표 */
+.passage::before {
+  content: '작품 정보'; display: block; padding: 6px 12px;
+  background: ${t.primaryColor}; color: white; font-size: ${t.baseFontSize - 1.5}pt;
+  font-weight: 800; letter-spacing: 1px;
+}
+.passage-text {
+  padding: 0; line-height: 2;
+  white-space: pre-wrap; padding: 8px 12px; color: ${t.textColor};
+  display: block;
+}
+.passage-cite {
+  padding: 4px 12px; background: #f5f5f5;
+  text-align: right; font-size: ${t.baseFontSize - 1.5}pt; color: ${t.textColor}88; font-style: italic;
+  border-top: 1px solid #e5e7eb;
+}`;
+
     case 'boxed':
     default:
       return `.passage { border: 1px solid ${t.accentColor}; border-left: 3px solid ${t.primaryColor}; padding: 8px 12px; margin-bottom: 8px; background: ${t.bgAccent}66; font-size: ${t.baseFontSize - 0.5}pt; line-height: 1.75; page-break-inside: avoid; }
@@ -501,6 +715,17 @@ function buildDecorationCSS(t: PDFTemplate): string {
   content: ''; display: block; height: 8px; margin: -8px -8px 8px;
   background: repeating-linear-gradient(90deg, ${t.primaryColor} 0 8px, ${t.accentColor} 8px 16px);
   border-radius: 4px 4px 0 0;
+}`;
+    case 'greek-key':
+      /* 키 패턴 — 한국식 띠는 헤더에서 처리하므로 여기는 푸터에 잔잔히 */
+      return `.page::after {
+  content: ''; display: block; height: 8px; margin-top: 14px;
+  background-image:
+    linear-gradient(45deg, ${t.primaryColor} 25%, transparent 25%),
+    linear-gradient(-45deg, ${t.primaryColor} 25%, transparent 25%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px;
+  opacity: 0.5;
 }`;
     case 'page-border':
     case 'none':

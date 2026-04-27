@@ -30,6 +30,7 @@ interface QuestionStore {
   selectAllFiltered: () => void;
   clearSelection: () => void;
   addSubject: (subject: Subject) => boolean; // returns false if duplicate
+  updateSubject: (id: string, updates: Partial<Pick<Subject, 'name' | 'icon' | 'color'>>) => void;
   removeSubject: (id: string) => void;
   getFilteredQuestions: () => Question[];
   resetToDefaults: () => void;
@@ -127,6 +128,22 @@ export const useQuestionStore = create<QuestionStore>()(
         set({ subjects: [...subjects, subject] });
         return true;
       },
+
+      updateSubject: (id, updates) =>
+        set((state) => {
+          // 이름 변경 시 중복 체크
+          if (typeof updates.name === 'string') {
+            const trimmed = updates.name.trim();
+            if (!trimmed) return state;
+            if (state.subjects.some((s) => s.id !== id && s.name.trim().toLowerCase() === trimmed.toLowerCase())) {
+              return state; // 중복 — 변경 거부 (UI에서 토스트로 안내)
+            }
+            updates = { ...updates, name: trimmed };
+          }
+          return {
+            subjects: state.subjects.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+          };
+        }),
 
       removeSubject: (id) =>
         set((state) => ({

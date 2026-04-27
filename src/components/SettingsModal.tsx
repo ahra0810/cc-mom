@@ -1,22 +1,59 @@
 import { useState } from 'react';
-import { X, Plus, Trash2, RotateCcw, Tag, Database, Upload, Download, FileText, ChevronDown, ChevronRight, Copy, Sparkles } from 'lucide-react';
+import { X, Plus, Trash2, RotateCcw, Tag, Database, Upload, Download, FileText, ChevronDown, ChevronRight, Copy, Sparkles, Pencil, Check } from 'lucide-react';
 import { nanoid } from 'nanoid';
 import { useQuestionStore } from '../stores/questionStore';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
+import EmojiPicker from './EmojiPicker';
 
 interface Props {
   onClose: () => void;
 }
 
 export default function SettingsModal({ onClose }: Props) {
-  const { subjects, addSubject, removeSubject, resetToDefaults, exportData, importData, getSubjectQuestionCount } = useQuestionStore();
+  const { subjects, addSubject, updateSubject, removeSubject, resetToDefaults, exportData, importData, getSubjectQuestionCount } = useQuestionStore();
   const { toast } = useToast();
   const confirm = useConfirm();
 
   const [newSubjectName, setNewSubjectName] = useState('');
   const [newSubjectIcon, setNewSubjectIcon] = useState('📝');
+  const [showNewIconPicker, setShowNewIconPicker] = useState(false);
   const [activeTab, setActiveTab] = useState<'subjects' | 'data'>('subjects');
+
+  /* 인라인 편집 상태 */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editIcon, setEditIcon] = useState('');
+  const [editIconPickerOpen, setEditIconPickerOpen] = useState(false);
+
+  const startEdit = (id: string, name: string, icon: string) => {
+    setEditingId(id);
+    setEditName(name);
+    setEditIcon(icon);
+    setEditIconPickerOpen(false);
+  };
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditIconPickerOpen(false);
+  };
+  const saveEdit = () => {
+    if (!editingId) return;
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      toast('error', '과목 이름을 입력해주세요');
+      return;
+    }
+    const original = subjects.find((s) => s.id === editingId);
+    if (!original) return;
+    /* 중복 체크 */
+    if (subjects.some((s) => s.id !== editingId && s.name.trim().toLowerCase() === trimmed.toLowerCase())) {
+      toast('error', '같은 이름의 과목이 이미 있습니다');
+      return;
+    }
+    updateSubject(editingId, { name: trimmed, icon: editIcon || original.icon });
+    toast('success', `"${trimmed}"(으)로 수정했습니다`);
+    cancelEdit();
+  };
 
   const handleAddSubject = () => {
     if (!newSubjectName.trim()) return;
@@ -224,20 +261,86 @@ export default function SettingsModal({ onClose }: Props) {
                 <div className="space-y-1.5">
                   {subjects.map((s) => {
                     const count = getSubjectQuestionCount(s.id);
-                    return (
-                      <div key={s.id} className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-2 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{s.icon}</span>
-                          <span className="text-sm font-medium text-gray-700">{s.name}</span>
-                          <span className="text-xs text-gray-400">{count}문항</span>
+                    const isEditing = editingId === s.id;
+                    if (isEditing) {
+                      return (
+                        <div key={s.id} className="bg-primary-50 border border-primary-200 rounded-lg p-2.5 animate-fadeIn">
+                          <div className="flex items-center gap-2">
+                            <div className="relative">
+                              <button
+                                onClick={() => setEditIconPickerOpen((v) => !v)}
+                                className="w-9 h-9 flex items-center justify-center text-xl bg-white border border-gray-200 rounded-md hover:border-primary-400"
+                                aria-label="아이콘 선택"
+                              >
+                                {editIcon || s.icon}
+                              </button>
+                              {editIconPickerOpen && (
+                                <EmojiPicker
+                                  value={editIcon}
+                                  onChange={(em) => {
+                                    setEditIcon(em);
+                                    setEditIconPickerOpen(false);
+                                  }}
+                                  onClose={() => setEditIconPickerOpen(false)}
+                                />
+                              )}
+                            </div>
+                            <input
+                              className="input-field !text-sm flex-1"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveEdit();
+                                if (e.key === 'Escape') cancelEdit();
+                              }}
+                              autoFocus
+                              aria-label="과목 이름"
+                            />
+                            <button
+                              onClick={saveEdit}
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded"
+                              aria-label="저장"
+                              title="저장"
+                            >
+                              <Check size={14} />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="p-1.5 text-gray-400 hover:bg-gray-100 rounded"
+                              aria-label="취소"
+                              title="취소"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleRemoveSubject(s.id, s.name)}
-                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                          aria-label={`${s.name} 삭제`}
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                      );
+                    }
+                    return (
+                      <div key={s.id} className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-2 transition-colors group">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base flex-shrink-0">{s.icon}</span>
+                          <span className="text-sm font-medium text-gray-700 truncate">{s.name}</span>
+                          <span className="text-xs text-gray-400 flex-shrink-0">{count}문항</span>
+                        </div>
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                          <button
+                            onClick={() => startEdit(s.id, s.name, s.icon)}
+                            className="p-1 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                            aria-label={`${s.name} 편집`}
+                            title="편집"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveSubject(s.id, s.name)}
+                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                            aria-label={`${s.name} 삭제`}
+                            title="삭제"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -249,14 +352,26 @@ export default function SettingsModal({ onClose }: Props) {
                   새 과목 추가
                 </h3>
                 <div className="flex gap-2">
-                  <input
-                    className="input-field !text-sm w-12 text-center"
-                    placeholder="📝"
-                    value={newSubjectIcon}
-                    onChange={(e) => setNewSubjectIcon(e.target.value)}
-                    maxLength={2}
-                    aria-label="아이콘"
-                  />
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowNewIconPicker((v) => !v)}
+                      className="w-12 h-9 flex items-center justify-center text-lg bg-white border border-gray-300 rounded-lg hover:border-primary-400"
+                      aria-label="아이콘 선택"
+                      type="button"
+                    >
+                      {newSubjectIcon}
+                    </button>
+                    {showNewIconPicker && (
+                      <EmojiPicker
+                        value={newSubjectIcon}
+                        onChange={(em) => {
+                          setNewSubjectIcon(em);
+                          setShowNewIconPicker(false);
+                        }}
+                        onClose={() => setShowNewIconPicker(false)}
+                      />
+                    )}
+                  </div>
                   <input
                     className="input-field !text-sm flex-1"
                     placeholder="과목 이름 (예: 한국사)"
