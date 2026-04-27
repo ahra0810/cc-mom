@@ -20,7 +20,7 @@ interface Props {
 export default function RightPanel({ onOpenSettings }: Props) {
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="flex items-center gap-1.5 px-3 py-2 border-b border-gray-200 flex-shrink-0">
+      <div className="flex items-center gap-1.5 px-3 h-11 border-b border-gray-200 flex-shrink-0">
         <FileText size={14} className="text-primary-600" />
         <span className="text-xs font-bold text-gray-800">시험지 작업</span>
       </div>

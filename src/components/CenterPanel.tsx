@@ -24,7 +24,7 @@ export default function CenterPanel({ activeTab, onTabChange, previewQuestion, o
   return (
     <div className="flex flex-col h-full">
       {/* Inline pill toggle (saves vertical space, doesn't wrap on narrow screens) */}
-      <div className="flex items-center justify-center gap-1 px-3 py-2 border-b border-gray-200 bg-white flex-shrink-0">
+      <div className="flex items-center justify-center gap-1 px-3 h-11 border-b border-gray-200 bg-white flex-shrink-0">
         <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
           <button
             className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors ${

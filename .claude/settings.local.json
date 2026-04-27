@@ -23,7 +23,10 @@
       "Bash(git push:*)",
       "Bash(gh run:*)",
       "Bash(git commit -m ' *)",
-      "Bash(node /c/Users/정아라/cc-mom/scripts/embed-images.cjs)"
+      "Bash(node /c/Users/정아라/cc-mom/scripts/embed-images.cjs)",
+      "Bash(curl -sIL \"https://ebook.mirae-n.com/@kb2052\")",
+      "Bash(curl -sIL -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -H \"Accept: text/html,application/xhtml+xml\" \"https://ebook.mirae-n.com/@kb2052\")",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36\" \"https://ebook.mirae-n.com/@kb2052\")"
     ]
   }
 }
