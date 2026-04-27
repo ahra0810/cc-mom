@@ -210,7 +210,9 @@ function TestPreviewTab({ onEditQuestion }: { onEditQuestion: (q: Question) => v
     );
   }
 
-  const subject = subjects.find((s) => s.id === currentTest.subjectId);
+  const testSubjects = currentTest.subjectIds
+    .map((id) => subjects.find((s) => s.id === id))
+    .filter(Boolean) as typeof subjects;
   const selectedCount = selectedInTest.size;
 
   const handleQuestionClick = (id: string, e: React.MouseEvent) => {
@@ -233,9 +235,15 @@ function TestPreviewTab({ onEditQuestion }: { onEditQuestion: (q: Question) => v
           />
           <span className="text-[10px] text-gray-400 flex-shrink-0">{currentTest.questions.length}문항</span>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-gray-500">
-          <span>{subject?.icon} {subject?.name}</span>
-          <span>|</span>
+        <div className="flex items-center gap-1.5 text-[11px] text-gray-500 flex-wrap">
+          {testSubjects.map((s) => (
+            <span key={s.id} className="inline-flex items-center gap-0.5">
+              <span>{s.icon}</span>
+              <span>{s.name}</span>
+            </span>
+          ))}
+          {testSubjects.length === 0 && <span>(과목 없음)</span>}
+          <span className="text-gray-300">|</span>
           <span>{DIFFICULTY_LABELS[currentTest.difficulty]}</span>
         </div>
 

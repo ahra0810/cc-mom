@@ -173,6 +173,7 @@ body {
 `;
 
 export function generateTestPaperHTML(test: TestPaper, subjectName: string, showAnswerKey: boolean): string {
+  // subjectName may be a single name or comma-separated list of names
   const date = new Date(test.createdAt).toLocaleDateString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric',
   });

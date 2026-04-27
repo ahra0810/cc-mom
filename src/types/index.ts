@@ -28,7 +28,7 @@ export interface Question {
 export interface TestPaper {
   id: string;
   title: string;
-  subjectId: string;
+  subjectIds: string[]; // multiple subjects can be selected per test paper
   difficulty: Difficulty;
   questions: Question[];
   createdAt: number;

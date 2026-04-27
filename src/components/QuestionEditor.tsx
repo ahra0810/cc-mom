@@ -19,7 +19,7 @@ export default function QuestionEditor({ question, duplicateSource, onClose }: P
   const seed = question || duplicateSource;
 
   const [type, setType] = useState<QuestionType>(seed?.type || 'multiple-choice');
-  const [subjectId, setSubjectId] = useState(seed?.subjectId || currentTest?.subjectId || subjects[0]?.id || '');
+  const [subjectId, setSubjectId] = useState(seed?.subjectId || currentTest?.subjectIds?.[0] || subjects[0]?.id || '');
   const [difficulty, setDifficulty] = useState<Difficulty>(seed?.difficulty || currentTest?.difficulty || 'easy');
   const [questionText, setQuestionText] = useState(seed?.question || '');
   const [options, setOptions] = useState<string[]>(seed?.options || ['', '', '', '']);

@@ -49,13 +49,28 @@ function CurrentTestSection() {
   const confirm = useConfirm();
 
   const [title, setTitle] = useState('');
-  const [subjectId, setSubjectId] = useState(subjects[0]?.id || '');
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<Set<string>>(
+    () => new Set(subjects[0] ? [subjects[0].id] : [])
+  );
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [editingTitle, setEditingTitle] = useState(false);
 
+  const toggleSubject = (id: string) => {
+    setSelectedSubjectIds((prev) => {
+      const s = new Set(prev);
+      if (s.has(id)) s.delete(id);
+      else s.add(id);
+      return s;
+    });
+  };
+
   const handleCreate = () => {
     if (!title.trim()) return;
-    createTest(title.trim(), subjectId, difficulty);
+    if (selectedSubjectIds.size === 0) {
+      toast('warning', '과목을 한 개 이상 선택해주세요');
+      return;
+    }
+    createTest(title.trim(), [...selectedSubjectIds], difficulty);
     toast('success', '시험지를 생성했습니다');
     setTitle('');
   };
@@ -78,22 +93,77 @@ function CurrentTestSection() {
 
   // No current test → show "create new" form
   if (!currentTest) {
+    const allSelected = subjects.length > 0 && subjects.every((s) => selectedSubjectIds.has(s.id));
     return (
       <Section title="새 시험지 만들기" icon={<Plus size={13} />} defaultOpen>
         <input
           className="input-field !text-xs"
-          placeholder="시험지 제목 (예: 3학년 세계사 퀴즈)"
+          placeholder="시험지 제목 (예: 3학년 종합 퀴즈)"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+          aria-label="시험지 제목"
         />
-        <select className="select-field !text-xs" value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
-          {subjects.map((s) => (<option key={s.id} value={s.id}>{s.icon} {s.name}</option>))}
-        </select>
-        <select className="select-field !text-xs" value={difficulty} onChange={(e) => setDifficulty(e.target.value as Difficulty)}>
+
+        {/* Multi-subject selection */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              과목 선택 ({selectedSubjectIds.size})
+            </label>
+            <button
+              type="button"
+              className="text-[10px] text-primary-600 hover:text-primary-700 font-medium"
+              onClick={() => {
+                if (allSelected) setSelectedSubjectIds(new Set());
+                else setSelectedSubjectIds(new Set(subjects.map((s) => s.id)));
+              }}
+            >
+              {allSelected ? '전체 해제' : '전체 선택'}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-1">
+            {subjects.map((s) => {
+              const checked = selectedSubjectIds.has(s.id);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => toggleSubject(s.id)}
+                  className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium border transition-all text-left ${
+                    checked
+                      ? 'border-transparent text-white shadow-sm'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+                  }`}
+                  style={checked ? { backgroundColor: s.color } : undefined}
+                  aria-pressed={checked}
+                >
+                  <div className={`w-3 h-3 rounded border flex items-center justify-center flex-shrink-0 ${
+                    checked ? 'bg-white/20 border-white/40' : 'border-gray-300 bg-white'
+                  }`}>
+                    {checked && <Check size={8} strokeWidth={3} className="text-white" />}
+                  </div>
+                  <span className="truncate">{s.icon} {s.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <select
+          className="select-field !text-xs"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+          aria-label="난이도"
+        >
           {Object.entries(DIFFICULTY_LABELS).map(([k, v]) => (<option key={k} value={k}>{v}</option>))}
         </select>
-        <button className="btn btn-primary w-full" onClick={handleCreate} disabled={!title.trim()}>
+
+        <button
+          className="btn btn-primary w-full"
+          onClick={handleCreate}
+          disabled={!title.trim() || selectedSubjectIds.size === 0}
+        >
           <Plus size={13} /> 시험지 생성
         </button>
       </Section>
@@ -101,7 +171,9 @@ function CurrentTestSection() {
   }
 
   // Has current test → show info & actions
-  const sub = subjects.find((s) => s.id === currentTest.subjectId);
+  const testSubjects = currentTest.subjectIds
+    .map((id) => subjects.find((s) => s.id === id))
+    .filter(Boolean) as typeof subjects;
   return (
     <Section title="현재 시험지" icon={<FileText size={13} />} defaultOpen>
       <div className="bg-gradient-to-br from-primary-50 to-indigo-50 rounded-lg p-2.5 border border-primary-100">
@@ -122,8 +194,16 @@ function CurrentTestSection() {
           <div className="flex items-start gap-1.5">
             <div className="flex-1 min-w-0">
               <div className="text-xs font-bold text-gray-800 break-keep">{currentTest.title}</div>
-              <div className="text-[10px] text-gray-500 mt-0.5">
-                {sub?.icon} {sub?.name} · {DIFFICULTY_LABELS[currentTest.difficulty].split('(')[0].trim()}
+              <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap gap-1">
+                {testSubjects.map((s) => (
+                  <span key={s.id} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/70 border border-primary-100">
+                    {s.icon} {s.name}
+                  </span>
+                ))}
+                {testSubjects.length === 0 && <span>(과목 없음)</span>}
+              </div>
+              <div className="text-[10px] text-gray-500 mt-1">
+                {DIFFICULTY_LABELS[currentTest.difficulty].split('(')[0].trim()}
               </div>
             </div>
             <button onClick={() => setEditingTitle(true)} className="p-1 text-gray-400 hover:text-primary-600 rounded flex-shrink-0">
@@ -156,13 +236,20 @@ function ExportSection() {
   const { subjects } = useQuestionStore();
   const { toast } = useToast();
 
+  const getSubjectLabel = () => {
+    if (!currentTest) return '';
+    const names = currentTest.subjectIds
+      .map((id) => subjects.find((s) => s.id === id)?.name)
+      .filter(Boolean) as string[];
+    return names.join(' · ');
+  };
+
   const handleExportPDF = () => {
     if (!currentTest || currentTest.questions.length === 0) {
       toast('warning', '먼저 문항을 추가하세요');
       return;
     }
-    const sub = subjects.find((s) => s.id === currentTest.subjectId);
-    exportToPDF(currentTest, sub?.name || '');
+    exportToPDF(currentTest, getSubjectLabel());
   };
 
   const handleExportAnswerKey = () => {
@@ -170,8 +257,7 @@ function ExportSection() {
       toast('warning', '먼저 문항을 추가하세요');
       return;
     }
-    const sub = subjects.find((s) => s.id === currentTest.subjectId);
-    exportAnswerKeyToPDF(currentTest, sub?.name || '');
+    exportAnswerKeyToPDF(currentTest, getSubjectLabel());
   };
 
   const disabled = !currentTest || currentTest.questions.length === 0;
@@ -228,12 +314,19 @@ function SavedListSection() {
       ) : (
         <div className="space-y-1.5">
           {savedTests.map((test) => {
-            const sub = subjects.find((s) => s.id === test.subjectId);
+            const testSubs = test.subjectIds
+              .map((id) => subjects.find((s) => s.id === id))
+              .filter(Boolean) as typeof subjects;
+            const subLabel = testSubs.length === 0
+              ? '(과목 없음)'
+              : testSubs.length === 1
+                ? `${testSubs[0].icon} ${testSubs[0].name}`
+                : `${testSubs[0].icon} ${testSubs[0].name} 외 ${testSubs.length - 1}개`;
             return (
               <div key={test.id} className="bg-gray-50 hover:bg-gray-100 rounded-lg p-2 transition-colors">
                 <div className="text-xs font-medium text-gray-800 truncate">{test.title}</div>
                 <div className="text-[10px] text-gray-500 mt-0.5 truncate">
-                  {sub?.icon} {sub?.name} · {test.questions.length}문항 ·{' '}
+                  {subLabel} · {test.questions.length}문항 ·{' '}
                   {new Date(test.createdAt).toLocaleDateString('ko-KR')}
                 </div>
                 <div className="flex gap-1 mt-1.5">

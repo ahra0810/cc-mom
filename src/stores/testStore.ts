@@ -5,6 +5,20 @@ import { nanoid } from 'nanoid';
 
 const MAX_HISTORY = 50;
 
+/**
+ * Migrate legacy TestPaper format (subjectId: string) to new format (subjectIds: string[]).
+ * Safe to call on already-migrated data.
+ */
+function migrateTestPaper(t: unknown): TestPaper | null {
+  if (!t || typeof t !== 'object') return null;
+  const obj = t as Record<string, unknown>;
+  if (Array.isArray(obj.subjectIds)) return obj as unknown as TestPaper;
+  if (typeof obj.subjectId === 'string') {
+    return { ...obj, subjectIds: [obj.subjectId] } as unknown as TestPaper;
+  }
+  return { ...obj, subjectIds: [] } as unknown as TestPaper;
+}
+
 interface TestStore {
   currentTest: TestPaper | null;
   savedTests: TestPaper[];
@@ -28,7 +42,7 @@ interface TestStore {
   sortBySubject: () => void;
 
   // CRUD
-  createTest: (title: string, subjectId: string, difficulty: Difficulty) => void;
+  createTest: (title: string, subjectIds: string[], difficulty: Difficulty) => void;
   updateTestTitle: (title: string) => void;
   addQuestionToTest: (question: Question) => void;
   addQuestionsToTest: (questions: Question[]) => void;
@@ -161,11 +175,11 @@ export const useTestStore = create<TestStore>()(
         set({ currentTest: { ...currentTest, questions: sorted } });
       },
 
-      createTest: (title, subjectId, difficulty) => {
+      createTest: (title, subjectIds, difficulty) => {
         const test: TestPaper = {
           id: nanoid(),
           title,
-          subjectId,
+          subjectIds: Array.isArray(subjectIds) ? subjectIds : [subjectIds],
           difficulty,
           questions: [],
           createdAt: Date.now(),
@@ -329,11 +343,14 @@ export const useTestStore = create<TestStore>()(
       }),
       merge: (persisted: unknown, current) => {
         const p = persisted as Partial<TestStore> | undefined;
+        const migratedSaved = (p?.savedTests ?? []).map(migrateTestPaper).filter(Boolean) as TestPaper[];
+        const migratedCurrent = p?.currentTest ? migrateTestPaper(p.currentTest) : null;
+        const migratedInitial = p?.initialTestSnapshot ? migrateTestPaper(p.initialTestSnapshot) : null;
         return {
           ...current,
-          savedTests: p?.savedTests ?? current.savedTests,
-          currentTest: p?.currentTest ?? current.currentTest,
-          initialTestSnapshot: p?.initialTestSnapshot ?? current.initialTestSnapshot,
+          savedTests: migratedSaved,
+          currentTest: migratedCurrent ?? current.currentTest,
+          initialTestSnapshot: migratedInitial ?? current.initialTestSnapshot,
         };
       },
     }
