@@ -1,6 +1,6 @@
 export type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank' | 'short-answer' | 'sentence-making';
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'advanced' | 'expert';
 
 export type QuestionSource = 'manual' | 'preset';
 
@@ -23,6 +23,12 @@ export interface Question {
   tags?: string[];
   createdAt: number;
   source: QuestionSource;
+  /** 지문/제시문 (문학 작품 발췌, 비문학 글 등) - 문제 위에 박스로 표시됨 */
+  passage?: string;
+  /** 작품명 (예: 소나기) */
+  workTitle?: string;
+  /** 작가명 (예: 황순원) */
+  workAuthor?: string;
 }
 
 export interface TestPaper {
@@ -36,9 +42,11 @@ export interface TestPaper {
 }
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: '쉬움 (초등 3학년)',
-  medium: '보통 (초등 4학년)',
-  hard: '어려움 (초등 5~6학년)',
+  easy: '쉬움 (초등 3~4학년)',
+  medium: '보통 (초등 5~6학년)',
+  hard: '어려움 (중학 1학년)',
+  advanced: '심화 (중학 2학년)',
+  expert: '도전 (중학 3학년)',
 };
 
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
@@ -56,4 +64,5 @@ export const DEFAULT_SUBJECTS: Subject[] = [
   { id: 'proverb', name: '속담', icon: '📖', color: '#F59E0B' },
   { id: 'spelling', name: '맞춤법', icon: '✏️', color: '#10B981' },
   { id: 'vocabulary', name: '어휘', icon: '📚', color: '#6366F1' },
+  { id: 'middle-literature', name: '중학 국어 (문학)', icon: '📕', color: '#7C3AED' },
 ];

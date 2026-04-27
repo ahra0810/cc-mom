@@ -93,15 +93,29 @@ function QuestionPreviewTab({ question, onEdit }: { question: Question | null; o
         {/* Header badges */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="badge bg-gray-100 text-gray-700 text-xs">{sub?.icon} {sub?.name}</span>
-          <span className={`badge text-xs ${
-            question.difficulty === 'easy' ? 'badge-easy' : question.difficulty === 'medium' ? 'badge-medium' : 'badge-hard'
-          }`}>
+          <span className={`badge text-xs badge-${question.difficulty}`}>
             {DIFFICULTY_LABELS[question.difficulty]}
           </span>
           <span className="badge bg-blue-50 text-blue-700 text-xs">
             {QUESTION_TYPE_LABELS[question.type]}
           </span>
         </div>
+
+        {/* Passage / work info (literature) */}
+        {(question.passage || question.workTitle) && (
+          <div className="border border-gray-300 border-l-4 border-l-purple-400 bg-gray-50 rounded-md p-3 mb-3">
+            {question.passage && (
+              <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
+                {question.passage}
+              </div>
+            )}
+            {(question.workTitle || question.workAuthor) && (
+              <div className="text-xs text-gray-500 italic text-right mt-2 pt-2 border-t border-dashed border-gray-300">
+                – {question.workTitle}{question.workAuthor ? `, ${question.workAuthor}` : ''}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Question */}
         <div className="card p-4 mb-4">
@@ -384,7 +398,20 @@ function TestQuestionCard({
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-xs font-bold text-primary-600">{index + 1}.</span>
             <span className="text-[10px] text-gray-400">{subjectIcon} {subjectName}</span>
+            {q.workTitle && (
+              <span className="text-[10px] text-purple-600 font-medium">📕 {q.workTitle}</span>
+            )}
           </div>
+          {(q.passage || q.workTitle) && q.passage && (
+            <div className="border-l-2 border-purple-300 bg-purple-50/30 px-2 py-1 mb-1.5 text-[11px] text-gray-600 leading-relaxed line-clamp-3 whitespace-pre-line">
+              {q.passage}
+              {(q.workTitle || q.workAuthor) && (
+                <div className="text-[9px] text-gray-500 italic mt-1">
+                  – {q.workTitle}{q.workAuthor ? `, ${q.workAuthor}` : ''}
+                </div>
+              )}
+            </div>
+          )}
           <p className="text-xs text-gray-800 leading-relaxed">{q.question}</p>
 
           {q.type === 'multiple-choice' && q.options && (

@@ -538,4 +538,162 @@ export const defaultQuestions: Question[] = [
     explanation: '"절약"은 물건이나 돈을 아껴 쓰는 것입니다.',
     tags: ['경제', '행동', '문장만들기'], createdAt: Date.now(), source: 'preset'
   },
+
+  // ═══════════════════════════════════════════════════════
+  // 중학 국어 - 황순원 「소나기」 (중1 교과서 수록)
+  // 갈래: 단편소설 / 시점: 3인칭 관찰자 / 주제: 소년소녀의 순수한 사랑
+  // ═══════════════════════════════════════════════════════
+  {
+    id: 'lit-sn-001', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'hard',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '이 작품의 갈래로 가장 알맞은 것은?',
+    options: ['현대 단편소설', '수필', '희곡', '시'],
+    answer: '현대 단편소설',
+    explanation: '「소나기」는 황순원이 1953년에 발표한 현대 단편소설로, 짧은 분량 안에 소년소녀의 순수한 사랑이라는 단일 주제를 서정적으로 그려낸 작품입니다.',
+    tags: ['소나기', '갈래'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-002', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'hard',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '이 작품의 서술 시점으로 가장 알맞은 것은?',
+    options: [
+      '3인칭 관찰자 시점 (부분적으로 전지적 작가 시점)',
+      '1인칭 주인공 시점',
+      '1인칭 관찰자 시점',
+      '전지적 작가 시점만 사용',
+    ],
+    answer: '3인칭 관찰자 시점 (부분적으로 전지적 작가 시점)',
+    explanation: '주로 외부에서 인물의 행동을 관찰하듯 서술하지만, 소년의 심리에 한해서는 부분적으로 들여다보는 전지적 작가 시점이 섞여 있습니다.',
+    tags: ['소나기', '시점'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-003', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'hard',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '제목 "소나기"가 상징하는 의미로 가장 알맞은 것은?',
+    options: [
+      '소년과 소녀의 짧고 강렬한 만남, 그리고 시련',
+      '농촌의 평화로운 자연 풍경',
+      '소년의 어머니가 겪는 고난',
+      '계절의 변화',
+    ],
+    answer: '소년과 소녀의 짧고 강렬한 만남, 그리고 시련',
+    explanation: '소나기는 갑자기 쏟아졌다 그치는 비처럼, 짧지만 강렬한 두 인물의 만남과 그 사이에 닥치는 시련(소녀의 병)을 상징합니다.',
+    tags: ['소나기', '상징', '주제'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-004', type: 'short-answer', subjectId: 'middle-literature', difficulty: 'hard',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '소년이 개울가에서 만난 소녀를 향해 내내 던지지 못하고 주머니에 간직한 (    )은 소년의 순수한 마음을 상징한다. 빈칸에 들어갈 단어를 쓰시오.',
+    answer: '조약돌',
+    explanation: '"조약돌"은 소녀에게 다가가고 싶지만 표현하지 못하는 소년의 순수한 마음과 설렘을 상징하는 핵심 소재입니다.',
+    tags: ['소나기', '상징', '소재'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-005', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'advanced',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '소녀가 입었던 분홍 스웨터(또는 보랏빛 스웨터)에 묻은 흙물 자국이 작품에서 갖는 의미로 가장 알맞은 것은?',
+    options: [
+      '소년과 함께한 추억이자 그리움의 흔적',
+      '단순한 옷의 얼룩',
+      '소녀의 가난을 보여주는 장치',
+      '소녀의 부주의함',
+    ],
+    answer: '소년과 함께한 추억이자 그리움의 흔적',
+    explanation: '소녀가 죽기 전 "내가 죽거든 입혀서 묻어 달라"고 한 말과 함께, 흙물이 묻은 스웨터는 소년과의 짧지만 소중한 추억을 상징하는 핵심 소재입니다.',
+    tags: ['소나기', '상징', '소재'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-006', type: 'true-false', subjectId: 'middle-literature', difficulty: 'hard',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '「소나기」의 결말에서 소녀의 죽음은 직접적으로 묘사되지 않고, 어른들의 대화를 통해 간접적으로 드러난다.',
+    answer: 'O',
+    explanation: '작가는 소녀의 죽음을 직접 보여주는 대신, 소년이 잠결에 듣게 된 부모님의 대화 속에서 간접적으로 전달함으로써 깊은 여운을 남깁니다.',
+    tags: ['소나기', '결말', '서술상특징'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-007', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'advanced',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '이 작품의 공간적·시간적 배경에 대한 설명으로 알맞은 것은?',
+    options: [
+      '1950년대 한국의 시골 마을, 가을',
+      '1980년대 서울의 도시, 봄',
+      '조선 시대 양반가, 여름',
+      '현대 도시의 학교, 겨울',
+    ],
+    answer: '1950년대 한국의 시골 마을, 가을',
+    explanation: '개울, 산, 메밀밭, 갈밭 등 농촌의 풍경과 코스모스, 단풍 등 가을 소재가 등장하는 1950년대 한국 농촌이 배경입니다.',
+    tags: ['소나기', '배경'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-008', type: 'sentence-making', subjectId: 'middle-literature', difficulty: 'advanced',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '소년이 소녀를 업고 개울을 건너는 장면이 작품의 주제를 드러내는 데 어떤 역할을 하는지 한두 문장으로 서술하시오.',
+    answer: '소년이 소녀를 업고 개울을 건너는 장면은 두 인물 사이의 거리감이 좁혀지고 정서적으로 가까워지는 결정적 계기로, 소년소녀의 순수한 사랑이라는 주제를 압축적으로 보여 준다.',
+    explanation: '신체적 접촉이라는 사건을 통해 두 인물의 관계가 깊어지는 전환점을 형성하며, 작품의 정서적 절정으로 기능합니다.',
+    tags: ['소나기', '주제', '서술형'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-009', type: 'sentence-making', subjectId: 'middle-literature', difficulty: 'expert',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '「소나기」의 결말이 소녀의 죽음을 직접 보여주지 않고 간접적으로 처리한 효과를 두 문장 이내로 서술하시오.',
+    answer: '소녀의 죽음을 직접 묘사하지 않고 어른들의 대화로 처리함으로써 독자에게 충격보다 깊은 여운과 슬픔을 남긴다. 소년이 받는 충격을 독자가 함께 느끼며 작품의 서정성과 비극성이 더욱 강화된다.',
+    explanation: '간접 제시는 절제된 비극을 통해 슬픔의 깊이를 더하는 황순원 소설의 특징적 기법입니다.',
+    tags: ['소나기', '결말', '서술상특징', '서술형'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-sn-010', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'hard',
+    workTitle: '소나기', workAuthor: '황순원',
+    question: '이 작품의 주제로 가장 알맞은 것은?',
+    options: [
+      '소년과 소녀의 순수하고 아름다운 첫사랑과 그 슬픈 이별',
+      '농촌 사회의 가난과 갈등',
+      '전쟁의 비극과 가족의 이산',
+      '도시 문명의 비인간성',
+    ],
+    answer: '소년과 소녀의 순수하고 아름다운 첫사랑과 그 슬픈 이별',
+    explanation: '「소나기」는 어린 시절 처음 느끼는 순수한 사랑과 갑작스러운 이별의 슬픔을 서정적으로 그려낸 작품입니다.',
+    tags: ['소나기', '주제'], createdAt: Date.now(), source: 'preset'
+  },
+
+  // 지문 포함 예시 1개 (작품 발췌 + 문제)
+  {
+    id: 'lit-sn-011', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'advanced',
+    workTitle: '소나기', workAuthor: '황순원',
+    passage: '소년은 갈림길에서 아래쪽으로 가 보고 싶었다. 소녀의 흰 얼굴이, 어린 갈꽃이 눈앞에 어른거려 발이 저절로 그리로 옮겨졌다. 그러나 소년은 안 가기로 마음먹었다. 갈림길에서 위쪽으로 발길을 돌렸다.\n― 그러나 소녀의 그림자는 좀처럼 사라지지 않았다.',
+    question: '윗글에서 드러나는 소년의 심리로 가장 알맞은 것은?',
+    options: [
+      '소녀를 향한 그리움과 망설임이 교차한다',
+      '소녀에 대한 분노와 원망이 강하다',
+      '소녀에 대한 무관심이 드러난다',
+      '소녀에 대한 두려움만 보인다',
+    ],
+    answer: '소녀를 향한 그리움과 망설임이 교차한다',
+    explanation: '소녀를 만나러 가고 싶지만 부끄러움과 망설임 때문에 발길을 돌리는 소년의 모순된 심리가 잘 드러납니다.',
+    tags: ['소나기', '인물심리', '지문'], createdAt: Date.now(), source: 'preset'
+  },
+
+  // === 추가: 다른 중학 국어 작품 간단 예시 ===
+  {
+    id: 'lit-db-001', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'hard',
+    workTitle: '동백꽃', workAuthor: '김유정',
+    question: '김유정의 「동백꽃」에 등장하는 점순이의 인물 성격으로 가장 알맞은 것은?',
+    options: ['적극적이고 당돌한 시골 처녀', '얌전하고 수줍은 양반집 규수', '슬픔에 잠긴 어머니', '냉정하고 차가운 인물'],
+    answer: '적극적이고 당돌한 시골 처녀',
+    explanation: '점순이는 "나"에게 감자를 건네며 호감을 표현하는 등 적극적이고 당돌한 성격으로 그려집니다.',
+    tags: ['동백꽃', '인물', '김유정'], createdAt: Date.now(), source: 'preset'
+  },
+  {
+    id: 'lit-mh-001', type: 'multiple-choice', subjectId: 'middle-literature', difficulty: 'medium',
+    workTitle: '먼 후일', workAuthor: '김소월',
+    question: '김소월의 「먼 후일」에서 화자가 "잊었노라"를 반복하는 효과로 가장 알맞은 것은?',
+    options: [
+      '오히려 잊지 못함을 강조하는 반어적 표현',
+      '실제로 완전히 잊었다는 사실 강조',
+      '시간이 지났음을 단순히 알림',
+      '화자의 무관심을 드러냄',
+    ],
+    answer: '오히려 잊지 못함을 강조하는 반어적 표현',
+    explanation: '"잊었노라"라는 말을 거듭 반복함으로써 사실은 잊지 못하고 있음을 역설적으로 강조하는 반어법입니다.',
+    tags: ['먼후일', '김소월', '반어법', '시'], createdAt: Date.now(), source: 'preset'
+  },
 ];

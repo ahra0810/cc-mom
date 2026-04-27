@@ -126,7 +126,7 @@ export default function App() {
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[11px] text-gray-400 hidden md:inline">초등 3~6학년</span>
+                <span className="text-[11px] text-gray-400 hidden md:inline">초등 3 ~ 중학 3학년</span>
                 <button
                   className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors"
                   onClick={() => setRightCollapsed(!rightCollapsed)}

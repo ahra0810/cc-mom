@@ -11,6 +11,20 @@ function renderQuestion(q: TestPaper['questions'][0], idx: number, showAnswer: b
   let h = `<div class="q">`;
   h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
   h += `<div class="q-body">`;
+
+  // Passage / work info block (for literature questions)
+  if (q.passage || q.workTitle) {
+    h += `<div class="passage">`;
+    if (q.passage) {
+      h += `<div class="passage-text">${esc(q.passage).replace(/\n/g, '<br>')}</div>`;
+    }
+    if (q.workTitle || q.workAuthor) {
+      const author = q.workAuthor ? `, ${esc(q.workAuthor)}` : '';
+      h += `<div class="passage-cite">- ${esc(q.workTitle || '')}${author}</div>`;
+    }
+    h += `</div>`;
+  }
+
   h += `<p class="q-text">${esc(q.question)}</p>`;
 
   if (q.type === 'multiple-choice' && q.options) {
@@ -112,6 +126,20 @@ body {
   font-size: 10pt; font-weight: 700; color: #333;
   padding: 5px 0 4px; margin: 14px 0 6px;
   border-bottom: 1.5px solid #333;
+}
+
+/* -- Passage block (literary excerpt / source text) -- */
+.passage {
+  border: 1px solid #888; border-left: 3px solid #444;
+  padding: 8px 12px; margin-bottom: 8px;
+  background: #fafafa; font-size: 10.5pt; line-height: 1.75;
+  page-break-inside: avoid;
+}
+.passage-text { color: #1a1a1a; }
+.passage-cite {
+  margin-top: 6px; padding-top: 5px;
+  border-top: 1px dashed #ccc;
+  text-align: right; font-size: 9.5pt; color: #666; font-style: italic;
 }
 
 /* -- Question -- */

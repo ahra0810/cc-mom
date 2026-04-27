@@ -95,7 +95,13 @@
     @apply bg-yellow-100 text-yellow-700;
   }
   .badge-hard {
+    @apply bg-orange-100 text-orange-700;
+  }
+  .badge-advanced {
     @apply bg-red-100 text-red-700;
+  }
+  .badge-expert {
+    @apply bg-purple-100 text-purple-700;
   }
 }
 

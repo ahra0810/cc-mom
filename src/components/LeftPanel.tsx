@@ -9,10 +9,18 @@ import { useToast } from './Toast';
 import type { Question, QuestionType, Difficulty, Subject } from '../types';
 
 const DIFF_BADGE: Record<Difficulty, string> = {
-  easy: 'badge-easy', medium: 'badge-medium', hard: 'badge-hard',
+  easy: 'badge-easy',
+  medium: 'badge-medium',
+  hard: 'badge-hard',
+  advanced: 'badge-advanced',
+  expert: 'badge-expert',
 };
 const DIFF_SHORT: Record<Difficulty, string> = {
-  easy: '쉬움', medium: '보통', hard: '어려움',
+  easy: '쉬움',
+  medium: '보통',
+  hard: '어려움',
+  advanced: '심화',
+  expert: '도전',
 };
 const TYPE_SHORT: Record<QuestionType, string> = {
   'multiple-choice': '객관식', 'true-false': 'OX', 'fill-blank': '빈칸',
@@ -43,7 +51,7 @@ export default function LeftPanel({ onPreviewQuestion, onManualCreate, onOpenSet
     const arr = [...filtered];
     if (sortBy === 'recent') arr.sort((a, b) => b.createdAt - a.createdAt);
     else if (sortBy === 'difficulty') {
-      const order: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
+      const order: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2, advanced: 3, expert: 4 };
       arr.sort((a, b) => order[a.difficulty] - order[b.difficulty]);
     } else if (sortBy === 'subject') arr.sort((a, b) => a.subjectId.localeCompare(b.subjectId));
     return arr;
@@ -504,7 +512,7 @@ function buildGroups(questions: Question[], groupBy: GroupBy, subjects: Subject[
 
   return [...map.values()].sort((a, b) => {
     if (groupBy === 'difficulty') {
-      const order: Record<string, number> = { '쉬움': 0, '보통': 1, '어려움': 2 };
+      const order: Record<string, number> = { '쉬움': 0, '보통': 1, '어려움': 2, '심화': 3, '도전': 4 };
       return (order[a.label] ?? 99) - (order[b.label] ?? 99);
     }
     return a.label.localeCompare(b.label);

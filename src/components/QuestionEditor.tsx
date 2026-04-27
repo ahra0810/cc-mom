@@ -25,6 +25,10 @@ export default function QuestionEditor({ question, duplicateSource, onClose }: P
   const [options, setOptions] = useState<string[]>(seed?.options || ['', '', '', '']);
   const [answer, setAnswer] = useState(seed?.answer || '');
   const [explanation, setExplanation] = useState(seed?.explanation || '');
+  const [passage, setPassage] = useState(seed?.passage || '');
+  const [workTitle, setWorkTitle] = useState(seed?.workTitle || '');
+  const [workAuthor, setWorkAuthor] = useState(seed?.workAuthor || '');
+  const [showWorkInfo, setShowWorkInfo] = useState(!!(seed?.passage || seed?.workTitle));
 
   useEffect(() => {
     if (type === 'true-false' && !question) {
@@ -49,6 +53,9 @@ export default function QuestionEditor({ question, duplicateSource, onClose }: P
       tags: question?.tags || seed?.tags || [],
       createdAt: question?.createdAt || Date.now(),
       source: question?.source || 'manual',
+      passage: passage.trim() || undefined,
+      workTitle: workTitle.trim() || undefined,
+      workAuthor: workAuthor.trim() || undefined,
     };
 
     if (isEdit) {
@@ -118,6 +125,55 @@ export default function QuestionEditor({ question, duplicateSource, onClose }: P
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Work info / Passage (collapsible, optional) */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowWorkInfo(!showWorkInfo)}
+              className="flex items-center gap-1.5 text-[11px] text-gray-600 hover:text-primary-600 font-medium"
+            >
+              <span>📕</span>
+              <span>작품 정보 / 지문 {showWorkInfo ? '▾' : '▸'}</span>
+              <span className="text-[10px] text-gray-400">(선택)</span>
+            </button>
+            {showWorkInfo && (
+              <div className="mt-2 space-y-2 p-3 bg-purple-50/50 border border-purple-100 rounded-lg animate-fadeIn">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-medium text-gray-600 mb-1 block">작품명</label>
+                    <input
+                      className="input-field !text-xs"
+                      placeholder="예: 소나기"
+                      value={workTitle}
+                      onChange={(e) => setWorkTitle(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium text-gray-600 mb-1 block">작가</label>
+                    <input
+                      className="input-field !text-xs"
+                      placeholder="예: 황순원"
+                      value={workAuthor}
+                      onChange={(e) => setWorkAuthor(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium text-gray-600 mb-1 block">지문 (제시문)</label>
+                  <textarea
+                    className="input-field !text-xs min-h-[80px] resize-y"
+                    placeholder="작품에서 발췌한 지문을 입력하세요..."
+                    value={passage}
+                    onChange={(e) => setPassage(e.target.value)}
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    문학·국어 문제 등 작품 발췌가 필요한 경우에 사용하세요. 문제 위에 박스로 표시됩니다.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Question text */}

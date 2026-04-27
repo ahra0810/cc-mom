@@ -182,6 +182,9 @@ export const useQuestionStore = create<QuestionStore>()(
             tags: Array.isArray(q.tags) ? q.tags.map(String) : [],
             createdAt: typeof q.createdAt === 'number' ? q.createdAt : Date.now(),
             source: 'manual' as const,
+            passage: typeof q.passage === 'string' && q.passage.trim() ? q.passage : undefined,
+            workTitle: typeof q.workTitle === 'string' && q.workTitle.trim() ? q.workTitle : undefined,
+            workAuthor: typeof q.workAuthor === 'string' && q.workAuthor.trim() ? q.workAuthor : undefined,
           };
         });
 
@@ -241,7 +244,10 @@ function getFiltered(state: { questions: Question[]; filters: QuestionFilters })
       return (
         q.question.toLowerCase().includes(s) ||
         q.answer.toLowerCase().includes(s) ||
-        q.tags?.some((t) => t.toLowerCase().includes(s))
+        q.tags?.some((t) => t.toLowerCase().includes(s)) ||
+        q.workTitle?.toLowerCase().includes(s) ||
+        q.workAuthor?.toLowerCase().includes(s) ||
+        q.passage?.toLowerCase().includes(s)
       );
     }
     return true;

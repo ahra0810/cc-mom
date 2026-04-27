@@ -449,9 +449,23 @@ function FormatGuide() {
             </FieldRow>
 
             <FieldRow name="difficulty">
-              <code className="bg-gray-100 px-1 rounded">"easy"</code> (쉬움 / 초3) ·
-              {' '}<code className="bg-gray-100 px-1 rounded">"medium"</code> (보통 / 초4) ·
-              {' '}<code className="bg-gray-100 px-1 rounded">"hard"</code> (어려움 / 초5~6)
+              <code className="bg-gray-100 px-1 rounded">"easy"</code> (초 3-4) ·
+              {' '}<code className="bg-gray-100 px-1 rounded">"medium"</code> (초 5-6) ·
+              {' '}<code className="bg-gray-100 px-1 rounded">"hard"</code> (중1) ·
+              {' '}<code className="bg-gray-100 px-1 rounded">"advanced"</code> (중2) ·
+              {' '}<code className="bg-gray-100 px-1 rounded">"expert"</code> (중3)
+            </FieldRow>
+
+            <FieldRow name="passage">
+              지문/제시문. 문학 작품 발췌나 비문학 글을 표시할 때 사용. 문제 위에 박스로 표시됨.
+            </FieldRow>
+
+            <FieldRow name="workTitle">
+              작품명 (예: <code className="bg-gray-100 px-1 rounded">"소나기"</code>). 문학 문제에서 사용.
+            </FieldRow>
+
+            <FieldRow name="workAuthor">
+              작가명 (예: <code className="bg-gray-100 px-1 rounded">"황순원"</code>).
             </FieldRow>
 
             <FieldRow name="explanation">
@@ -735,6 +749,63 @@ JSON만 출력해 주세요.
     }
   ]
 }`
+  },
+  {
+    id: 'middle-literature',
+    icon: '📕',
+    name: '중학 국어 (문학)',
+    description: '작품 발췌 + 갈래·시점·상징·주제 분석',
+    prompt: `당신은 대한민국 중학교 국어 교과(2022 개정 교육과정)에 정통한 교사입니다.
+
+다음 작품에 대한 중학생용 문학 문제 8개를 만들어 주세요.
+- 작품: [작품명] (예: 소나기, 동백꽃, 수난이대, 운수 좋은 날, 먼 후일, 청포도 등)
+- 작가: [작가명]
+- 학년: 중학 [1/2/3]학년 수준
+- 난이도: hard 4개 + advanced 3개 + expert 1개
+
+다음 성취기준 영역을 골고루 다뤄 주세요:
+1. 갈래 특성 (단편소설/시/수필 등)
+2. 화자/서술자 시점
+3. 인물의 성격·심리
+4. 비유·상징·소재의 의미
+5. 작품의 배경 (시대·공간)
+6. 주제 의식
+7. 서술상 특징·구성
+
+유형은 다음을 적절히 섞어 주세요:
+- 객관식 5개 (4지선다)
+- 단답형 1개 (핵심 소재/시점 등)
+- OX 1개 (서술상 특징 진위)
+- 서술형 1개 (인물 심리·주제 의미를 1~2문장으로)
+
+반드시 아래 JSON 형식으로만 출력하세요. JSON 외 텍스트 절대 금지.
+
+{
+  "questions": [
+    {
+      "type": "multiple-choice",
+      "subjectId": "middle-literature",
+      "difficulty": "hard",
+      "workTitle": "소나기",
+      "workAuthor": "황순원",
+      "passage": "(선택) 작품의 핵심 장면 5~6줄 발췌. 지문이 필요한 문제에만 작성",
+      "question": "이 작품의 갈래로 가장 알맞은 것은?",
+      "options": ["...","...","...","..."],
+      "answer": "...",
+      "explanation": "정답에 대한 명확한 근거와 작품 분석",
+      "tags": ["[작품명]", "갈래", "..."]
+    }
+  ]
+}
+
+[필수 사항]
+- 모든 문항의 subjectId는 "middle-literature"
+- workTitle, workAuthor는 모든 문항에 작성
+- passage는 발췌 지문이 필요한 1~2문항에만 (선택)
+- explanation은 작품 근거를 들어 명확하게
+- tags 첫 번째 항목은 작품명 (예: "소나기")
+- 한자보다 한글 표기 우선
+- 중학생이 이해할 수 있는 어휘 사용`
   },
   {
     id: 'vocabulary',
