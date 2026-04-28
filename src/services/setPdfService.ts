@@ -206,11 +206,14 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   background: white;
 }
 
-/* ─── Header ─── */
-.header { text-align: center; padding-bottom: 6mm; border-bottom: 2px solid ${t.textColor}; margin-bottom: 4mm; flex-shrink: 0; }
-.header h1 { font-size: ${baseFs + 6}pt; font-weight: 800; letter-spacing: 0.5px; color: ${t.primaryColor}; }
-.header-name { margin-top: 3mm; font-size: ${baseFs - 1}pt; color: ${t.textColor}cc; }
-.header-name .blank { display: inline-block; min-width: 50mm; border-bottom: 1px solid ${t.accentColor}; height: 5mm; vertical-align: middle; margin-left: 2mm; }
+/* ─── Header — 이름 칸만 우상단에 ─── */
+.header {
+  display: flex; justify-content: flex-end; align-items: center;
+  padding-bottom: 3mm; border-bottom: 1.5px solid ${t.textColor}; margin-bottom: 4mm;
+  flex-shrink: 0;
+}
+.header-name { font-size: ${baseFs - 0.5}pt; color: ${t.textColor}; font-weight: 600; }
+.header-name .blank { display: inline-block; min-width: 50mm; border-bottom: 1px solid ${t.textColor}aa; height: 5mm; vertical-align: middle; margin-left: 2mm; }
 .answer-banner { text-align: center; font-weight: 800; color: ${t.primaryColor}; border: 1.5px solid ${t.primaryColor}; padding: 2mm 0; margin-bottom: 3mm; letter-spacing: 4px; background: ${t.bgAccent}; flex-shrink: 0; }
 
 /* ─── Meta block ─── */
@@ -257,7 +260,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .q-text { font-size: ${baseFs}pt; font-weight: 600; line-height: 1.5; margin-bottom: 1.5mm; white-space: pre-wrap; }
 
 /* ─── 1번: 한자 따라쓰기 ─── */
-.hanja-tracing-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: 2mm 0; max-width: 90mm; }
+.hanja-tracing-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: 3mm 0 6mm 0; max-width: 90mm; }
 .hanja-tracing-box {
   border: 1.5px solid ${t.textColor}66;
   aspect-ratio: 1;
@@ -266,9 +269,10 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.textColor}33;
   font-family: 'Noto Serif KR', serif;
 }
-.answer-row { display: flex; align-items: baseline; gap: 2mm; margin-top: 2mm; font-size: ${baseFs - 0.5}pt; }
+/* 한글음 답란 — 한자 박스와 충분한 간격 + 줄도 더 두툼하게 */
+.answer-row { display: flex; align-items: baseline; gap: 2mm; margin-top: 6mm; padding-top: 2mm; font-size: ${baseFs - 0.5}pt; }
 .answer-label { font-weight: 700; color: ${t.primaryColor}; }
-.answer-line { display: inline-block; flex: 1; min-width: 60mm; border-bottom: 1.5px solid ${t.textColor}aa; height: 1.4em; }
+.answer-line { display: inline-block; flex: 1; min-width: 60mm; border-bottom: 1.5px solid ${t.textColor}aa; height: 8mm; }
 .answer-filled { font-weight: 700; color: ${t.primaryColor}; border-bottom: 1.5px solid ${t.primaryColor}; padding-bottom: 1px; min-width: 30mm; display: inline-block; }
 
 /* ─── 2~6번: 객관식 ─── */
@@ -276,14 +280,20 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .opts > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .opts .correct { font-weight: 800; color: ${t.primaryColor}; }
 
-/* ─── 7번: 작성 영역 ─── */
+/* ─── 7번: 작성 영역 — 1.3cm 줄 간격 ─── */
 .writing-lines {
   flex: 1 1 auto;
-  margin: 1mm 0;
+  min-height: 52mm; /* 최소 4줄 보장 */
+  margin: 2mm 0 0 0;
   background-image: repeating-linear-gradient(
-    transparent, transparent ${baseFs * 0.8}mm,
-    ${t.accentColor}cc ${baseFs * 0.8}mm, ${t.accentColor}cc ${baseFs * 0.8 + 0.15}mm
+    to bottom,
+    transparent 0,
+    transparent calc(13mm - 0.4mm),
+    ${t.textColor}88 calc(13mm - 0.4mm),
+    ${t.textColor}88 13mm
   );
+  background-size: 100% 13mm;
+  background-repeat: repeat-y;
 }
 .answer-box { display: inline-block; font-size: ${baseFs - 1}pt; font-weight: 700; color: ${t.primaryColor}; border-bottom: 1.5px solid ${t.primaryColor}; padding-bottom: 1px; }
 
@@ -294,12 +304,11 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 
   let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${esc(set.title)}</title><style>${css}</style></head><body><div class="page">`;
 
-  /* Header */
-  html += `<div class="header"><h1>${esc(set.title)}</h1>`;
+  /* Header — 시험지명 제거, 이름 칸만 우상단 / 답안지일 때는 정중앙 배너 */
   if (showAnswer) {
-    html += `<div class="answer-banner">답안 및 해설</div></div>`;
+    html += `<div class="answer-banner">답안 및 해설</div>`;
   } else {
-    html += `<div class="header-name">이름 <span class="blank"></span></div></div>`;
+    html += `<div class="header"><div class="header-name">이름 <span class="blank"></span></div></div>`;
   }
 
   /* Meta block */
