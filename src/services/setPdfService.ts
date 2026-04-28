@@ -27,35 +27,44 @@ function esc(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
-/* ─── 자동 폰트 축소 — 컨텐츠 길이 + 옵션 최댓값 ─── */
+/* ─── 자동 폰트 축소 — 컨텐츠 길이 + 옵션 길이 + 1단/2단 영향 ─── */
 /**
  * 휴리스틱:
- *   - 총 글자수가 임계값을 넘으면 폰트를 한 단계 줄임
- *   - 객관식 옵션 중 가장 긴 것이 26자 이상이면 한 단계 더 줄임 (가로 2-col fit)
- *   - 7번 모범답안이 길어도 .writing-lines가 flex로 흡수하므로 큰 영향 X
- *   - 절대 9pt 미만으로 내려가지 않음
+ *   - 총 글자수가 많으면 한 단계씩 축소
+ *   - 옵션이 18자 이상이면 1단 그리드(=세로 4줄) 진입 — 한 단계 더 축소
+ *   - 1단 옵션이 한 줄 폭(약 70자)을 넘어 줄바꿈하면 한 단계 더 축소
+ *   - 9pt 하한
  */
 function pickFontSize(set: QuestionSet, base: number): number {
   let totalChars = 0;
   let maxOptionLen = 0;
+  let oneColMcCount = 0;
+  let wrappedOptionCount = 0;
   for (const q of set.slots) {
     totalChars += (q.question || '').length;
     totalChars += (q.options || []).join('').length;
     totalChars += (q.answer || '').length;
-    for (const o of q.options || []) {
-      if (o.length > maxOptionLen) maxOptionLen = o.length;
+    if (q.type === 'multiple-choice' && q.options) {
+      const localMax = Math.max(0, ...q.options.map((o) => o.length));
+      if (localMax > maxOptionLen) maxOptionLen = localMax;
+      if (localMax >= 18) oneColMcCount++;
+      /* 1단에서도 줄바꿈할 만한 길이(약 35자+)는 추가 비용 */
+      for (const o of q.options) if (o.length >= 35) wrappedOptionCount++;
     }
   }
   let fs = base;
-  if (totalChars >= 1100) fs -= 1.5;
-  else if (totalChars >= 750) fs -= 1.0;
-  else if (totalChars >= 550) fs -= 0.5;
+  if (totalChars >= 1300) fs -= 1.5;
+  else if (totalChars >= 950) fs -= 1.0;
+  else if (totalChars >= 700) fs -= 0.5;
 
-  /* 옵션이 너무 길면 한 단계 더 축소 */
-  if (maxOptionLen >= 30) fs -= 1.0;
-  else if (maxOptionLen >= 24) fs -= 0.5;
+  /* 1단으로 펼치는 객관식이 많을수록 세로 공간 압박 → 추가 축소 */
+  if (oneColMcCount >= 4) fs -= 1.0;
+  else if (oneColMcCount >= 2) fs -= 0.5;
 
-  /* 9pt 하한 */
+  /* 줄바꿈할 만큼 긴 옵션이 여럿 있으면 한 단계 더 */
+  if (wrappedOptionCount >= 3) fs -= 0.5;
+
+  /* 안전 하한 */
   return Math.max(fs, 9);
 }
 
@@ -134,7 +143,12 @@ function renderSlot1(q: Question, idx: number, showAnswer: boolean): string {
   return h;
 }
 
-/* ─── 슬롯 2~6: multiple-choice ─── */
+/* ─── 슬롯 2~7: multiple-choice ───
+ * 선지 길이에 따라 자동으로 1단/2단 그리드 결정 + 줄바꿈 허용.
+ * - 어떤 선지든 18자 이상이면 1단 (한 선지가 한 줄을 다 차지)
+ * - 그 외엔 2단 (간격 절약)
+ * 절대 truncate 하지 않음 (`white-space: normal`).
+ */
 function renderMcSlot(q: Question, idx: number, showAnswer: boolean): string {
   let h = `<div class="q slot-mc">`;
   h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
@@ -143,7 +157,10 @@ function renderMcSlot(q: Question, idx: number, showAnswer: boolean): string {
 
   if (q.options && q.options.length > 0) {
     const labels = ['\u2460', '\u2461', '\u2462', '\u2463'];
-    h += `<div class="opts">`;
+    const maxLen = Math.max(...q.options.map((o) => o.length));
+    /* 18자 이상이면 1단으로 — 잘림/숨김 방지 */
+    const oneCol = maxLen >= 18;
+    h += `<div class="opts ${oneCol ? 'opts-1col' : 'opts-2col'}">`;
     q.options.forEach((opt, i) => {
       const isAnswer = showAnswer && opt === q.answer;
       h += `<div${isAnswer ? ' class="correct"' : ''}>${labels[i]} ${esc(opt)}</div>`;
@@ -285,9 +302,20 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .answer-line { display: inline-block; flex: 1; min-width: 60mm; border-bottom: 1.5px solid ${t.textColor}aa; height: 8mm; }
 .answer-filled { font-weight: 700; color: ${t.primaryColor}; border-bottom: 1.5px solid ${t.primaryColor}; padding-bottom: 1px; min-width: 30mm; display: inline-block; }
 
-/* ─── 2~7번: 객관식 ─── */
-.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5mm 6mm; padding-left: 1mm; font-size: ${baseFs - 0.5}pt; line-height: 1.45; }
-.opts > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ─── 2~7번: 객관식 — truncate 금지, 줄바꿈 허용, 길이에 따라 1/2단 ─── */
+.opts {
+  display: grid; gap: 1mm 6mm; padding-left: 1mm;
+  font-size: ${baseFs - 0.5}pt; line-height: 1.4;
+}
+.opts.opts-2col { grid-template-columns: 1fr 1fr; }
+.opts.opts-1col { grid-template-columns: 1fr; }
+.opts > div {
+  white-space: normal;             /* truncate 안 함 */
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  padding-left: 1.5mm;
+  text-indent: -1.5mm;             /* 마커(①) 기준선 정렬 */
+}
 .opts .correct { font-weight: 800; color: ${t.primaryColor}; }
 
 /* ─── 8번: 작성 영역 — 1.3cm 줄 간격, 정확히 2줄 ─── */
