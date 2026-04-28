@@ -26,3 +26,6 @@ dist-ssr
 # 디자인 레퍼런스 (대용량, 외부 이미지)
 template-references.html
 template-references-embedded.html
+
+# 교과서 자료 (저작권 보호 — 개인 학습용으로만 보관)
+textbooks/*.pdf

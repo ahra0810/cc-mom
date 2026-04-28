@@ -153,6 +153,7 @@ export default function App() {
                   <LeftPanel
                     onPreviewQuestion={handlePreviewQuestion}
                     onManualCreate={handleManualCreate}
+                    onEditQuestion={handleEditQuestion}
                     onOpenSettings={() => setShowSettings(true)}
                   />
                 </div>

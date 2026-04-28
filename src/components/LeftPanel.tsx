@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search, Plus, Minus, Check, X, ChevronDown, ChevronRight,
-  Database, PenTool, Settings, Layers,
+  Database, PenTool, Settings, Layers, Pencil, Trash2, Sliders,
 } from 'lucide-react';
 import { useQuestionStore } from '../stores/questionStore';
 import { useTestStore } from '../stores/testStore';
 import { useToast } from './Toast';
+import { useConfirm } from './ConfirmDialog';
 import type { Question, QuestionType, Difficulty, Subject } from '../types';
+import { DIFFICULTY_LABELS } from '../types';
 
 const DIFF_BADGE: Record<Difficulty, string> = {
   easy: 'badge-easy',
@@ -30,16 +32,19 @@ const TYPE_SHORT: Record<QuestionType, string> = {
 interface Props {
   onPreviewQuestion: (q: Question) => void;
   onManualCreate: () => void;
+  onEditQuestion: (q: Question) => void;
   onOpenSettings: () => void;
 }
 
 type GroupBy = 'tag' | 'difficulty' | 'type' | 'subject' | 'none';
 type SortBy = 'recent' | 'difficulty' | 'subject';
 
-export default function LeftPanel({ onPreviewQuestion, onManualCreate, onOpenSettings }: Props) {
-  const { filters, setFilters, clearFilters, hasActiveFilters, subjects, getFilteredQuestions, questions } = useQuestionStore();
+export default function LeftPanel({ onPreviewQuestion, onManualCreate, onEditQuestion, onOpenSettings }: Props) {
+  const { filters, setFilters, clearFilters, hasActiveFilters, subjects, getFilteredQuestions, questions, deleteQuestion, updateQuestion } = useQuestionStore();
   const { currentTest, addQuestionToTest, addQuestionsToTest, removeQuestionFromTest } = useTestStore();
   const { toast } = useToast();
+  const confirm = useConfirm();
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
 
   const [groupBy, setGroupBy] = useState<GroupBy>('tag');
   const [sortBy, setSortBy] = useState<SortBy>('recent');
@@ -119,6 +124,67 @@ export default function LeftPanel({ onPreviewQuestion, onManualCreate, onOpenSet
     toRemove.forEach((q) => removeQuestionFromTest(q.id));
     toast('success', `${toRemove.length}개 문항을 제거했습니다`);
     setSelectedIds(new Set());
+  };
+
+  /* DB에서 영구 삭제 (단일) */
+  const handleDeleteQuestion = async (q: Question) => {
+    const ok = await confirm({
+      title: '문항 삭제',
+      message: `"${q.question.slice(0, 30)}${q.question.length > 30 ? '...' : ''}"\n이 문항을 DB에서 영구 삭제하시겠습니까?`,
+      variant: 'danger',
+      confirmText: '삭제',
+    });
+    if (!ok) return;
+    if (testQuestionIds.has(q.id)) removeQuestionFromTest(q.id);
+    deleteQuestion(q.id);
+    toast('success', '문항을 삭제했습니다');
+  };
+
+  /* DB에서 영구 삭제 (일괄) */
+  const handleBatchDeleteFromDB = async () => {
+    const count = selectedIds.size;
+    if (count === 0) return;
+    const ok = await confirm({
+      title: '문항 일괄 삭제',
+      message: `선택한 ${count}개 문항을 DB에서 영구 삭제하시겠습니까?\n현재 시험지에 포함된 문항도 함께 제거됩니다.\n이 작업은 되돌릴 수 없습니다.`,
+      variant: 'danger',
+      confirmText: `${count}개 삭제`,
+    });
+    if (!ok) return;
+    [...selectedIds].forEach((id) => {
+      if (testQuestionIds.has(id)) removeQuestionFromTest(id);
+      deleteQuestion(id);
+    });
+    toast('success', `${count}개 문항을 DB에서 삭제했습니다`);
+    setSelectedIds(new Set());
+  };
+
+  /* 일괄 메타데이터 변경 (과목/난이도/태그) */
+  const handleBulkUpdate = (updates: { subjectId?: string; difficulty?: Difficulty; addTag?: string; removeTag?: string }) => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+
+    ids.forEach((id) => {
+      const q = questions.find((x) => x.id === id);
+      if (!q) return;
+      const partial: Partial<Question> = {};
+      if (updates.subjectId) partial.subjectId = updates.subjectId;
+      if (updates.difficulty) partial.difficulty = updates.difficulty;
+      if (updates.addTag || updates.removeTag) {
+        const next = new Set(q.tags || []);
+        if (updates.addTag) next.add(updates.addTag);
+        if (updates.removeTag) next.delete(updates.removeTag);
+        partial.tags = [...next];
+      }
+      updateQuestion(id, partial);
+    });
+
+    const parts: string[] = [];
+    if (updates.subjectId) parts.push(`과목 → ${subjects.find((s) => s.id === updates.subjectId)?.name}`);
+    if (updates.difficulty) parts.push(`난이도 → ${DIFFICULTY_LABELS[updates.difficulty].split('(')[0].trim()}`);
+    if (updates.addTag) parts.push(`태그 추가: #${updates.addTag}`);
+    if (updates.removeTag) parts.push(`태그 제거: #${updates.removeTag}`);
+    toast('success', `${ids.length}개 문항 수정 완료\n${parts.join(' · ')}`);
   };
 
   const handleQuickAdd = (q: Question) => {
@@ -296,25 +362,58 @@ export default function LeftPanel({ onPreviewQuestion, onManualCreate, onOpenSet
       </div>
 
       {/* ─── Selection Action Bar ─── */}
-      {selectedIds.size > 0 && currentTest && (
-        <div className="px-3 py-1.5 bg-primary-50 border-b border-primary-100 flex-shrink-0 flex gap-1 animate-fadeIn">
-          {selectedNotInTest > 0 && (
-            <button className="btn btn-primary !py-1 !px-2 !text-[10px] flex-1" onClick={handleBatchAdd}>
-              <Plus size={11} /> 시험지에 {selectedNotInTest}개 추가
-            </button>
+      {selectedIds.size > 0 && (
+        <div className="px-3 py-1.5 bg-primary-50 border-b border-primary-100 flex-shrink-0 animate-fadeIn space-y-1 relative">
+          {/* 첫 줄: 시험지 작업 */}
+          {currentTest && (selectedNotInTest > 0 || selectedInTest > 0) && (
+            <div className="flex gap-1">
+              {selectedNotInTest > 0 && (
+                <button className="btn btn-primary !py-1 !px-2 !text-[10px] flex-1" onClick={handleBatchAdd}>
+                  <Plus size={11} /> 시험지에 {selectedNotInTest}개 추가
+                </button>
+              )}
+              {selectedInTest > 0 && (
+                <button className="btn btn-danger !py-1 !px-2 !text-[10px] flex-1" onClick={handleBatchRemove}>
+                  <Minus size={11} /> {selectedInTest}개 제거
+                </button>
+              )}
+            </div>
           )}
-          {selectedInTest > 0 && (
-            <button className="btn btn-danger !py-1 !px-2 !text-[10px] flex-1" onClick={handleBatchRemove}>
-              <Minus size={11} /> {selectedInTest}개 제거
+          {/* 두 번째 줄: DB 편집 작업 */}
+          <div className="flex gap-1">
+            <button
+              className="btn !py-1 !px-2 !text-[10px] flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+              onClick={() => setBulkEditOpen(!bulkEditOpen)}
+              title="선택한 문항 일괄 편집"
+            >
+              <Sliders size={11} /> 일괄 편집
             </button>
+            <button
+              className="btn !py-1 !px-2 !text-[10px] flex-1 bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleBatchDeleteFromDB}
+              title="선택한 문항 DB에서 영구 삭제"
+            >
+              <Trash2 size={11} /> DB 삭제
+            </button>
+            <button
+              className="btn btn-ghost !py-1 !px-2 !text-[10px]"
+              onClick={() => { setSelectedIds(new Set()); setBulkEditOpen(false); }}
+              aria-label="선택 취소"
+              title="선택 해제"
+            >
+              <X size={11} />
+            </button>
+          </div>
+
+          {/* 일괄 편집 팝오버 */}
+          {bulkEditOpen && (
+            <BulkEditPopover
+              subjects={subjects}
+              count={selectedIds.size}
+              onApply={(updates) => { handleBulkUpdate(updates); setBulkEditOpen(false); }}
+              onClose={() => setBulkEditOpen(false)}
+            />
           )}
-          <button
-            className="btn btn-ghost !py-1 !px-2 !text-[10px]"
-            onClick={() => setSelectedIds(new Set())}
-            aria-label="선택 취소"
-          >
-            <X size={11} />
-          </button>
         </div>
       )}
 
@@ -348,6 +447,8 @@ export default function LeftPanel({ onPreviewQuestion, onManualCreate, onOpenSet
                     onSelect={() => toggleSelect(q.id)}
                     onPreview={() => onPreviewQuestion(q)}
                     onQuickAdd={() => handleQuickAdd(q)}
+                    onEdit={() => onEditQuestion(q)}
+                    onDelete={() => handleDeleteQuestion(q)}
                     canAddToTest={!!currentTest}
                   />
                 ))}
@@ -382,7 +483,7 @@ function SubjectPill({ icon, label, count, color, active, onClick }: {
 }
 
 /* ─── Question Card ─── */
-function QuestionCard({ question: q, subjects, isSelected, isInTest, onSelect, onPreview, onQuickAdd, canAddToTest }: {
+function QuestionCard({ question: q, subjects, isSelected, isInTest, onSelect, onPreview, onQuickAdd, onEdit, onDelete, canAddToTest }: {
   question: Question;
   subjects: Subject[];
   isSelected: boolean;
@@ -390,6 +491,8 @@ function QuestionCard({ question: q, subjects, isSelected, isInTest, onSelect, o
   onSelect: () => void;
   onPreview: () => void;
   onQuickAdd: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
   canAddToTest: boolean;
 }) {
   const sub = subjects.find((s) => s.id === q.subjectId);
@@ -435,21 +538,41 @@ function QuestionCard({ question: q, subjects, isSelected, isInTest, onSelect, o
         </div>
       </div>
 
-      {/* Quick action button */}
-      {canAddToTest && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onQuickAdd(); }}
-          className={`flex-shrink-0 self-center w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-            isInTest
-              ? 'bg-emerald-500 text-white hover:bg-red-500'
-              : 'bg-gray-100 text-gray-500 hover:bg-primary-600 hover:text-white'
-          }`}
-          title={isInTest ? '시험지에서 제거' : '시험지에 추가'}
-          aria-label={isInTest ? '시험지에서 제거' : '시험지에 추가'}
-        >
-          {isInTest ? <Check size={11} strokeWidth={3} /> : <Plus size={11} />}
-        </button>
-      )}
+      {/* Action buttons (vertical stack, hover-revealed for edit/delete) */}
+      <div className="flex flex-col items-center justify-center gap-1 flex-shrink-0">
+        {canAddToTest && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onQuickAdd(); }}
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+              isInTest
+                ? 'bg-emerald-500 text-white hover:bg-red-500'
+                : 'bg-gray-100 text-gray-500 hover:bg-primary-600 hover:text-white'
+            }`}
+            title={isInTest ? '시험지에서 제거' : '시험지에 추가'}
+            aria-label={isInTest ? '시험지에서 제거' : '시험지에 추가'}
+          >
+            {isInTest ? <Check size={11} strokeWidth={3} /> : <Plus size={11} />}
+          </button>
+        )}
+        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-amber-600 hover:bg-amber-50"
+            title="문항 편집"
+            aria-label="문항 편집"
+          >
+            <Pencil size={10} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50"
+            title="DB에서 삭제"
+            aria-label="DB에서 삭제"
+          >
+            <Trash2 size={10} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -517,4 +640,126 @@ function buildGroups(questions: Question[], groupBy: GroupBy, subjects: Subject[
     }
     return a.label.localeCompare(b.label);
   });
+}
+
+
+/* ─── 일괄 편집 팝오버 ─── */
+function BulkEditPopover({ subjects, count, onApply, onClose }: {
+  subjects: Subject[];
+  count: number;
+  onApply: (updates: { subjectId?: string; difficulty?: Difficulty; addTag?: string; removeTag?: string }) => void;
+  onClose: () => void;
+}) {
+  const [subjectId, setSubjectId] = useState('');
+  const [difficulty, setDifficulty] = useState<Difficulty | ''>('');
+  const [addTag, setAddTag] = useState('');
+  const [removeTag, setRemoveTag] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+
+  /* 외부 클릭 시 닫기 */
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    const t = setTimeout(() => document.addEventListener('mousedown', handler), 0);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener('mousedown', handler);
+    };
+  }, [onClose]);
+
+  const handleApply = () => {
+    const updates: { subjectId?: string; difficulty?: Difficulty; addTag?: string; removeTag?: string } = {};
+    if (subjectId) updates.subjectId = subjectId;
+    if (difficulty) updates.difficulty = difficulty;
+    if (addTag.trim()) updates.addTag = addTag.trim();
+    if (removeTag.trim()) updates.removeTag = removeTag.trim();
+    if (Object.keys(updates).length === 0) {
+      onClose();
+      return;
+    }
+    onApply(updates);
+  };
+
+  const hasChanges = subjectId || difficulty || addTag.trim() || removeTag.trim();
+
+  return (
+    <div
+      ref={ref}
+      className="absolute z-30 left-3 right-3 top-full mt-1 bg-white border border-amber-200 rounded-lg shadow-xl p-3 space-y-2 animate-fadeIn"
+    >
+      <div className="flex items-center justify-between">
+        <h4 className="text-[11px] font-bold text-amber-700">
+          일괄 편집 — 선택 {count}개
+        </h4>
+        <button
+          onClick={onClose}
+          className="p-0.5 text-gray-400 hover:text-gray-600"
+          aria-label="닫기"
+        >
+          <X size={11} />
+        </button>
+      </div>
+
+      {/* 과목 변경 */}
+      <div>
+        <label className="text-[10px] font-medium text-gray-600 mb-0.5 block">과목 변경</label>
+        <select
+          className="select-field !text-[11px] !py-1"
+          value={subjectId}
+          onChange={(e) => setSubjectId(e.target.value)}
+        >
+          <option value="">— 변경 안 함 —</option>
+          {subjects.map((s) => (
+            <option key={s.id} value={s.id}>{s.icon} {s.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* 난이도 변경 */}
+      <div>
+        <label className="text-[10px] font-medium text-gray-600 mb-0.5 block">난이도 변경</label>
+        <select
+          className="select-field !text-[11px] !py-1"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value as Difficulty | '')}
+        >
+          <option value="">— 변경 안 함 —</option>
+          {Object.entries(DIFFICULTY_LABELS).map(([k, v]) => (
+            <option key={k} value={k}>{v.split('(')[0].trim()} {v.match(/\(.*?\)/)?.[0]}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* 태그 추가/제거 */}
+      <div className="grid grid-cols-2 gap-1.5">
+        <div>
+          <label className="text-[10px] font-medium text-gray-600 mb-0.5 block">태그 추가</label>
+          <input
+            className="input-field !text-[11px] !py-1"
+            placeholder="예: 소나기"
+            value={addTag}
+            onChange={(e) => setAddTag(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="text-[10px] font-medium text-gray-600 mb-0.5 block">태그 제거</label>
+          <input
+            className="input-field !text-[11px] !py-1"
+            placeholder="제거할 태그"
+            value={removeTag}
+            onChange={(e) => setRemoveTag(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <button
+        className="btn btn-primary w-full !py-1 !text-[11px]"
+        onClick={handleApply}
+        disabled={!hasChanges}
+      >
+        <Check size={11} /> {count}개에 적용
+      </button>
+    </div>
+  );
 }
