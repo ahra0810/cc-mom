@@ -1,14 +1,17 @@
 import { useState, useEffect, Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import { GraduationCap, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { GraduationCap, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, HelpCircle } from 'lucide-react';
 import LeftPanel from './components/LeftPanel';
 import CenterPanel from './components/CenterPanel';
 import RightPanel from './components/RightPanel';
 import QuestionEditor from './components/QuestionEditor';
 import SettingsModal from './components/SettingsModal';
+import WelcomeModal from './components/WelcomeModal';
 import { ToastProvider } from './components/Toast';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import type { Question } from './types';
+
+const WELCOME_KEY = 'quiz-maker-welcome-seen';
 
 /* ── Error Boundary ── */
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -54,6 +57,19 @@ export default function App() {
   // Panel collapse state (auto-collapse based on viewport size)
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
+
+  // Welcome modal — 첫 방문자 또는 ? 버튼 클릭 시
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return !localStorage.getItem(WELCOME_KEY);
+    } catch {
+      return false;
+    }
+  });
+  const dismissWelcome = () => {
+    try { localStorage.setItem(WELCOME_KEY, '1'); } catch { /* ignore */ }
+    setShowWelcome(false);
+  };
 
   // Auto-collapse panels on narrow viewports
   useEffect(() => {
@@ -134,6 +150,16 @@ export default function App() {
               {/* Spacer */}
               <div className="flex-1" />
 
+              {/* Help (?) — 항상 사용법 다시 볼 수 있게 */}
+              <button
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                onClick={() => setShowWelcome(true)}
+                title="처음 사용법 / 도움말"
+                aria-label="도움말"
+              >
+                <HelpCircle size={16} />
+              </button>
+
               {/* Right toggle */}
               <button
                 className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
@@ -188,6 +214,16 @@ export default function App() {
             )}
             {showSettings && (
               <SettingsModal onClose={() => setShowSettings(false)} />
+            )}
+            {showWelcome && (
+              <WelcomeModal
+                onClose={dismissWelcome}
+                onStart={() => {
+                  dismissWelcome();
+                  /* 우측 패널이 닫혀 있으면 펼쳐서 "새 시험지 만들기" 폼이 보이도록 */
+                  setRightCollapsed(false);
+                }}
+              />
             )}
           </div>
         </ConfirmDialogProvider>

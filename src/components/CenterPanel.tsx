@@ -1,12 +1,13 @@
 import { useEffect, useCallback } from 'react';
 import {
   Eye, EyeOff, ChevronUp, ChevronDown, X, Edit3, Undo2, RotateCcw,
-  ArrowUpDown, Plus, Trash2, CheckSquare, Square, FileText,
+  ArrowUpDown, Plus, Trash2, CheckSquare, Square, FileText, Sparkles,
 } from 'lucide-react';
 import { useTestStore } from '../stores/testStore';
 import { useQuestionStore } from '../stores/questionStore';
+import { useToast } from './Toast';
 import { DIFFICULTY_LABELS, QUESTION_TYPE_LABELS } from '../types';
-import type { Question } from '../types';
+import type { Question, Difficulty } from '../types';
 
 interface Props {
   activeTab: 'preview' | 'test';
@@ -230,13 +231,7 @@ function TestPreviewTab({ onEditQuestion }: { onEditQuestion: (q: Question) => v
   }, [handleKeyDown]);
 
   if (!currentTest) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
-        <FileText size={40} className="mb-3 text-gray-300" />
-        <p className="text-sm font-medium mb-1">시험지가 없습니다</p>
-        <p className="text-xs text-center">우측 패널에서 "새 시험지 만들기"를<br />클릭하여 시작하세요.</p>
-      </div>
-    );
+    return <EmptyTestHero />;
   }
 
   const testSubjects = currentTest.subjectIds
@@ -459,6 +454,207 @@ function TestQuestionCard({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   EmptyTestHero — 시험지가 없을 때 보이는 히어로
+   첫 사용자가 무엇을 해야 할지 한눈에 알 수 있도록
+   Quick-start 카드 4개 + 단계 안내
+   ═══════════════════════════════════════════════════ */
+function EmptyTestHero() {
+  const { questions } = useQuestionStore();
+  const { createTest, addQuestionsToTest } = useTestStore();
+  const { toast } = useToast();
+
+  /* 빠른 시작 — 한 클릭에 시험지 생성 + 랜덤 문항 자동 추가 */
+  const quickStart = (preset: {
+    title: string;
+    subjectIds: string[];
+    difficulty: Difficulty;
+    count: number;
+    icon: string;
+    color: string;
+    description: string;
+  }) => {
+    /* 해당 과목/난이도 문항 필터링 */
+    const matching = questions.filter(
+      (q) => preset.subjectIds.includes(q.subjectId) && q.difficulty === preset.difficulty
+    );
+
+    if (matching.length === 0) {
+      toast('warning', `"${preset.title}" 조건에 맞는 문항이 없어요. 직접 만들거나 가져오기를 이용해 주세요.`);
+      return;
+    }
+
+    /* 시험지 생성 */
+    createTest(preset.title, preset.subjectIds, preset.difficulty);
+
+    /* 랜덤 N개 선택 (Fisher-Yates) */
+    const target = Math.min(preset.count, matching.length);
+    const pool = [...matching];
+    for (let i = 0; i < target; i++) {
+      const j = i + Math.floor(Math.random() * (pool.length - i));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    /* 다음 tick에 추가 (createTest의 set이 먼저 처리되도록) */
+    setTimeout(() => {
+      addQuestionsToTest(pool.slice(0, target));
+      toast('success', `"${preset.title}" 시험지를 만들었어요! ${target}문항이 자동으로 추가되었습니다.`);
+    }, 0);
+  };
+
+  const presets = [
+    {
+      title: '사자성어 시험지',
+      subjectIds: ['four-char-idiom'],
+      difficulty: 'medium' as Difficulty,
+      count: 10,
+      icon: '📜',
+      color: '#8B5CF6',
+      description: '초등 5~6학년 · 보통 · 10문항',
+    },
+    {
+      title: '맞춤법 학습지',
+      subjectIds: ['spelling'],
+      difficulty: 'easy' as Difficulty,
+      count: 10,
+      icon: '✏️',
+      color: '#10B981',
+      description: '초등 3~4학년 · 쉬움 · 10문항',
+    },
+    {
+      title: '국어 종합 (속담·관용구·어휘)',
+      subjectIds: ['proverb', 'idiom', 'vocabulary'],
+      difficulty: 'medium' as Difficulty,
+      count: 10,
+      icon: '📚',
+      color: '#0EA5E9',
+      description: '초등 5~6학년 · 보통 · 10문항',
+    },
+    {
+      title: '중학 국어 (문학)',
+      subjectIds: ['middle-literature'],
+      difficulty: 'hard' as Difficulty,
+      count: 5,
+      icon: '📕',
+      color: '#7C3AED',
+      description: '중학 1학년 · 어려움 · 5문항',
+    },
+  ];
+
+  return (
+    <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white p-6">
+      <div className="max-w-2xl mx-auto">
+        {/* 단계 안내 */}
+        <StepIndicator current={0} />
+
+        {/* Hero */}
+        <div className="text-center mt-8 mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-indigo-600 mb-4 shadow-lg">
+            <FileText size={28} className="text-white" />
+          </div>
+          <h2 className="text-xl font-extrabold text-gray-800 mb-2">
+            첫 시험지를 만들어 보세요
+          </h2>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            아래에서 미리 만들어 둔 템플릿을 한 번 클릭하거나,
+            <br />
+            <span className="text-primary-600 font-semibold">우측 패널 → "새 시험지 만들기"</span>에서 직접 시작할 수 있어요.
+          </p>
+        </div>
+
+        {/* Quick start presets */}
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 mb-3">
+            <Sparkles size={14} className="text-amber-500" />
+            <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+              ⚡ 빠르게 시작하기
+            </h3>
+            <span className="text-[10px] text-gray-400">한 번 클릭으로 시험지 + 랜덤 문항 자동 생성</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {presets.map((p) => (
+              <button
+                key={p.title}
+                onClick={() => quickStart(p)}
+                className="text-left p-3 bg-white border border-gray-200 rounded-xl hover:border-gray-400 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform"
+                    style={{ backgroundColor: `${p.color}20` }}
+                  >
+                    {p.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-gray-800 truncate">{p.title}</div>
+                    <div className="text-[11px] text-gray-500 mt-0.5">{p.description}</div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 안내 — 그 외 옵션 */}
+        <div className="text-center text-[11px] text-gray-400 leading-relaxed pt-4 border-t border-gray-100">
+          💡 우측 패널에서 직접 제목·과목·난이도를 정해 시험지를 만들 수도 있어요.
+          <br />
+          기본 문항 외에 새 문항이 필요하면 <strong>좌측 ✏️ 버튼</strong>으로 직접 만들거나, <strong>설정 → 데이터 관리 → AI 프롬프트</strong>로 한 번에 여러 개를 만들 수 있어요.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   StepIndicator — 4단계 진행 상태 표시
+   현재 어느 단계에 있는지 항상 보여줌
+   ═══════════════════════════════════════════════════ */
+function StepIndicator({ current }: { current: number }) {
+  const steps = [
+    { num: 1, label: '시험지 만들기', icon: <Plus size={11} /> },
+    { num: 2, label: '문항 추가', icon: <FileText size={11} /> },
+    { num: 3, label: '미리보기', icon: <Eye size={11} /> },
+    { num: 4, label: 'PDF 출력', icon: <ArrowUpDown size={11} className="rotate-90" /> },
+  ];
+
+  return (
+    <div className="flex items-center justify-center gap-1 mb-2">
+      {steps.map((s, i) => {
+        const isCurrent = i === current;
+        const isPast = i < current;
+        return (
+          <div key={s.num} className="flex items-center">
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                isCurrent
+                  ? 'bg-primary-600 text-white shadow-sm'
+                  : isPast
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-gray-100 text-gray-400'
+              }`}
+            >
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold ${
+                isCurrent
+                  ? 'bg-white/25'
+                  : isPast
+                    ? 'bg-emerald-200 text-emerald-800'
+                    : 'bg-gray-200 text-gray-500'
+              }`}>
+                {isPast ? '✓' : s.num}
+              </span>
+              {s.label}
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`w-3 h-px ${isPast ? 'bg-emerald-300' : 'bg-gray-200'}`} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
