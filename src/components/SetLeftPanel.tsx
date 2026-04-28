@@ -236,7 +236,7 @@ function SetCard({
   onDelete: () => void;
 }) {
   const completion = getSlotCompletionCount(s);
-  const completionColor = completion === 7 ? 'bg-emerald-500' : completion >= 4 ? 'bg-amber-500' : 'bg-gray-400';
+  const completionColor = completion === 8 ? 'bg-emerald-500' : completion >= 5 ? 'bg-amber-500' : 'bg-gray-400';
   const idiom = s.meta.domain === 'four-char-idiom' ? s.meta.idiom : '';
   const hanja = s.meta.domain === 'four-char-idiom' ? s.meta.hanja : '';
   const meaning = s.meta.domain === 'four-char-idiom' ? s.meta.meaning : '';
@@ -275,7 +275,7 @@ function SetCard({
             </span>
             <div className="flex items-center gap-1 text-[9px] text-gray-500">
               <div className={`w-1.5 h-1.5 rounded-full ${completionColor}`} />
-              {completion}/7
+              {completion}/8
             </div>
           </div>
         </div>

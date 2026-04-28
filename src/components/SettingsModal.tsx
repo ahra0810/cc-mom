@@ -29,22 +29,23 @@ interface Props {
 }
 
 const AI_MASTER_PROMPT = `당신은 한국 초등 ~ 중학생용 "사자성어 학습지" 출제 전문가입니다.
-사자성어 N개를 입력으로 받으면, 각각에 대해 정확히 7문항으로 구성된 set을 JSON으로 만들어 주세요.
+사자성어 N개를 입력으로 받으면, 각각에 대해 정확히 8문항으로 구성된 set을 JSON으로 만들어 주세요.
 
 [Set 한 개의 구조]
 - meta: { domain: "four-char-idiom", idiom: <한글 4자>, hanja: <한자 4자>, meaning: <뜻풀이>, origin?: <출전> }
 - difficulty: "easy" | "medium" | "hard" | "advanced" | "expert"
 - title: "<idiom> 학습지"
-- slots (정확히 7개, 순서·유형 고정):
+- slots (정확히 8개, 순서·유형 고정):
   1) type: "hanja-writing"
      - question: "다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\\n\\n뜻: <뜻풀이>"
      - hanjaTrace: <한자 4자>
      - answer: <idiom 한글 4자>
      - explanation: 한 줄 설명
-  2~6) type: "multiple-choice"
+  2~7) type: "multiple-choice"
      - question, options(정확히 4개), answer(options 중 하나), explanation
      - 오답은 같은 학년 수준의 다른 사자성어/유사 표현으로
-  7) type: "sentence-making"
+     - 6문항 모두 서로 다른 유형(뜻 묻기·한자 풀이·예문 고르기·반의/유의 등)으로 구성
+  8) type: "sentence-making"
      - question: "'<idiom>'을(를) 사용해 한 문장을 만드세요."
      - answer: 모범답안 한 문장
      - explanation: 한 줄 설명
@@ -69,7 +70,7 @@ JSON only. 다음 형식 그대로:
       "slots": [
         { "type": "hanja-writing", "question": "...", "hanjaTrace": "東問西答", "answer": "동문서답", "explanation": "..." },
         { "type": "multiple-choice", "question": "...", "options": ["A","B","C","D"], "answer": "A", "explanation": "..." },
-        ... (총 7개)
+        ... (총 8개: hanja-writing 1 + multiple-choice 6 + sentence-making 1)
       ],
       "tags": ["대화","엉뚱"]
     }

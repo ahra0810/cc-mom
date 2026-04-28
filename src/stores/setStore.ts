@@ -23,7 +23,7 @@ import {
   validateSet,
   createEmptySet,
   syncSlot1FromMeta,
-  syncSlot7FromMeta,
+  syncSlot8FromMeta,
 } from '../services/setValidator';
 import { DEFAULT_SETS } from '../data/defaultSets';
 
@@ -97,7 +97,7 @@ function toSetSlots(slots: Question[]): SetSlots {
 function applyMetaSync(set: QuestionSet): QuestionSet {
   const slots = [...set.slots] as Question[];
   slots[0] = syncSlot1FromMeta(slots[0], set.meta);
-  slots[6] = syncSlot7FromMeta(slots[6], set.meta);
+  slots[7] = syncSlot8FromMeta(slots[7], set.meta);
   return { ...set, slots: toSetSlots(slots) };
 }
 
@@ -344,19 +344,25 @@ export const useSetStore = create<SetStore>()(
       resetToSeed: () => set({ sets: DEFAULT_SETS, selectedSetId: null, editingSetDraft: null }),
     }),
     {
-      name: 'idiom-set-maker-v1',
+      /* v1 → v2 (7슬롯 → 8슬롯). 구 데이터는 자동 폐기 후 시드 재주입. */
+      name: 'idiom-set-maker-v2',
       partialize: (state) => ({
         sets: state.sets,
         selectedSetId: state.selectedSetId,
       }),
-      /* 첫 부팅 또는 빈 상태 → 시드 자동 주입 */
+      /* 첫 부팅 / 빈 상태 / 슬롯 수 불일치 → 시드 자동 주입 */
       merge: (persisted: unknown, current) => {
         const p = persisted as { sets?: QuestionSet[]; selectedSetId?: string | null } | undefined;
-        const sets = p?.sets && Array.isArray(p.sets) && p.sets.length > 0 ? p.sets : DEFAULT_SETS;
+        const persistedSets = Array.isArray(p?.sets) ? p!.sets! : [];
+        /* 모든 set이 SLOT_COUNT 슬롯이어야 유효. 하나라도 다르면 폐기 */
+        const allValid =
+          persistedSets.length > 0 &&
+          persistedSets.every((s) => Array.isArray(s.slots) && s.slots.length === SLOT_COUNT);
+        const sets = allValid ? persistedSets : DEFAULT_SETS;
         return {
           ...current,
           sets,
-          selectedSetId: p?.selectedSetId ?? null,
+          selectedSetId: allValid ? (p?.selectedSetId ?? null) : null,
         };
       },
     }

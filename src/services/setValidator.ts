@@ -1,8 +1,8 @@
 /**
  * Set 검증 + 빈 set 생성 유틸리티.
  *
- * - validateSet: 7슬롯 존재, 각 슬롯 type/필드 일치, 메타 4자 검증
- * - createEmptySet: 빈 7슬롯 + 빈 메타로 초기화 (SetEditor 시작점)
+ * - validateSet: 8슬롯 존재, 각 슬롯 type/필드 일치, 메타 4자 검증
+ * - createEmptySet: 빈 8슬롯 + 빈 메타로 초기화 (SetEditor 시작점)
  * - getRequiredSlotType(idx): 슬롯 인덱스 → 강제 QuestionType
  */
 import { nanoid } from 'nanoid';
@@ -59,7 +59,7 @@ export function createEmptySet(domain: SetDomain = 'four-char-idiom', difficulty
     meaning: '',
   };
 
-  /* 7개 슬롯을 readonly tuple로 명시적으로 만든다 */
+  /* 8개 슬롯을 readonly tuple로 명시적으로 만든다 */
   const slots = [
     createEmptySlot(0, difficulty, subjectId),
     createEmptySlot(1, difficulty, subjectId),
@@ -68,6 +68,7 @@ export function createEmptySet(domain: SetDomain = 'four-char-idiom', difficulty
     createEmptySlot(4, difficulty, subjectId),
     createEmptySlot(5, difficulty, subjectId),
     createEmptySlot(6, difficulty, subjectId),
+    createEmptySlot(7, difficulty, subjectId),
   ] as const satisfies SetSlots;
 
   return {
@@ -106,13 +107,13 @@ export function syncSlot1FromMeta(slot1: Question, meta: SetMeta): Question {
   };
 }
 
-/* ─── 메타 → 7번 슬롯 자동 동기화 ─── */
-export function syncSlot7FromMeta(slot7: Question, meta: SetMeta): Question {
-  if (meta.domain !== 'four-char-idiom') return slot7;
-  if (slot7.question) return slot7; // 이미 작성됨 — 보존
-  if (!meta.idiom) return slot7;
+/* ─── 메타 → 8번 슬롯(서술형) 자동 동기화 ─── */
+export function syncSlot8FromMeta(slot8: Question, meta: SetMeta): Question {
+  if (meta.domain !== 'four-char-idiom') return slot8;
+  if (slot8.question) return slot8; // 이미 작성됨 — 보존
+  if (!meta.idiom) return slot8;
   return {
-    ...slot7,
+    ...slot8,
     question: `'${meta.idiom}'을(를) 사용해 한 문장을 만드세요.`,
   };
 }

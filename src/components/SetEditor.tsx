@@ -2,7 +2,7 @@
  * SetEditor — 사자성어 set 풀스크린 편집 모달.
  *
  * 좌측: 메타데이터 폼 (사자성어, 한자, 뜻, 출전, 제목, 난이도, 태그)
- * 우측: 7슬롯 인라인 입력 (SetSlotInput)
+ * 우측: 8슬롯 인라인 입력 (SetSlotInput)
  *
  * 저장 시 validateSet → 첫 에러 슬롯으로 스크롤
  */
@@ -115,13 +115,13 @@ export default function SetEditor({ onClose }: Props) {
               {meta.idiom ? `${meta.idiom} 학습지 편집` : '새 사자성어 학습지'}
             </span>
             <span className={`text-[10px] flex-shrink-0 px-1.5 py-0.5 rounded ${
-              completion === 7
+              completion === 8
                 ? 'bg-emerald-100 text-emerald-700'
-                : completion >= 4
+                : completion >= 5
                   ? 'bg-amber-100 text-amber-700'
                   : 'bg-gray-100 text-gray-500'
             }`}>
-              {completion}/7
+              {completion}/8
             </span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -242,11 +242,11 @@ export default function SetEditor({ onClose }: Props) {
             </div>
           </aside>
 
-          {/* Right — 7슬롯 */}
+          {/* Right — 8슬롯 */}
           <main className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
             <div className="text-xs text-gray-500 mb-2">
-              💡 1번 한자 따라쓰기 → 2~6번 객관식 → 7번 문장 만들기 순서로 작성하세요.
-              메타에 사자성어 정보를 채우면 1·7번이 자동으로 일부 채워집니다.
+              💡 1번 한자 따라쓰기 → 2~7번 객관식 → 8번 문장 만들기 순서로 작성하세요.
+              메타에 사자성어 정보를 채우면 1·8번이 자동으로 일부 채워집니다.
             </div>
             {Array.from({ length: SLOT_COUNT }, (_, i) => {
               const idx = i as SlotIndex;

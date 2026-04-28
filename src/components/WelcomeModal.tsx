@@ -45,7 +45,7 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
           </h1>
           <p className="text-sm opacity-90 leading-relaxed">
             {step === 0
-              ? '사자성어 1개 + 7문항 = A4 1페이지\n초3 ~ 중1 학생용 학습지를 자동으로 만들어 드립니다.'
+              ? '사자성어 1개 + 8문항 = A4 1페이지\n초3 ~ 중1 학생용 학습지를 자동으로 만들어 드립니다.'
               : '아래 단계를 따라 오시면\n3분 안에 첫 학습지가 완성됩니다.'}
           </p>
         </div>
@@ -57,12 +57,12 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
               <Feature
                 icon={<BookOpen size={16} />} color="#8B5CF6"
                 title="사자성어 1개 = 학습지 1장"
-                desc="동문서답·일석이조·자화자찬 같은 사자성어 하나를 set으로 등록하면 자동으로 7문항이 구성돼요."
+                desc="동문서답·일석이조·자화자찬 같은 사자성어 하나를 set으로 등록하면 자동으로 8문항이 구성돼요."
               />
               <Feature
                 icon={<FilePlus size={16} />} color="#10B981"
-                title="고정 7문항 구조"
-                desc="① 한자 따라쓰기 + 한글음 ② ~ ⑥ 4지선다 객관식 ⑦ 사자성어 사용 문장 만들기"
+                title="고정 8문항 구조"
+                desc="① 한자 따라쓰기 + 한글음 ② ~ ⑦ 4지선다 객관식 ⑧ 사자성어 사용 문장 만들기"
               />
               <Feature
                 icon={<FileText size={16} />} color="#F59E0B"
@@ -81,8 +81,8 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
                 title="새 학습지 만들기"
                 desc='좌측 "+ 새 set" 또는 시드 카드를 클릭해 사자성어 + 한자 + 뜻을 입력해요.' />
               <StepItem n={2} color="#10B981"
-                title="7문항 채우기"
-                desc="1번(한자 쓰기) → 2~6번(객관식 4지선다) → 7번(문장 만들기) 순서로 인라인 폼에 작성해요." />
+                title="8문항 채우기"
+                desc="1번(한자 쓰기) → 2~7번(객관식 4지선다) → 8번(문장 만들기) 순서로 인라인 폼에 작성해요." />
               <StepItem n={3} color="#F59E0B"
                 title="A4 1페이지 미리보기"
                 desc="가운데 화면에서 실제 PDF와 같은 모습으로 확인하고, 길이가 맞지 않으면 자동 조정돼요." />

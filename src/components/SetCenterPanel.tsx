@@ -107,9 +107,9 @@ export default function SetCenterPanel({ onCreateNew, onEditSet }: Props) {
           <Eye size={13} className="text-purple-600" />
           <span className="text-xs font-bold text-gray-800 truncate">{selectedSet.title}</span>
           <span className={`text-[10px] flex-shrink-0 px-1.5 py-0.5 rounded ${
-            completion === 7 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+            completion === 8 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
           }`}>
-            {completion}/7
+            {completion}/8
           </span>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">

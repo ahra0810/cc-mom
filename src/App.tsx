@@ -118,7 +118,7 @@ export default function App() {
                     사자성어 학습지 메이커
                   </h1>
                   <p className="text-[10px] text-gray-400 truncate mt-0.5">
-                    초3 ~ 중1 · 사자성어 1개 + 7문항 자동 생성
+                    초3 ~ 중1 · 사자성어 1개 + 8문항 자동 생성
                   </p>
                 </div>
               </div>

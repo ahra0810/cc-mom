@@ -5,7 +5,7 @@
  *  - 선택된 set 카드 (idiom/한자/난이도/완성도)
  *  - 빠른 편집 (제목, 난이도)
  *  - 템플릿 라디오 (Phase 5 — idiom-classic 1종, Phase 7에 2종 추가 예정)
- *  - 시험지 PDF / 답안+해설 PDF (7/7 미달 시 비활성)
+ *  - 시험지 PDF / 답안+해설 PDF (8/8 미달 시 비활성)
  *  - 하단 설정 버튼
  */
 import { useState, useEffect } from 'react';
@@ -82,7 +82,7 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
   }
 
   const completion = getSlotCompletionCount(selectedSet);
-  const isReady = completion === 7;
+  const isReady = completion === 8;
   const meta = selectedSet.meta as IdiomMeta;
 
   const commitQuickField = (field: 'title' | 'difficulty', value: string) => {
@@ -108,7 +108,7 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
 
   const handleExport = (withAnswer: boolean) => {
     if (!isReady) {
-      toast('error', `7문항 모두 작성해야 PDF 출력이 가능해요 (현재 ${completion}/7)`);
+      toast('error', `8문항 모두 작성해야 PDF 출력이 가능해요 (현재 ${completion}/8)`);
       return;
     }
     try {
@@ -172,7 +172,7 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
               >
                 {isReady ? (
                   <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 size={10} /> 7/7 완료
+                    <CheckCircle2 size={10} /> 8/8 완료
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1">
@@ -289,7 +289,7 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
               className={`btn w-full !text-xs ${
                 isReady ? 'btn-primary' : 'btn-secondary opacity-60 cursor-not-allowed'
               }`}
-              title={isReady ? '시험지 PDF 인쇄 창 열기' : '7문항 모두 채워야 출력 가능'}
+              title={isReady ? '시험지 PDF 인쇄 창 열기' : '8문항 모두 채워야 출력 가능'}
             >
               <Printer size={13} /> 시험지 PDF
             </button>
@@ -299,14 +299,14 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
               className={`btn w-full !text-xs ${
                 isReady ? 'btn-success' : 'btn-secondary opacity-60 cursor-not-allowed'
               }`}
-              title={isReady ? '답안+해설 PDF 인쇄 창 열기' : '7문항 모두 채워야 출력 가능'}
+              title={isReady ? '답안+해설 PDF 인쇄 창 열기' : '8문항 모두 채워야 출력 가능'}
             >
               <ListChecks size={13} /> 답안+해설 PDF
             </button>
             {!isReady && (
               <p className="text-[9.5px] text-amber-600 leading-relaxed mt-1 px-0.5">
                 <AlertTriangle size={9} className="inline -mt-0.5 mr-0.5" />
-                {7 - completion}문항 더 작성하면 PDF 출력이 활성화돼요
+                {8 - completion}문항 더 작성하면 PDF 출력이 활성화돼요
               </p>
             )}
             <p className="text-[9.5px] text-gray-400 leading-relaxed mt-1 px-0.5">

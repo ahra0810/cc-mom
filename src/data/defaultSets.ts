@@ -1,10 +1,10 @@
 /**
  * 시드 사자성어 set 5개 — 첫 부팅 시 setStore에 자동 주입.
  *
- * 7슬롯 고정 구조:
+ * 8슬롯 고정 구조:
  *   1번: hanja-writing (한자 따라쓰기 + 한글음)
- *   2~6번: multiple-choice (4지선다)
- *   7번: sentence-making (사용 문장 만들기)
+ *   2~7번: multiple-choice (4지선다)
+ *   8번: sentence-making (사용 문장 만들기)
  */
 import type { QuestionSet, SetSlots } from '../types/sets';
 import type { Question } from '../types';
@@ -77,6 +77,13 @@ const set1Slots: SetSlots = [
     explanation: '東(동), 問(물을 문), 西(서), 答(답)이 올바른 한자 표기입니다.',
   }),
   q({
+    type: 'multiple-choice', difficulty: 'medium',
+    question: '다음 대화에 나타난 표현으로 가장 알맞은 사자성어는?\n\n선생님: 오늘 숙제 가져왔니?\n학생: 어제는 비가 많이 왔어요.',
+    options: ['동문서답', '일석이조', '대기만성', '죽마고우'],
+    answer: '동문서답',
+    explanation: '묻는 말(숙제)과 전혀 다른 답(날씨)을 한 전형적인 동문서답 상황입니다.',
+  }),
+  q({
     type: 'sentence-making', difficulty: 'medium',
     question: "'동문서답'을(를) 사용해 한 문장을 만드세요.",
     answer: '선생님 질문에 친구가 자기 강아지 이야기를 늘어놓아서 동문서답이라며 모두 웃었다.',
@@ -134,6 +141,18 @@ const set2Slots: SetSlots = [
     options: ['一石二鳥', '日石二鳥', '一夕二鳥', '一石異鳥'],
     answer: '一石二鳥',
     explanation: '一(하나), 石(돌), 二(둘), 鳥(새). 다른 보기는 한자가 잘못됨.',
+  }),
+  q({
+    type: 'multiple-choice', difficulty: 'easy',
+    question: '다음 중 "일석이조"의 예로 가장 알맞지 않은 상황은?',
+    options: [
+      '집에 와서 텔레비전만 종일 보았다.',
+      '걸어 다녀서 운동도 하고 차비도 아꼈다.',
+      '책을 읽으면서 영어 단어도 함께 외웠다.',
+      '청소를 하면서 방 안 정리도 같이 했다.',
+    ],
+    answer: '집에 와서 텔레비전만 종일 보았다.',
+    explanation: '한 가지 행동으로 두 가지 이익을 얻은 상황이 아닙니다.',
   }),
   q({
     type: 'sentence-making', difficulty: 'easy',
@@ -198,6 +217,18 @@ const set3Slots: SetSlots = [
     ],
     answer: '自(스스로)·畫(그림)·自(스스로)·讚(칭찬)',
     explanation: '"스스로 자기 그림을 칭찬한다"는 의미를 한자로 풀어냅니다.',
+  }),
+  q({
+    type: 'multiple-choice', difficulty: 'medium',
+    question: '"자화자찬"을 자주 하는 사람의 모습으로 가장 알맞은 것은?',
+    options: [
+      '자기 자랑이 많고 겸손하지 못함',
+      '늘 친구를 칭찬해 줌',
+      '말이 없고 조용함',
+      '남의 의견을 잘 듣고 따름',
+    ],
+    answer: '자기 자랑이 많고 겸손하지 못함',
+    explanation: '스스로를 자주 칭찬하는 모습은 겸손하지 못한 자만에 가깝습니다.',
   }),
   q({
     type: 'sentence-making', difficulty: 'medium',
@@ -269,6 +300,18 @@ const set4Slots: SetSlots = [
     explanation: '큰 그릇은 늦게 완성된다는 뜻을 한자로 풀어냅니다.',
   }),
   q({
+    type: 'multiple-choice', difficulty: 'hard',
+    question: '"대기만성"과 가장 비슷한 의미의 속담은?',
+    options: [
+      '천 리 길도 한 걸음부터',
+      '발 없는 말이 천 리 간다',
+      '소 잃고 외양간 고친다',
+      '등잔 밑이 어둡다',
+    ],
+    answer: '천 리 길도 한 걸음부터',
+    explanation: '큰 일을 이루기 위해서는 시간을 두고 꾸준히 노력해야 한다는 점이 닮아 있습니다.',
+  }),
+  q({
     type: 'sentence-making', difficulty: 'hard',
     question: "'대기만성'을(를) 사용해 한 문장을 만드세요.",
     answer: '지금은 실력이 부족해도 대기만성이라는 말처럼 꾸준히 연습하면 좋은 결과가 있을 것이다.',
@@ -326,6 +369,18 @@ const set5Slots: SetSlots = [
     options: ['竹馬故友', '竹馬古牛', '粥馬故友', '竹麻故友'],
     answer: '竹馬故友',
     explanation: '竹(대), 馬(말), 故(옛), 友(벗). 다른 보기는 한자가 잘못되었습니다.',
+  }),
+  q({
+    type: 'multiple-choice', difficulty: 'easy',
+    question: '다음 중 "죽마고우" 관계라고 보기 어려운 사람은?',
+    options: [
+      '며칠 전 처음 만난 친구',
+      '유치원 때부터 함께 지낸 친구',
+      '같은 동네에서 어릴 적부터 자란 단짝',
+      '초등학교 1학년 때부터 단짝이었던 친구',
+    ],
+    answer: '며칠 전 처음 만난 친구',
+    explanation: '죽마고우는 어릴 적부터 오랜 시간 함께한 친구를 가리킵니다.',
   }),
   q({
     type: 'sentence-making', difficulty: 'easy',

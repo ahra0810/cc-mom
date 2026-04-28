@@ -91,7 +91,7 @@ export default function EmptySetHero({ onCreateNew }: Props) {
 
         {/* Footer hint */}
         <div className="text-center text-[11px] text-gray-400 leading-relaxed pt-4 border-t border-gray-100">
-          💡 한 set은 사자성어 1개 + 7문항(한자 쓰기 1 + 객관식 5 + 문장 만들기 1) = A4 1페이지 학습지입니다.
+          💡 한 set은 사자성어 1개 + 8문항(한자 쓰기 1 + 객관식 6 + 문장 만들기 1) = A4 1페이지 학습지입니다.
         </div>
       </div>
     </div>
@@ -102,7 +102,7 @@ export default function EmptySetHero({ onCreateNew }: Props) {
 function StepIndicator({ current }: { current: number }) {
   const steps = [
     { num: 1, label: 'Set 만들기', icon: <FilePlus size={11} /> },
-    { num: 2, label: '7문항 채우기', icon: <FileText size={11} /> },
+    { num: 2, label: '8문항 채우기', icon: <FileText size={11} /> },
     { num: 3, label: '미리보기', icon: <Eye size={11} /> },
     { num: 4, label: 'PDF 출력', icon: <Download size={11} /> },
   ];

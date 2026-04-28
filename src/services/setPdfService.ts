@@ -159,9 +159,9 @@ function renderMcSlot(q: Question, idx: number, showAnswer: boolean): string {
   return h;
 }
 
-/* ─── 슬롯 7: sentence-making ─── */
-function renderSlot7(q: Question, idx: number, showAnswer: boolean): string {
-  let h = `<div class="q slot-7">`;
+/* ─── 슬롯 8: sentence-making (마지막 슬롯) ─── */
+function renderSlot8(q: Question, idx: number, showAnswer: boolean): string {
+  let h = `<div class="q slot-last">`;
   h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
   h += `<div class="q-body">`;
   h += `<p class="q-text">${esc(q.question)}</p>`;
@@ -206,15 +206,22 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   background: white;
 }
 
-/* ─── Header — 이름 칸만 우상단에 ─── */
+/* ─── Header — 이름 칸만 우상단에 (이중선/구분선 없음) ─── */
 .header {
   display: flex; justify-content: flex-end; align-items: center;
-  padding-bottom: 3mm; border-bottom: 1.5px solid ${t.textColor}; margin-bottom: 4mm;
+  padding: 0; margin-bottom: 5mm;
   flex-shrink: 0;
 }
-.header-name { font-size: ${baseFs - 0.5}pt; color: ${t.textColor}; font-weight: 600; }
-.header-name .blank { display: inline-block; min-width: 50mm; border-bottom: 1px solid ${t.textColor}aa; height: 5mm; vertical-align: middle; margin-left: 2mm; }
-.answer-banner { text-align: center; font-weight: 800; color: ${t.primaryColor}; border: 1.5px solid ${t.primaryColor}; padding: 2mm 0; margin-bottom: 3mm; letter-spacing: 4px; background: ${t.bgAccent}; flex-shrink: 0; }
+.header-name {
+  font-size: ${baseFs}pt; color: ${t.textColor}; font-weight: 700;
+  display: inline-flex; align-items: flex-end; gap: 3mm;
+}
+.header-name .blank {
+  display: inline-block; min-width: 70mm;
+  border-bottom: 1.5px solid ${t.textColor}; /* 한 줄만 */
+  height: 12mm; /* 1.2cm 기록 공간 */
+}
+.answer-banner { text-align: center; font-weight: 800; color: ${t.primaryColor}; border: 1.5px solid ${t.primaryColor}; padding: 2mm 0; margin-bottom: 4mm; letter-spacing: 4px; background: ${t.bgAccent}; flex-shrink: 0; }
 
 /* ─── Meta block ─── */
 .meta-block { border: 1.5px solid ${t.accentColor}; border-radius: 4px; padding: 4mm 6mm; margin-bottom: 4mm; background: ${t.bgAccent}66; flex-shrink: 0; text-align: center; }
@@ -249,12 +256,15 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .meta-big-friendly .meta-idiom { font-size: ${baseFs + 2}pt; }
 .meta-big-friendly .meta-meaning { font-size: ${baseFs}pt; }
 
-/* ─── Set body ─── */
-.set { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: 3mm; }
-.q { display: flex; gap: 3mm; page-break-inside: avoid; }
-.q.slot-1 { flex: 0 0 auto; }
-.q.slot-mc { flex: 0 0 auto; }
-.q.slot-7 { flex: 1 1 auto; min-height: 35mm; }
+/* ─── Set body — 8문항 + 자동 균등 분배 ─── */
+.set {
+  display: flex; flex-direction: column;
+  flex: 1 1 auto; min-height: 0;
+  /* 모든 슬롯 사이의 여유 공간을 자동 균등 분배 — 각 문항 사이 간격 최대화 */
+  justify-content: space-between;
+  gap: 2mm; /* 최소 간격 보장 (overflow 방지) */
+}
+.q { display: flex; gap: 3mm; page-break-inside: avoid; flex: 0 0 auto; }
 .q-num { flex-shrink: 0; width: 7mm; font-size: ${baseFs}pt; font-weight: 800; color: ${t.primaryColor}; padding-top: 0.5mm; }
 .q-body { flex: 1; min-width: 0; }
 .q-text { font-size: ${baseFs}pt; font-weight: 600; line-height: 1.5; margin-bottom: 1.5mm; white-space: pre-wrap; }
@@ -275,15 +285,14 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .answer-line { display: inline-block; flex: 1; min-width: 60mm; border-bottom: 1.5px solid ${t.textColor}aa; height: 8mm; }
 .answer-filled { font-weight: 700; color: ${t.primaryColor}; border-bottom: 1.5px solid ${t.primaryColor}; padding-bottom: 1px; min-width: 30mm; display: inline-block; }
 
-/* ─── 2~6번: 객관식 ─── */
-.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5mm 6mm; padding-left: 1mm; font-size: ${baseFs - 0.5}pt; line-height: 1.6; }
+/* ─── 2~7번: 객관식 ─── */
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5mm 6mm; padding-left: 1mm; font-size: ${baseFs - 0.5}pt; line-height: 1.45; }
 .opts > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .opts .correct { font-weight: 800; color: ${t.primaryColor}; }
 
-/* ─── 7번: 작성 영역 — 1.3cm 줄 간격 ─── */
+/* ─── 8번: 작성 영역 — 1.3cm 줄 간격, 정확히 2줄 ─── */
 .writing-lines {
-  flex: 1 1 auto;
-  min-height: 52mm; /* 최소 4줄 보장 */
+  height: 26mm; /* 1.3cm × 2줄 */
   margin: 2mm 0 0 0;
   background-image: repeating-linear-gradient(
     to bottom,
@@ -314,11 +323,11 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   /* Meta block */
   html += renderMetaBlock(meta, t);
 
-  /* 7 slots */
+  /* 8 slots */
   html += `<div class="set">`;
   set.slots.forEach((q, idx) => {
     if (idx === 0) html += renderSlot1(q, idx, showAnswer);
-    else if (idx === 6) html += renderSlot7(q, idx, showAnswer);
+    else if (idx === 7) html += renderSlot8(q, idx, showAnswer);
     else html += renderMcSlot(q, idx, showAnswer);
   });
   html += `</div>`;

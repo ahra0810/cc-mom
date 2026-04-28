@@ -33,7 +33,7 @@ export const SET_TEMPLATES: SetTemplate[] = [
   {
     id: 'idiom-classic',
     name: '클래식',
-    description: '깔끔한 메타 박스 + 기본 7문항 레이아웃',
+    description: '깔끔한 메타 박스 + 기본 8문항 레이아웃',
     primaryColor: '#7C3AED',
     accentColor: '#A78BFA',
     bgAccent: '#F5F3FF',
