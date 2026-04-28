@@ -381,12 +381,13 @@ export function buildTemplateCSS(t: PDFTemplate): string {
     dense: { qGap: '10px', qPad: '0', headerPad: '10px' },
   }[t.density];
 
-  /* 답란 너비/높이 — 답을 쓰는 칸 크기 (학년별 조정) */
+  /* 답란 너비/높이 — 답을 쓰는 칸 크기 (학년별 조정).
+     기본값을 모두 넉넉하게 늘려서 학생이 답을 편하게 쓸 수 있도록. */
   const answer = {
-    compact: { lineWidth: '50%', writingHeight: '60px', writeLineGap: 22 },
-    normal:  { lineWidth: '60%', writingHeight: '72px', writeLineGap: 24 },
-    roomy:   { lineWidth: '75%', writingHeight: '96px', writeLineGap: 28 },
-    large:   { lineWidth: '90%', writingHeight: '120px', writeLineGap: 32 },
+    compact: { lineWidth: '80%',  writingHeight: '100px', writeLineGap: 26, inlineBlankWidth: '70px' },
+    normal:  { lineWidth: '90%',  writingHeight: '140px', writeLineGap: 30, inlineBlankWidth: '80px' },
+    roomy:   { lineWidth: '95%',  writingHeight: '180px', writeLineGap: 34, inlineBlankWidth: '95px' },
+    large:   { lineWidth: '100%', writingHeight: '220px', writeLineGap: 40, inlineBlankWidth: '110px' },
   }[t.answerSpacing || 'normal'];
 
   return `
@@ -440,10 +441,29 @@ ${buildPassageCSS(t)}
 .opts-tf { grid-template-columns: auto auto; justify-content: start; gap: 1px 32px; }
 .opts .correct { font-weight: 800; color: ${t.primaryColor}; }
 
-.answer-line { width: ${answer.lineWidth}; height: 1px; border-bottom: 1px solid ${t.accentColor}; margin: 8px 0 6px 2px; }
+/* 단답형/빈칸 답 작성란 — 한 줄 밑줄 + 위아래 여유 공간으로 학생이 편하게 쓰도록 */
+.answer-line {
+  width: ${answer.lineWidth}; height: 1.5em;
+  border-bottom: 1.5px solid ${t.textColor}aa;
+  margin: 14px 0 12px 2px;
+}
+/* 서술형 작성란 — 줄 노트 형태, 충분한 줄 수 */
 .writing-lines {
-  height: ${answer.writingHeight}; margin: 6px 0 6px 2px;
-  background-image: repeating-linear-gradient(transparent, transparent ${answer.writeLineGap - 1}px, ${t.accentColor}aa ${answer.writeLineGap - 1}px, ${t.accentColor}aa ${answer.writeLineGap}px);
+  height: ${answer.writingHeight}; margin: 10px 0 10px 2px;
+  background-image: repeating-linear-gradient(
+    transparent, transparent ${answer.writeLineGap - 1}px,
+    ${t.accentColor}cc ${answer.writeLineGap - 1}px, ${t.accentColor}cc ${answer.writeLineGap}px
+  );
+  border-top: 1px solid ${t.accentColor}33;
+}
+/* 문제 본문 안의 ( ) 빈칸을 시각적 인라인 빈칸으로 변환 */
+.inline-blank {
+  display: inline-block;
+  min-width: ${answer.inlineBlankWidth};
+  height: 1.3em;
+  border-bottom: 1.5px solid ${t.textColor}aa;
+  vertical-align: bottom;
+  margin: 0 4px 1px;
 }
 .answer-box {
   display: inline-block; font-size: ${t.baseFontSize - 1}pt; font-weight: 700;
@@ -456,16 +476,9 @@ ${buildPassageCSS(t)}
 }
 .explain-label { display: inline-block; font-weight: 800; color: ${t.primaryColor}; margin-right: 6px; font-size: ${t.baseFontSize - 2}pt; }
 
-/* ═══ Memo (오답 정리) ═══ */
-.memo {
-  margin-top: 24px; border: 1.5px solid ${t.accentColor}; border-radius: 4px;
-  padding: 12px 14px; background: ${t.bgAccent}40;
-}
-.memo-title {
-  font-size: ${t.baseFontSize - 1.5}pt; font-weight: 800; color: ${t.primaryColor};
-  margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid ${t.accentColor};
-}
-.memo-lines {
+/* (memo 영역은 시험지에서 더 이상 사용되지 않음 — 사용자 요청으로 제거) */
+.legacy-memo {
+  display: none;
   height: 120px;
   background-image: repeating-linear-gradient(transparent, transparent 23px, ${t.accentColor}88 23px, ${t.accentColor}88 24px);
 }

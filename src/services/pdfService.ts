@@ -5,6 +5,23 @@ function esc(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/**
+ * 문제 본문 안의 "(   )" 같은 빈칸 표기를 학생이 답을 쓸 수 있는
+ * 시각적 빈칸(inline-blank)으로 변환합니다.
+ *
+ * 매칭 패턴:
+ *   - 괄호 안에 1개 이상의 공백 (    ) → 한 줄 밑줄 빈칸
+ *   - 연속 언더스코어 ___ → 밑줄 빈칸
+ */
+function transformInlineBlanks(escapedText: string): string {
+  let out = escapedText;
+  /* 괄호 빈칸: ( ), (   ), (     ) 등 */
+  out = out.replace(/\(([\s\u00a0]+)\)/g, '<span class="inline-blank"></span>');
+  /* 언더스코어 3개 이상 */
+  out = out.replace(/_{3,}/g, '<span class="inline-blank"></span>');
+  return out;
+}
+
 const CIRCLE = ['\u2460', '\u2461', '\u2462', '\u2463'];
 
 function renderQuestion(q: TestPaper['questions'][0], idx: number, showAnswer: boolean): string {
@@ -25,7 +42,7 @@ function renderQuestion(q: TestPaper['questions'][0], idx: number, showAnswer: b
     h += `</div>`;
   }
 
-  h += `<p class="q-text">${esc(q.question)}</p>`;
+  h += `<p class="q-text">${transformInlineBlanks(esc(q.question))}</p>`;
 
   if (q.type === 'multiple-choice' && q.options) {
     h += `<div class="opts">`;
@@ -107,14 +124,6 @@ export function generateTestPaperHTML(
   for (const q of test.questions) {
     html += renderQuestion(q, idx, showAnswerKey);
     idx++;
-  }
-
-  // Memo section (test paper only)
-  if (!showAnswerKey) {
-    html += `<div class="memo">
-      <div class="memo-title">오답 정리 / 메모</div>
-      <div class="memo-lines"></div>
-    </div>`;
   }
 
   html += `</div></body></html>`;
