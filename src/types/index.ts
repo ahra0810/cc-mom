@@ -1,8 +1,14 @@
-export type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank' | 'short-answer' | 'sentence-making';
+export type QuestionType =
+  | 'multiple-choice'
+  | 'true-false'
+  | 'fill-blank'
+  | 'short-answer'
+  | 'sentence-making'
+  | 'hanja-writing'; // 1번 — 한자 4자가 옅게 표시되고 학생이 한글음 + 한자 따라쓰기
 
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'advanced' | 'expert';
 
-export type QuestionSource = 'manual' | 'preset';
+export type QuestionSource = 'manual' | 'preset' | 'ai-imported';
 
 export interface Subject {
   id: string;
@@ -29,6 +35,9 @@ export interface Question {
   workTitle?: string;
   /** 작가명 (예: 황순원) */
   workAuthor?: string;
+  /** hanja-writing 타입 전용: 학생이 따라 쓸 한자 4자 (예: "東問西答").
+   *  PDF에서 옅은 회색 글자로 박스 안에 표시되고 학생이 위에 따라 씀. */
+  hanjaTrace?: string;
 }
 
 export interface TestPaper {
@@ -55,14 +64,9 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   'fill-blank': '빈칸 채우기',
   'short-answer': '단답형',
   'sentence-making': '서술형 (문장 만들기)',
+  'hanja-writing': '한자 쓰기 (음 + 따라쓰기)',
 };
 
 export const DEFAULT_SUBJECTS: Subject[] = [
-  { id: 'world-history', name: '세계사', icon: '🌍', color: '#3B82F6' },
   { id: 'four-char-idiom', name: '사자성어', icon: '📜', color: '#8B5CF6' },
-  { id: 'idiom', name: '관용구', icon: '💬', color: '#EC4899' },
-  { id: 'proverb', name: '속담', icon: '📖', color: '#F59E0B' },
-  { id: 'spelling', name: '맞춤법', icon: '✏️', color: '#10B981' },
-  { id: 'vocabulary', name: '어휘', icon: '📚', color: '#6366F1' },
-  { id: 'middle-literature', name: '중학 국어 (문학)', icon: '📕', color: '#7C3AED' },
 ];

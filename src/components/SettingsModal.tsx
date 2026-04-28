@@ -1,1119 +1,349 @@
-import { useState } from 'react';
-import { X, Plus, Trash2, RotateCcw, Tag, Database, Upload, Download, FileText, ChevronDown, ChevronRight, Copy, Sparkles, Pencil, Check } from 'lucide-react';
-import { nanoid } from 'nanoid';
-import { useQuestionStore } from '../stores/questionStore';
+/**
+ * SettingsModal — Phase 8 본격 구현.
+ *
+ *  - AI 프롬프트 가이드 (사자성어 set 마스터 프롬프트, 복사 버튼)
+ *  - JSON Export (사자성어 set 전체 다운로드)
+ *  - JSON Import (텍스트/파일 → setStore.importData → 결과 리포트)
+ *  - 이전 버전 localStorage 정리
+ *  - 시드 5개로 초기화
+ */
+import { useRef, useState } from 'react';
+import {
+  X,
+  RotateCcw,
+  Database,
+  Trash2,
+  Sparkles,
+  Copy,
+  Download,
+  Upload,
+  Check,
+  AlertTriangle,
+} from 'lucide-react';
+import { useSetStore } from '../stores/setStore';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
-import EmojiPicker from './EmojiPicker';
 
 interface Props {
   onClose: () => void;
 }
 
+const AI_MASTER_PROMPT = `당신은 한국 초등 ~ 중학생용 "사자성어 학습지" 출제 전문가입니다.
+사자성어 N개를 입력으로 받으면, 각각에 대해 정확히 7문항으로 구성된 set을 JSON으로 만들어 주세요.
+
+[Set 한 개의 구조]
+- meta: { domain: "four-char-idiom", idiom: <한글 4자>, hanja: <한자 4자>, meaning: <뜻풀이>, origin?: <출전> }
+- difficulty: "easy" | "medium" | "hard" | "advanced" | "expert"
+- title: "<idiom> 학습지"
+- slots (정확히 7개, 순서·유형 고정):
+  1) type: "hanja-writing"
+     - question: "다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\\n\\n뜻: <뜻풀이>"
+     - hanjaTrace: <한자 4자>
+     - answer: <idiom 한글 4자>
+     - explanation: 한 줄 설명
+  2~6) type: "multiple-choice"
+     - question, options(정확히 4개), answer(options 중 하나), explanation
+     - 오답은 같은 학년 수준의 다른 사자성어/유사 표현으로
+  7) type: "sentence-making"
+     - question: "'<idiom>'을(를) 사용해 한 문장을 만드세요."
+     - answer: 모범답안 한 문장
+     - explanation: 한 줄 설명
+
+[규칙]
+- 모든 한글은 4자 (예: "동문서답"), 한자도 4자 (예: "東問西答")
+- 1번 answer는 idiom 한글 4자와 동일해야 함
+- 객관식 4개 보기는 모두 비어있으면 안 됨
+- 학년 수준에 맞는 어휘 사용 (초3~중1)
+- 모든 문항에 explanation 한 줄 포함
+
+[출력]
+JSON only. 다음 형식 그대로:
+{
+  "version": 1,
+  "sets": [
+    {
+      "title": "동문서답 학습지",
+      "domain": "four-char-idiom",
+      "difficulty": "medium",
+      "meta": { "domain": "four-char-idiom", "idiom": "동문서답", "hanja": "東問西答", "meaning": "...", "origin": "..." },
+      "slots": [
+        { "type": "hanja-writing", "question": "...", "hanjaTrace": "東問西答", "answer": "동문서답", "explanation": "..." },
+        { "type": "multiple-choice", "question": "...", "options": ["A","B","C","D"], "answer": "A", "explanation": "..." },
+        ... (총 7개)
+      ],
+      "tags": ["대화","엉뚱"]
+    }
+  ]
+}`;
+
 export default function SettingsModal({ onClose }: Props) {
-  const { subjects, addSubject, updateSubject, removeSubject, resetToDefaults, exportData, importData, getSubjectQuestionCount } = useQuestionStore();
+  const resetToSeed = useSetStore((s) => s.resetToSeed);
+  const exportData = useSetStore((s) => s.exportData);
+  const importData = useSetStore((s) => s.importData);
+
   const { toast } = useToast();
   const confirm = useConfirm();
 
-  const [newSubjectName, setNewSubjectName] = useState('');
-  const [newSubjectIcon, setNewSubjectIcon] = useState('📝');
-  const [showNewIconPicker, setShowNewIconPicker] = useState(false);
-  const [activeTab, setActiveTab] = useState<'subjects' | 'data'>('subjects');
+  const [copied, setCopied] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importBusy, setImportBusy] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    ok: number;
+    failed: { index: number; errors: string[] }[];
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* 인라인 편집 상태 */
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editIcon, setEditIcon] = useState('');
-  const [editIconPickerOpen, setEditIconPickerOpen] = useState(false);
+  /* AI 프롬프트 복사 */
+  const handleCopyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(AI_MASTER_PROMPT);
+      setCopied(true);
+      toast('success', 'AI 프롬프트가 복사되었어요');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast('error', '복사 실패 — 직접 선택해서 복사해 주세요');
+    }
+  };
 
-  const startEdit = (id: string, name: string, icon: string) => {
-    setEditingId(id);
-    setEditName(name);
-    setEditIcon(icon);
-    setEditIconPickerOpen(false);
+  /* JSON Export 다운로드 */
+  const handleExport = () => {
+    try {
+      const json = exportData();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `idiom-sets-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('success', 'JSON 파일을 다운로드했어요');
+    } catch (e) {
+      console.error(e);
+      toast('error', '내보내기 실패');
+    }
   };
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditIconPickerOpen(false);
-  };
-  const saveEdit = () => {
-    if (!editingId) return;
-    const trimmed = editName.trim();
-    if (!trimmed) {
-      toast('error', '과목 이름을 입력해주세요');
+
+  /* JSON Import — 텍스트박스 */
+  const handleImportFromText = () => {
+    if (!importText.trim()) {
+      toast('error', '가져올 JSON을 붙여넣어 주세요');
       return;
     }
-    const original = subjects.find((s) => s.id === editingId);
-    if (!original) return;
-    /* 중복 체크 */
-    if (subjects.some((s) => s.id !== editingId && s.name.trim().toLowerCase() === trimmed.toLowerCase())) {
-      toast('error', '같은 이름의 과목이 이미 있습니다');
-      return;
-    }
-    updateSubject(editingId, { name: trimmed, icon: editIcon || original.icon });
-    toast('success', `"${trimmed}"(으)로 수정했습니다`);
-    cancelEdit();
+    runImport(importText);
   };
 
-  const handleAddSubject = () => {
-    if (!newSubjectName.trim()) return;
-    const colors = ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#6366F1', '#EF4444', '#14B8A6'];
-    const ok = addSubject({
-      id: nanoid(8),
-      name: newSubjectName.trim(),
-      icon: newSubjectIcon,
-      color: colors[subjects.length % colors.length],
-    });
-    if (!ok) {
-      toast('error', '같은 이름의 과목이 이미 있습니다');
-      return;
+  /* JSON Import — 파일 */
+  const handleFilePick = () => fileInputRef.current?.click();
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setImportText(text);
+      runImport(text);
+    } catch {
+      toast('error', '파일 읽기 실패');
     }
-    toast('success', `"${newSubjectName.trim()}" 과목을 추가했습니다`);
-    setNewSubjectName('');
-    setNewSubjectIcon('📝');
   };
 
-  const handleRemoveSubject = async (id: string, name: string) => {
-    const count = getSubjectQuestionCount(id);
+  const runImport = (text: string) => {
+    setImportBusy(true);
+    setImportResult(null);
+    try {
+      const result = importData(text);
+      setImportResult({ ok: result.ok, failed: result.failed });
+      if (result.ok > 0 && result.failed.length === 0) {
+        toast('success', `${result.ok}개 set을 가져왔어요`);
+      } else if (result.ok > 0) {
+        toast('info', `${result.ok}개 가져옴 / ${result.failed.length}개 실패`);
+      } else {
+        toast('error', `모두 실패했어요 (${result.failed.length}건)`);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'JSON 파싱 실패';
+      toast('error', msg);
+      setImportResult({ ok: 0, failed: [{ index: -1, errors: [msg] }] });
+    } finally {
+      setImportBusy(false);
+    }
+  };
+
+  /* 이전 데이터 정리 */
+  const handleClearLegacy = async () => {
     const ok = await confirm({
-      title: `"${name}" 과목 삭제`,
-      message: count > 0
-        ? `이 과목에는 ${count}개의 문항이 있습니다.\n과목을 삭제해도 문항은 유지되지만, 표시되지 않게 됩니다. 계속하시겠습니까?`
-        : `정말로 "${name}" 과목을 삭제하시겠습니까?`,
-      variant: 'danger',
+      title: '이전 데이터 정리',
+      message:
+        '이전 버전(quiz-maker)의 localStorage 데이터를 삭제합니다.\n사자성어 set 데이터는 영향받지 않습니다.\n계속하시겠습니까?',
+      variant: 'warning',
       confirmText: '삭제',
     });
     if (ok) {
-      removeSubject(id);
-      toast('success', `"${name}" 과목을 삭제했습니다`);
+      try {
+        localStorage.removeItem('quiz-maker-questions');
+        localStorage.removeItem('quiz-maker-tests');
+        localStorage.removeItem('quiz-maker-ai-settings');
+        toast('success', '이전 데이터를 삭제했습니다');
+      } catch {
+        toast('error', '삭제 실패');
+      }
     }
   };
 
-  const handleExport = () => {
-    const data = exportData();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `quiz-data-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('success', '데이터를 내보냈습니다');
-  };
-
-  const handleImport = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json,.json';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const result = importData(text);
-        const { taggingStats } = result;
-
-        /* 토스트 메시지 — 매칭/생성 결과 요약 */
-        const lines: string[] = [];
-        lines.push(`✅ ${result.questions}문항을 가져왔습니다`);
-        if (taggingStats.matched > 0) {
-          lines.push(`📌 ${taggingStats.matched}개는 기존 과목에 자동 매칭`);
-        }
-        if (result.subjectsAdded > 0) {
-          lines.push(`🆕 새 과목 ${result.subjectsAdded}개 추가: ${result.newSubjectNames.slice(0, 3).join(', ')}${result.newSubjectNames.length > 3 ? ` 외 ${result.newSubjectNames.length - 3}개` : ''}`);
-        }
-        const fallbackCount = taggingStats.byMethod.fallback;
-        if (fallbackCount > 0) {
-          lines.push(`⚠️ ${fallbackCount}개는 미분류로 처리됨`);
-        }
-        toast('success', lines.join('\n'));
-      } catch (err) {
-        toast('error', err instanceof Error ? err.message : '가져오기 실패');
-      }
-    };
-    input.click();
-  };
-
-  const handleDownloadTemplate = () => {
-    const template = {
-      questions: [
-        {
-          type: "multiple-choice",
-          subjectId: "world-history",
-          difficulty: "easy",
-          question: "이집트에서 가장 유명한 건축물로, 왕의 무덤으로 만들어진 것은?",
-          options: ["피라미드", "콜로세움", "만리장성", "타지마할"],
-          answer: "피라미드",
-          explanation: "피라미드는 고대 이집트의 파라오를 위한 무덤입니다.",
-          tags: ["이집트", "고대문명"]
-        },
-        {
-          type: "true-false",
-          subjectId: "world-history",
-          difficulty: "easy",
-          question: "콜럼버스는 아메리카 대륙을 발견한 탐험가이다.",
-          answer: "O",
-          explanation: "1492년 아메리카 대륙에 도착했습니다.",
-          tags: ["탐험"]
-        },
-        {
-          type: "fill-blank",
-          subjectId: "four-char-idiom",
-          difficulty: "medium",
-          question: "자기가 한 일을 자기 스스로 칭찬하는 것을 (    )(이)라 한다.",
-          answer: "자화자찬",
-          explanation: "자화자찬(自畫自讚): 자기가 그린 그림을 자기가 칭찬한다는 뜻입니다.",
-          tags: ["자기", "칭찬"]
-        },
-        {
-          type: "short-answer",
-          subjectId: "vocabulary",
-          difficulty: "medium",
-          question: "\"매우 기쁘고 신나는 것\"을 나타내는 두 글자 단어는?",
-          answer: "즐겁다",
-          tags: ["감정"]
-        },
-        {
-          type: "sentence-making",
-          subjectId: "four-char-idiom",
-          difficulty: "medium",
-          question: "다음 사자성어를 사용해서 문장을 만들어 보세요: 자화자찬",
-          answer: "오늘 발표를 잘했다고 친구가 자화자찬했다.",
-          explanation: "자화자찬은 자기가 한 일을 스스로 칭찬한다는 뜻입니다.",
-          tags: ["자기", "칭찬"]
-        }
-      ],
-      subjects: [
-        {
-          id: "history",
-          name: "한국사",
-          icon: "🏛️",
-          color: "#F59E0B"
-        }
-      ]
-    };
-    const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'quiz-template.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('success', '예시 파일을 다운로드했습니다');
-  };
-
+  /* 시드 초기화 */
   const handleReset = async () => {
     const ok = await confirm({
-      title: '기본 데이터로 초기화',
-      message: '모든 문항과 과목이 기본 상태로 복원됩니다.\n저장된 시험지는 유지됩니다.\n이 작업은 되돌릴 수 없습니다.',
+      title: '시드 데이터로 초기화',
+      message:
+        '모든 사자성어 set이 기본 시드 5개로 복원됩니다.\n현재 작성한 set은 모두 사라집니다.\n계속하시겠습니까?',
       variant: 'danger',
       confirmText: '초기화',
     });
     if (ok) {
-      resetToDefaults();
-      toast('success', '기본 데이터로 초기화했습니다');
+      resetToSeed();
+      toast('success', '시드 데이터로 초기화했습니다');
       onClose();
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] overflow-hidden animate-fadeIn"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-fadeIn flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200 flex-shrink-0">
           <h2 className="text-base font-bold text-gray-800">설정</h2>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+          <button
+            onClick={onClose}
+            className="p-1 text-gray-400 hover:text-gray-600 rounded"
+            aria-label="닫기"
+          >
             <X size={18} />
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200">
-          {[
-            { key: 'subjects', label: '과목 관리', icon: <Tag size={13} /> },
-            { key: 'data', label: '데이터 관리', icon: <Database size={13} /> },
-          ].map(({ key, label, icon }) => (
-            <button
-              key={key}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-colors ${
-                activeTab === key
-                  ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/30'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab(key as typeof activeTab)}
-            >
-              {icon} {label}
-            </button>
-          ))}
-        </div>
-
-        <div className="p-5 overflow-y-auto max-h-[60vh]">
-          {/* Subjects Tab */}
-          {activeTab === 'subjects' && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  현재 과목 ({subjects.length}개)
-                </h3>
-                <div className="space-y-1.5">
-                  {subjects.map((s) => {
-                    const count = getSubjectQuestionCount(s.id);
-                    const isEditing = editingId === s.id;
-                    if (isEditing) {
-                      return (
-                        <div key={s.id} className="bg-primary-50 border border-primary-200 rounded-lg p-2.5 animate-fadeIn">
-                          <div className="flex items-center gap-2">
-                            <div className="relative">
-                              <button
-                                onClick={() => setEditIconPickerOpen((v) => !v)}
-                                className="w-9 h-9 flex items-center justify-center text-xl bg-white border border-gray-200 rounded-md hover:border-primary-400"
-                                aria-label="아이콘 선택"
-                              >
-                                {editIcon || s.icon}
-                              </button>
-                              {editIconPickerOpen && (
-                                <EmojiPicker
-                                  value={editIcon}
-                                  onChange={(em) => {
-                                    setEditIcon(em);
-                                    setEditIconPickerOpen(false);
-                                  }}
-                                  onClose={() => setEditIconPickerOpen(false)}
-                                />
-                              )}
-                            </div>
-                            <input
-                              className="input-field !text-sm flex-1"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') saveEdit();
-                                if (e.key === 'Escape') cancelEdit();
-                              }}
-                              autoFocus
-                              aria-label="과목 이름"
-                            />
-                            <button
-                              onClick={saveEdit}
-                              className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded"
-                              aria-label="저장"
-                              title="저장"
-                            >
-                              <Check size={14} />
-                            </button>
-                            <button
-                              onClick={cancelEdit}
-                              className="p-1.5 text-gray-400 hover:bg-gray-100 rounded"
-                              aria-label="취소"
-                              title="취소"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={s.id} className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-2 transition-colors group">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-base flex-shrink-0">{s.icon}</span>
-                          <span className="text-sm font-medium text-gray-700 truncate">{s.name}</span>
-                          <span className="text-xs text-gray-400 flex-shrink-0">{count}문항</span>
-                        </div>
-                        <div className="flex items-center gap-0.5 flex-shrink-0">
-                          <button
-                            onClick={() => startEdit(s.id, s.name, s.icon)}
-                            className="p-1 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors opacity-0 group-hover:opacity-100"
-                            aria-label={`${s.name} 편집`}
-                            title="편집"
-                          >
-                            <Pencil size={13} />
-                          </button>
-                          <button
-                            onClick={() => handleRemoveSubject(s.id, s.name)}
-                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                            aria-label={`${s.name} 삭제`}
-                            title="삭제"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  새 과목 추가
-                </h3>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowNewIconPicker((v) => !v)}
-                      className="w-12 h-9 flex items-center justify-center text-lg bg-white border border-gray-300 rounded-lg hover:border-primary-400"
-                      aria-label="아이콘 선택"
-                      type="button"
-                    >
-                      {newSubjectIcon}
-                    </button>
-                    {showNewIconPicker && (
-                      <EmojiPicker
-                        value={newSubjectIcon}
-                        onChange={(em) => {
-                          setNewSubjectIcon(em);
-                          setShowNewIconPicker(false);
-                        }}
-                        onClose={() => setShowNewIconPicker(false)}
-                      />
-                    )}
-                  </div>
-                  <input
-                    className="input-field !text-sm flex-1"
-                    placeholder="과목 이름 (예: 한국사)"
-                    value={newSubjectName}
-                    onChange={(e) => setNewSubjectName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()}
-                    aria-label="과목 이름"
-                  />
-                  <button
-                    className="btn btn-primary btn-lg !px-3"
-                    onClick={handleAddSubject}
-                    disabled={!newSubjectName.trim()}
-                  >
-                    <Plus size={14} /> 추가
-                  </button>
-                </div>
-                <p className="text-[11px] text-gray-400 mt-2">
-                  이모지를 지원합니다. 예: 🌍 📜 💬 📖 ✏️ 📚 🔢 🌱
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Data Tab */}
-          {activeTab === 'data' && (
-            <div className="space-y-5">
-              {/* Export / Import */}
-              <div>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  내보내기 / 가져오기
-                </h3>
-                <p className="text-xs text-gray-500 mb-3 leading-relaxed">
-                  문항과 과목을 JSON 파일로 백업하거나 가져올 수 있습니다.
-                </p>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <button className="btn btn-secondary btn-lg" onClick={handleExport}>
-                    <Download size={14} /> 내보내기
-                  </button>
-                  <button className="btn btn-primary btn-lg" onClick={handleImport}>
-                    <Upload size={14} /> 가져오기
-                  </button>
-                </div>
-                <button
-                  className="btn btn-ghost w-full !text-xs !text-primary-600"
-                  onClick={handleDownloadTemplate}
-                >
-                  <FileText size={13} /> 예시 파일 다운로드 (quiz-template.json)
-                </button>
-              </div>
-
-              {/* AI Prompt Guide - 처음 사용자를 위한 핵심 가이드 */}
-              <PromptGuide />
-
-              {/* Format Guide */}
-              <FormatGuide />
-
-              {/* Reset */}
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  초기화
-                </h3>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 leading-relaxed mb-3">
-                  모든 문항과 과목을 기본 상태로 되돌립니다. 저장된 시험지는 유지됩니다.
-                </div>
-                <button className="btn btn-danger btn-lg w-full" onClick={handleReset}>
-                  <RotateCcw size={14} /> 기본 데이터로 초기화
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   JSON 양식 가이드 (접고 펼 수 있는 섹션)
-   ═══════════════════════════════════════════════════ */
-
-const SAMPLE_JSON = `{
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "subjectId": "world-history",
-      "difficulty": "easy",
-      "question": "이집트에서 가장 유명한 건축물은?",
-      "options": ["피라미드", "콜로세움", "만리장성", "타지마할"],
-      "answer": "피라미드",
-      "explanation": "피라미드는 파라오의 무덤입니다.",
-      "tags": ["이집트", "고대문명"]
-    },
-    {
-      "type": "sentence-making",
-      "subjectId": "four-char-idiom",
-      "difficulty": "medium",
-      "question": "다음 사자성어를 사용해서 문장을 만들어 보세요: 자화자찬",
-      "answer": "친구가 자기 그림을 자화자찬했다.",
-      "tags": ["자기", "칭찬"]
-    }
-  ],
-  "subjects": [
-    {
-      "id": "history",
-      "name": "한국사",
-      "icon": "🏛️",
-      "color": "#F59E0B"
-    }
-  ]
-}`;
-
-function FormatGuide() {
-  const [open, setOpen] = useState(false);
-  const { toast } = useToast();
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(SAMPLE_JSON);
-    toast('success', '예시를 복사했습니다');
-  };
-
-  return (
-    <div className="border-t border-gray-200 pt-4">
-      <button
-        className="w-full flex items-center justify-between gap-2 text-left"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-      >
-        <div className="flex items-center gap-1.5">
-          <FileText size={13} className="text-primary-600" />
-          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-            JSON 양식 가이드
-          </h3>
-        </div>
-        {open ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
-      </button>
-
-      {open && (
-        <div className="mt-3 space-y-3 animate-fadeIn">
-          {/* Overview */}
-          <p className="text-xs text-gray-600 leading-relaxed">
-            <strong className="text-gray-800">"가져오기"</strong>로 업로드할 JSON 파일은 아래 형식을 따라야 합니다.
-            누락된 필드는 자동으로 채워지므로, <strong>question</strong>과 <strong>answer</strong>만 있으면 동작합니다.
-          </p>
-
-          {/* Sample with copy */}
-          <div className="relative">
-            <pre className="bg-gray-900 text-gray-100 text-[10px] leading-relaxed p-3 rounded-lg overflow-x-auto font-mono">
-{SAMPLE_JSON}
+        <div className="p-5 overflow-y-auto space-y-5">
+          {/* AI 프롬프트 가이드 */}
+          <section>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Sparkles size={12} /> AI 프롬프트 가이드
+            </h3>
+            <p className="text-xs text-gray-500 leading-relaxed mb-2">
+              ChatGPT·Claude에 붙여넣어 사자성어 set JSON을 받아오세요. 결과 JSON은 아래 "가져오기"에 붙여넣으면 자동 검증 후 추가됩니다.
+            </p>
+            <pre className="text-[10.5px] leading-relaxed bg-gray-50 border border-gray-200 rounded p-3 max-h-44 overflow-y-auto whitespace-pre-wrap text-gray-700">
+              {AI_MASTER_PROMPT}
             </pre>
             <button
-              onClick={handleCopy}
-              className="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
-              title="복사"
+              className={`btn !text-xs mt-2 ${copied ? 'btn-success' : 'btn-primary'}`}
+              onClick={handleCopyPrompt}
             >
-              <Copy size={11} />
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied ? '복사됨' : '프롬프트 복사'}
             </button>
-          </div>
+          </section>
 
-          {/* Field reference */}
-          <div className="space-y-2">
-            <h4 className="text-[11px] font-bold text-gray-700">필드 설명</h4>
-
-            <FieldRow name="type" required>
-              문제 유형. 다음 중 하나:
-              <code className="block mt-1 bg-gray-100 px-2 py-1 rounded text-[10px] leading-relaxed">
-                "multiple-choice" · "true-false" · "fill-blank"<br />
-                "short-answer" · "sentence-making"
-              </code>
-            </FieldRow>
-
-            <FieldRow name="question" required>
-              문제 내용 (문자열). 빈칸 채우기는 <code className="bg-gray-100 px-1 rounded">( )</code>로 빈칸 표시.
-            </FieldRow>
-
-            <FieldRow name="answer" required>
-              정답 (문자열). <span className="text-gray-400">서술형은 선택</span>
-              <ul className="mt-1 ml-3 list-disc space-y-0.5 text-[10px] text-gray-500">
-                <li>객관식: options 중 정답과 동일한 문자열</li>
-                <li>OX 퀴즈: <code className="bg-gray-100 px-1 rounded">"O"</code> 또는 <code className="bg-gray-100 px-1 rounded">"X"</code></li>
-                <li>빈칸/단답형: 정답 문자열</li>
-                <li>서술형: 예시 답안 문자열 (생략 가능)</li>
-              </ul>
-            </FieldRow>
-
-            <FieldRow name="options">
-              객관식의 4개 선택지 (문자열 배열). 객관식이 아니면 생략.
-            </FieldRow>
-
-            <FieldRow name="subjectId">
-              과목 ID. 기본 과목 ID:
-              <div className="mt-1 flex flex-wrap gap-1">
-                {[
-                  ['world-history', '🌍 세계사'],
-                  ['four-char-idiom', '📜 사자성어'],
-                  ['idiom', '💬 관용구'],
-                  ['proverb', '📖 속담'],
-                  ['spelling', '✏️ 맞춤법'],
-                  ['vocabulary', '📚 어휘'],
-                ].map(([id, label]) => (
-                  <code key={id} className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] text-gray-600">
-                    {id} ({label})
-                  </code>
-                ))}
-              </div>
-            </FieldRow>
-
-            <FieldRow name="difficulty">
-              <code className="bg-gray-100 px-1 rounded">"easy"</code> (초 3-4) ·
-              {' '}<code className="bg-gray-100 px-1 rounded">"medium"</code> (초 5-6) ·
-              {' '}<code className="bg-gray-100 px-1 rounded">"hard"</code> (중1) ·
-              {' '}<code className="bg-gray-100 px-1 rounded">"advanced"</code> (중2) ·
-              {' '}<code className="bg-gray-100 px-1 rounded">"expert"</code> (중3)
-            </FieldRow>
-
-            <FieldRow name="passage">
-              지문/제시문. 문학 작품 발췌나 비문학 글을 표시할 때 사용. 문제 위에 박스로 표시됨.
-            </FieldRow>
-
-            <FieldRow name="workTitle">
-              작품명 (예: <code className="bg-gray-100 px-1 rounded">"소나기"</code>). 문학 문제에서 사용.
-            </FieldRow>
-
-            <FieldRow name="workAuthor">
-              작가명 (예: <code className="bg-gray-100 px-1 rounded">"황순원"</code>).
-            </FieldRow>
-
-            <FieldRow name="explanation">
-              해설 텍스트. 답안지 PDF에 표시됨.
-            </FieldRow>
-
-            <FieldRow name="tags">
-              테마 키워드 배열 (예: <code className="bg-gray-100 px-1 rounded">["이집트", "고대문명"]</code>).
-              <br />
-              문항 DB의 "테마별" 그룹 분류에 사용됩니다.
-            </FieldRow>
-
-            <FieldRow name="subjects">
-              새 과목을 함께 추가할 때만 작성. 각 과목은
-              {' '}<code className="bg-gray-100 px-1 rounded">id</code>,
-              {' '}<code className="bg-gray-100 px-1 rounded">name</code>,
-              {' '}<code className="bg-gray-100 px-1 rounded">icon</code>(이모지),
-              {' '}<code className="bg-gray-100 px-1 rounded">color</code>(HEX) 필요.
-            </FieldRow>
-          </div>
-
-          {/* Tips */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-[11px] text-blue-800 leading-relaxed">
-            <strong className="block mb-1">💡 팁</strong>
-            <ul className="list-disc ml-4 space-y-0.5">
-              <li>중복 ID는 자동으로 무시됩니다 (덮어쓰기 안 됨)</li>
-              <li>id, createdAt이 없으면 자동 생성됩니다</li>
-              <li>존재하지 않는 subjectId를 쓰면 문항은 추가되지만 과목 필터에 안 나타납니다</li>
-              <li>먼저 "내보내기"로 현재 데이터 구조를 확인하면 도움이 됩니다</li>
-            </ul>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FieldRow({ name, required, children }: { name: string; required?: boolean; children: React.ReactNode }) {
-  return (
-    <div className="text-[11px] text-gray-600 leading-relaxed">
-      <div className="flex items-center gap-1.5 mb-0.5">
-        <code className="bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded font-bold text-[10px]">{name}</code>
-        {required && <span className="text-[9px] text-red-500 font-bold">필수</span>}
-      </div>
-      <div className="pl-1">{children}</div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   AI 프롬프트 가이드
-   ChatGPT, Claude, Gemini 등에 붙여넣어 JSON으로 결과를
-   받기 위한 미리 작성된 프롬프트 모음
-   ═══════════════════════════════════════════════════ */
-
-const MASTER_PROMPT = `당신은 초등학교 3~6학년 학생을 위한 학습 문제를 만드는 한국 교육 전문가입니다.
-
-[과목명] 분야에서 [유형] 문제를 [개수]개 만들어 주세요.
-난이도: [easy / medium / hard]
-주제(선택): [예: 고대 이집트 / 친구에 관한 사자성어]
-
-결과는 반드시 \`\`\`json ... \`\`\` 코드블록 한 개로만 감싸서 출력하세요.
-(이렇게 출력하면 ChatGPT / Claude / Gemini 응답 우측의 "Copy" 또는 "Download .json"
-버튼을 눌러 별도 파일 작성 없이 바로 .json 파일을 내려받을 수 있습니다.)
-코드블록 밖에는 인사말·설명을 절대 추가하지 마세요.
-
-{
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "subjectId": "world-history",
-      "difficulty": "easy",
-      "question": "문제 내용",
-      "options": ["선택지1","선택지2","선택지3","선택지4"],
-      "answer": "정답",
-      "explanation": "초등학생이 이해할 수 있는 쉬운 해설",
-      "tags": ["키워드1","키워드2"]
-    }
-  ]
-}
-
-[과목 ID 표] — 정확한 ID를 그대로 입력해야 자동 매칭됩니다
-- 세계사 → world-history
-- 사자성어 → four-char-idiom
-- 관용구 → idiom
-- 속담 → proverb
-- 맞춤법 → spelling
-- 어휘 → vocabulary
-- 중학 국어(문학) → middle-literature   ← 작품 분석/문학 문제는 이것
-
-(만약 이 목록에 없는 과목이라면, 새 ID(예: "middle-history")를 그대로 적어주세요.
- 가져올 때 자동으로 새 과목이 만들어집니다.)
-
-[유형 ID 표]
-- 객관식 → multiple-choice  (options 4개 필수, answer는 options 중 하나와 동일)
-- OX 퀴즈 → true-false       (options 생략, answer는 "O" 또는 "X")
-- 빈칸 채우기 → fill-blank   (문제에 (   ) 표시, answer는 빈칸 단어)
-- 단답형 → short-answer      (options 생략, answer는 짧은 단어)
-- 서술형 → sentence-making   (options 생략, "다음 ___을 사용해서 문장을 만들어 보세요: 키워드" 형식, answer는 예시 문장)
-
-[필수 사항]
-1. 모든 문제에 explanation 작성
-2. tags는 2~3개의 핵심 키워드
-3. 초등학생이 이해할 수 있는 쉬운 단어와 문장
-4. 너무 어려운 한자어 사용 금지`;
-
-const SUBJECT_PROMPTS: { id: string; icon: string; name: string; description: string; prompt: string }[] = [
-  {
-    id: 'world-history',
-    icon: '🌍',
-    name: '세계사',
-    description: '시대·지역별 객관식 위주',
-    prompt: `초등 3~6학년용 세계사 객관식 4지선다 문제 10개를 만들어 주세요.
-난이도는 easy(고대문명 기초) 5개 + medium(중세·근대) 5개로 섞어 주세요.
-다양한 시대(고대 이집트, 그리스, 로마, 중국, 인도, 중세 유럽, 대항해시대, 산업혁명 등)를 골고루 다뤄주세요.
-
-반드시 JSON 내용 전체를 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 출력하세요.
-(코드블록 우측에 표시되는 "Copy" 또는 "Download" 버튼으로 바로 .json 파일을 받을 수 있습니다.)
-코드블록 외에는 다른 설명 텍스트를 넣지 마세요.
-
-{
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "subjectId": "world-history",
-      "difficulty": "easy",
-      "question": "...",
-      "options": ["...","...","...","..."],
-      "answer": "...",
-      "explanation": "...",
-      "tags": ["...","..."]
-    }
-  ]
-}
-
-규칙:
-- options는 정확히 4개
-- answer는 options 중 하나와 동일한 문자열
-- tags는 시대/지역/주제 중심 (예: ["이집트","고대문명"])`
-  },
-  {
-    id: 'four-char-idiom',
-    icon: '📜',
-    name: '사자성어',
-    description: '객관식 + 빈칸 + 서술형 혼합',
-    prompt: `초등 3~6학년용 사자성어 문제 10개를 만들어 주세요.
-유형은 다음과 같이 섞어 주세요:
-- 객관식 4개 (뜻 맞추기)
-- 빈칸 채우기 3개 (사자성어 자체를 빈칸에)
-- 서술형 3개 ("다음 사자성어를 사용해서 문장을 만들어 보세요: ___")
-
-난이도: easy 4개, medium 4개, hard 2개
-
-반드시 JSON 내용 전체를 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 출력하세요.
-(코드블록 우측에 표시되는 "Copy" 또는 "Download" 버튼으로 바로 .json 파일을 받을 수 있습니다.)
-코드블록 외에는 다른 설명 텍스트를 넣지 마세요.
-
-{
-  "questions": [
-    { "type": "multiple-choice", "subjectId": "four-char-idiom", "difficulty": "easy",
-      "question": "...", "options": ["...","...","...","..."],
-      "answer": "...", "explanation": "...",
-      "tags": ["사자성어","..."] },
-
-    { "type": "fill-blank", "subjectId": "four-char-idiom", "difficulty": "medium",
-      "question": "어릴 때부터 친한 친구를 (    )(이)라고 한다.",
-      "answer": "죽마고우",
-      "explanation": "...", "tags": ["친구"] },
-
-    { "type": "sentence-making", "subjectId": "four-char-idiom", "difficulty": "medium",
-      "question": "다음 사자성어를 사용해서 문장을 만들어 보세요: 일석이조",
-      "answer": "운동을 하면 건강도 좋아지고 살도 빠지니 일석이조다.",
-      "explanation": "...", "tags": ["문장만들기","효율"] }
-  ]
-}
-
-규칙:
-- 사자성어 한자 표기는 하지 말고 한글만 사용
-- explanation에 한자 뜻풀이를 간단히 적어도 OK
-- 너무 어려운 사자성어(고전·전문용어) 제외`
-  },
-  {
-    id: 'idiom',
-    icon: '💬',
-    name: '관용구',
-    description: '뜻 고르기 + 문장 만들기',
-    prompt: `초등 3~6학년용 관용구 문제 10개를 만들어 주세요.
-유형은:
-- 객관식 5개 (관용구의 뜻 고르기)
-- 서술형 5개 ("다음 관용구를 사용해서 문장을 만들어 보세요: ___")
-
-신체(눈, 귀, 입, 손, 발, 간 등) 관용구 위주로 작성하되, 다양한 주제도 포함해 주세요.
-
-출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
-
-{
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "subjectId": "idiom",
-      "difficulty": "easy",
-      "question": "\\"발이 넓다\\"는 무슨 뜻일까요?",
-      "options": ["아는 사람이 많다","발이 크다","걸음이 빠르다","여행을 많이 다닌다"],
-      "answer": "아는 사람이 많다",
-      "explanation": "...",
-      "tags": ["신체","관계"]
-    },
-    {
-      "type": "sentence-making",
-      "subjectId": "idiom",
-      "difficulty": "medium",
-      "question": "다음 관용구를 사용해서 문장을 만들어 보세요: 손이 크다",
-      "answer": "엄마는 손이 커서 음식을 항상 푸짐하게 차리신다.",
-      "explanation": "...",
-      "tags": ["신체","성격","문장만들기"]
-    }
-  ]
-}
-
-규칙:
-- 비속어·부정적 관용구 제외
-- 초등학생이 일상에서 쓸 만한 관용구 중심`
-  },
-  {
-    id: 'proverb',
-    icon: '📖',
-    name: '속담',
-    description: '빈칸 + 객관식 + 서술형',
-    prompt: `초등 3~6학년용 속담 문제 10개를 만들어 주세요.
-유형은:
-- 빈칸 채우기 5개 (속담의 일부를 빈칸으로)
-- 객관식 3개 (속담 뜻 고르기)
-- 서술형 2개 ("다음 속담을 사용해서 문장을 만들어 보세요: ___")
-
-출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
-
-{
-  "questions": [
-    {
-      "type": "fill-blank",
-      "subjectId": "proverb",
-      "difficulty": "easy",
-      "question": "가는 말이 고와야 (     )이 곱다.",
-      "answer": "오는 말",
-      "explanation": "남에게 좋게 말해야 남도 좋게 말한다는 뜻.",
-      "tags": ["말","예절"]
-    }
-  ]
-}
-
-규칙:
-- 익숙한 한국 전통 속담 위주
-- 빈칸은 가장 핵심 단어로
-- 너무 길거나 어려운 속담 제외`
-  },
-  {
-    id: 'spelling',
-    icon: '✏️',
-    name: '맞춤법',
-    description: '객관식 + OX 위주',
-    prompt: `초등 3~6학년이 자주 헷갈리는 한글 맞춤법 문제 10개를 만들어 주세요.
-유형은:
-- 객관식 6개 (4개 보기 중 올바른 표기 고르기)
-- OX 4개 (진위 판단)
-
-다루면 좋은 주제: 됐어/됬어, 왠지/웬지, 어이없다/어의없다, 갈게/갈께, 이따가/있다가, 금세/금새, 일찍이/일찌기 등
-
-출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
-
-{
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "subjectId": "spelling",
-      "difficulty": "easy",
-      "question": "맞춤법이 올바른 것은?",
-      "options": ["됐어","됬어","댔어","되써"],
-      "answer": "됐어",
-      "explanation": "\\"되었어\\"의 줄임말은 \\"됐어\\"입니다.",
-      "tags": ["줄임말"]
-    },
-    {
-      "type": "true-false",
-      "subjectId": "spelling",
-      "difficulty": "easy",
-      "question": "\\"금새\\"가 아니라 \\"금세\\"가 맞는 표현이다.",
-      "answer": "O",
-      "explanation": "\\"금시에\\"의 줄임말은 \\"금세\\"입니다.",
-      "tags": ["혼동","부사"]
-    }
-  ]
-}`
-  },
-  {
-    id: 'middle-literature',
-    icon: '📕',
-    name: '중학 국어 (문학)',
-    description: '작품 발췌 + 갈래·시점·상징·주제 분석',
-    prompt: `당신은 대한민국 중학교 국어 교과(2022 개정 교육과정)에 정통한 교사입니다.
-
-다음 작품에 대한 중학생용 문학 문제 8개를 만들어 주세요.
-- 작품: [작품명] (예: 소나기, 동백꽃, 수난이대, 운수 좋은 날, 먼 후일, 청포도 등)
-- 작가: [작가명]
-- 학년: 중학 [1/2/3]학년 수준
-- 난이도: hard 4개 + advanced 3개 + expert 1개
-
-다음 성취기준 영역을 골고루 다뤄 주세요:
-1. 갈래 특성 (단편소설/시/수필 등)
-2. 화자/서술자 시점
-3. 인물의 성격·심리
-4. 비유·상징·소재의 의미
-5. 작품의 배경 (시대·공간)
-6. 주제 의식
-7. 서술상 특징·구성
-
-유형은 다음을 적절히 섞어 주세요:
-- 객관식 5개 (4지선다)
-- 단답형 1개 (핵심 소재/시점 등)
-- OX 1개 (서술상 특징 진위)
-- 서술형 1개 (인물 심리·주제 의미를 1~2문장으로)
-
-반드시 아래 JSON 형식으로만 출력하세요. JSON 외 텍스트 절대 금지.
-
-{
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "subjectId": "middle-literature",
-      "difficulty": "hard",
-      "workTitle": "소나기",
-      "workAuthor": "황순원",
-      "passage": "(선택) 작품의 핵심 장면 5~6줄 발췌. 지문이 필요한 문제에만 작성",
-      "question": "이 작품의 갈래로 가장 알맞은 것은?",
-      "options": ["...","...","...","..."],
-      "answer": "...",
-      "explanation": "정답에 대한 명확한 근거와 작품 분석",
-      "tags": ["[작품명]", "갈래", "..."]
-    }
-  ]
-}
-
-[필수 사항]
-- 모든 문항의 subjectId는 "middle-literature"
-- workTitle, workAuthor는 모든 문항에 작성
-- passage는 발췌 지문이 필요한 1~2문항에만 (선택)
-- explanation은 작품 근거를 들어 명확하게
-- tags 첫 번째 항목은 작품명 (예: "소나기")
-- 한자보다 한글 표기 우선
-- 중학생이 이해할 수 있는 어휘 사용`
-  },
-  {
-    id: 'vocabulary',
-    icon: '📚',
-    name: '어휘',
-    description: '유의어·반의어·뜻 혼합',
-    prompt: `초등 3~6학년용 어휘력 문제 10개를 만들어 주세요.
-다양한 유형으로 섞어 주세요:
-- 유의어/반의어 객관식 4개
-- 단어 뜻 객관식 3개
-- 빈칸 채우기 2개
-- 서술형 1개 ("다음 단어를 사용해서 문장을 만들어 보세요: ___")
-
-다룰 단어 예: 호기심, 공감, 절약, 용기, 감사, 후회, 즐겁다, 꼼꼼하다 등
-
-출력은 반드시 \`\`\`json … \`\`\` 코드블록 한 개로만 감싸 주세요. (코드블록 우측 Copy/Download 버튼 활용)
-
-{
-  "questions": [
-    {
-      "type": "multiple-choice",
-      "subjectId": "vocabulary",
-      "difficulty": "easy",
-      "question": "\\"꼼꼼하다\\"와 반대되는 뜻을 가진 단어는?",
-      "options": ["덤벙대다","조심하다","차분하다","깔끔하다"],
-      "answer": "덤벙대다",
-      "explanation": "...",
-      "tags": ["반의어","성격"]
-    }
-  ]
-}`
-  },
-];
-
-function PromptGuide() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="border-t border-gray-200 pt-4">
-      <button
-        className="w-full flex items-center justify-between gap-2 text-left"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-      >
-        <div className="flex items-center gap-1.5">
-          <Sparkles size={13} className="text-primary-600" />
-          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-            AI로 문항 만들기 (프롬프트 가이드)
-          </h3>
-        </div>
-        {open ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
-      </button>
-
-      {open && (
-        <div className="mt-3 space-y-4 animate-fadeIn">
-          {/* Workflow */}
-          <div className="bg-gradient-to-br from-primary-50 to-indigo-50 border border-primary-100 rounded-lg p-3">
-            <h4 className="text-xs font-bold text-primary-800 mb-2">📌 사용 방법 (3단계)</h4>
-            <ol className="space-y-2 text-[11px] text-gray-700 leading-relaxed">
-              <Step n={1}>
-                아래 <strong>프롬프트 [복사]</strong> 버튼을 눌러 원하는 과목의 프롬프트를 복사하세요.
-              </Step>
-              <Step n={2}>
-                <a className="text-primary-600 underline" href="https://chat.openai.com" target="_blank" rel="noreferrer">ChatGPT</a>,
-                {' '}<a className="text-primary-600 underline" href="https://claude.ai" target="_blank" rel="noreferrer">Claude</a>,
-                {' '}<a className="text-primary-600 underline" href="https://gemini.google.com" target="_blank" rel="noreferrer">Gemini</a> 등에 붙여넣고 결과를 받으세요. (필요시 개수·주제 수정)
-              </Step>
-              <Step n={3}>
-                AI 응답의 <strong>코드블록 우측 [Download .json]</strong> 버튼으로 파일을 받거나,
-                {' '}<strong>[Copy]</strong> → 메모장에 붙여넣고 <code className="bg-white px-1 rounded">.json</code> 확장자로 저장하세요.
-              </Step>
-              <Step n={4}>
-                위쪽 <strong className="text-primary-700">"가져오기"</strong> 버튼으로 그 .json 파일을 업로드하면 끝!
-              </Step>
-            </ol>
-          </div>
-
-          {/* Tips */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-[11px] text-amber-800 leading-relaxed">
-            <strong className="block mb-1">💡 팁</strong>
-            <ul className="list-disc ml-4 space-y-0.5">
-              <li>한 번에 5~15개 정도가 가장 안정적입니다</li>
-              <li>"JSON 외 절대 출력 금지" 문구를 꼭 유지하세요</li>
-              <li>같은 종류 더 받으려면: <em>"위와 같은 형식으로 10개 더, 겹치지 않게"</em> 추가</li>
-              <li>특정 주제에 집중하려면 <em>"주제: 한국 위인"</em>처럼 지정하세요</li>
-            </ul>
-          </div>
-
-          {/* Master prompt */}
-          <PromptCard
-            label="🎯 마스터 프롬프트 (모든 과목·유형 공통)"
-            description="[ ]에 원하는 값만 채우면 어떤 과목/유형에도 사용 가능"
-            prompt={MASTER_PROMPT}
-            highlighted
-          />
-
-          {/* Subject-specific prompts */}
-          <div>
-            <h4 className="text-xs font-bold text-gray-700 mb-2">과목별 즉시 사용 프롬프트</h4>
-            <div className="space-y-2">
-              {SUBJECT_PROMPTS.map((p) => (
-                <PromptCard
-                  key={p.id}
-                  label={`${p.icon} ${p.name}`}
-                  description={p.description}
-                  prompt={p.prompt}
-                />
-              ))}
+          {/* 데이터 가져오기 */}
+          <section className="border-t border-gray-200 pt-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Upload size={12} /> JSON 가져오기
+            </h3>
+            <p className="text-xs text-gray-500 leading-relaxed mb-2">
+              AI가 만든 JSON 또는 내보내기 파일을 붙여넣거나 파일로 선택하세요. 검증을 통과한 set만 추가됩니다.
+            </p>
+            <textarea
+              className="input-field !text-[11px] !min-h-[100px] !font-mono resize-y mb-2"
+              placeholder='{ "version": 1, "sets": [ ... ] }'
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+            />
+            <div className="flex gap-2 flex-wrap">
+              <button
+                className="btn btn-primary !text-xs"
+                onClick={handleImportFromText}
+                disabled={importBusy}
+              >
+                <Upload size={12} /> 텍스트로 가져오기
+              </button>
+              <button
+                className="btn btn-secondary !text-xs"
+                onClick={handleFilePick}
+                disabled={importBusy}
+              >
+                <Upload size={12} /> 파일 선택
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={handleFileChange}
+              />
             </div>
-          </div>
+
+            {importResult && (
+              <div className="mt-3 rounded border border-gray-200 bg-gray-50 p-2.5 text-[11px] space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
+                    <Check size={11} /> 성공: {importResult.ok}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-red-600 font-bold">
+                    <AlertTriangle size={11} /> 실패: {importResult.failed.length}
+                  </span>
+                </div>
+                {importResult.failed.length > 0 && (
+                  <ul className="text-[10.5px] text-red-700 list-disc pl-4 space-y-0.5 max-h-28 overflow-y-auto">
+                    {importResult.failed.map((f, i) => (
+                      <li key={i}>
+                        #{f.index + 1}: {f.errors.slice(0, 2).join(' / ')}
+                        {f.errors.length > 2 ? ` … 외 ${f.errors.length - 2}건` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* 데이터 내보내기 */}
+          <section className="border-t border-gray-200 pt-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Download size={12} /> JSON 내보내기
+            </h3>
+            <p className="text-xs text-gray-500 leading-relaxed mb-2">
+              현재 가지고 있는 모든 사자성어 set을 JSON 파일로 다운로드합니다.
+            </p>
+            <button className="btn btn-secondary !text-xs" onClick={handleExport}>
+              <Download size={12} /> 전체 set 내보내기
+            </button>
+          </section>
+
+          {/* 데이터 정리 */}
+          <section className="border-t border-gray-200 pt-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Database size={12} /> 데이터 관리
+            </h3>
+            <button
+              className="btn btn-secondary w-full !text-xs mb-2"
+              onClick={handleClearLegacy}
+            >
+              <Trash2 size={12} /> 이전 버전 데이터 정리 (quiz-maker-*)
+            </button>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-[11px] text-amber-800 leading-relaxed mb-2">
+              아래 "초기화"는 현재 사자성어 set을 모두 삭제하고 시드 5개로 복원합니다. 신중히 사용하세요.
+            </div>
+            <button className="btn btn-danger w-full !text-xs" onClick={handleReset}>
+              <RotateCcw size={12} /> 시드 5개로 초기화
+            </button>
+          </section>
         </div>
-      )}
-    </div>
-  );
-}
-
-function Step({ n, children }: { n: number; children: React.ReactNode }) {
-  return (
-    <li className="flex items-start gap-2">
-      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-primary-600 text-white text-[9px] font-bold flex items-center justify-center mt-0.5">
-        {n}
-      </span>
-      <span>{children}</span>
-    </li>
-  );
-}
-
-function PromptCard({ label, description, prompt, highlighted = false }: {
-  label: string; description?: string; prompt: string; highlighted?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const { toast } = useToast();
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(prompt);
-    toast('success', '프롬프트를 복사했습니다');
-  };
-
-  return (
-    <div className={`border rounded-lg overflow-hidden ${
-      highlighted ? 'border-primary-300 bg-primary-50/30' : 'border-gray-200 bg-white'
-    }`}>
-      <div className="flex items-center justify-between gap-2 px-3 py-2">
-        <button
-          className="flex items-center gap-1.5 flex-1 text-left min-w-0"
-          onClick={() => setOpen(!open)}
-          aria-expanded={open}
-        >
-          {open ? <ChevronDown size={11} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={11} className="text-gray-400 flex-shrink-0" />}
-          <div className="min-w-0">
-            <div className="text-xs font-bold text-gray-800 truncate">{label}</div>
-            {description && <div className="text-[10px] text-gray-500 truncate">{description}</div>}
-          </div>
-        </button>
-        <button
-          onClick={handleCopy}
-          className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 transition-colors"
-          title="프롬프트 복사"
-        >
-          <Copy size={10} /> 복사
-        </button>
       </div>
-      {open && (
-        <div className="border-t border-gray-200 bg-gray-900">
-          <pre className="text-gray-100 text-[10px] leading-relaxed p-3 overflow-x-auto font-mono whitespace-pre-wrap break-keep max-h-72">
-{prompt}
-          </pre>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,17 +1,17 @@
 import { useState, useEffect, Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { GraduationCap, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, HelpCircle } from 'lucide-react';
-import LeftPanel from './components/LeftPanel';
-import CenterPanel from './components/CenterPanel';
-import RightPanel from './components/RightPanel';
-import QuestionEditor from './components/QuestionEditor';
+import SetLeftPanel from './components/SetLeftPanel';
+import SetCenterPanel from './components/SetCenterPanel';
+import SetRightPanel from './components/SetRightPanel';
+import SetEditor from './components/SetEditor';
 import SettingsModal from './components/SettingsModal';
 import WelcomeModal from './components/WelcomeModal';
 import { ToastProvider } from './components/Toast';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
-import type { Question } from './types';
+import { useSetStore } from './stores/setStore';
 
-const WELCOME_KEY = 'quiz-maker-welcome-seen';
+const WELCOME_KEY = 'idiom-welcome-seen';
 
 /* ── Error Boundary ── */
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -45,32 +45,23 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 }
 
 export default function App() {
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  const [showEditor, setShowEditor] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [duplicateSource, setDuplicateSource] = useState<Question | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
 
-  // Center panel state — 기본은 '시험지' 탭이라 첫 방문자가 바로
-  // EmptyTestHero(빠른 시작 카드)를 볼 수 있다. 좌측 DB에서 문항을
-  // 클릭하면 handlePreviewQuestion이 'preview'로 자동 전환한다.
-  const [centerTab, setCenterTab] = useState<'preview' | 'test'>('test');
-  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
+  const startNewSet = useSetStore((s) => s.startNewSet);
+  const startEditSet = useSetStore((s) => s.startEditSet);
 
-  // Panel collapse state (auto-collapse based on viewport size)
+  // Panel collapse state
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
 
-  // Welcome modal — 첫 방문자 또는 ? 버튼 클릭 시
-  const [showWelcome, setShowWelcome] = useState(() => {
-    try {
-      return !localStorage.getItem(WELCOME_KEY);
-    } catch {
-      return false;
-    }
-  });
-  const dismissWelcome = () => {
-    try { localStorage.setItem(WELCOME_KEY, '1'); } catch { /* ignore */ }
-    setShowWelcome(false);
+  const openCreateNew = () => {
+    startNewSet('four-char-idiom', 'medium');
+    setShowEditor(true);
+  };
+  const openEditSet = (setId: string) => {
+    startEditSet(setId);
+    setShowEditor(true);
   };
 
   // Auto-collapse panels on narrow viewports
@@ -87,34 +78,17 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handlePreviewQuestion = (q: Question) => {
-    setPreviewQuestion(q);
-    setCenterTab('preview');
-    // Auto-expand left panel if collapsed (user clicked something)
-  };
-
-  const handleEditQuestion = (q: Question) => {
-    setEditingQuestion(q);
-    setDuplicateSource(null);
-    setShowEditor(true);
-  };
-
-  const handleDuplicateQuestion = (q: Question) => {
-    setEditingQuestion(null);
-    setDuplicateSource(q);
-    setShowEditor(true);
-  };
-
-  const handleManualCreate = () => {
-    setEditingQuestion(null);
-    setDuplicateSource(null);
-    setShowEditor(true);
-  };
-
-  const handleCloseEditor = () => {
-    setShowEditor(false);
-    setEditingQuestion(null);
-    setDuplicateSource(null);
+  // Welcome modal
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return !localStorage.getItem(WELCOME_KEY);
+    } catch {
+      return false;
+    }
+  });
+  const dismissWelcome = () => {
+    try { localStorage.setItem(WELCOME_KEY, '1'); } catch { /* ignore */ }
+    setShowWelcome(false);
   };
 
   return (
@@ -136,23 +110,22 @@ export default function App() {
 
               {/* Brand */}
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
                   <GraduationCap size={17} className="text-white" />
                 </div>
                 <div className="flex flex-col min-w-0 leading-none">
                   <h1 className="text-[14px] font-extrabold text-gray-800 truncate tracking-tight">
-                    퀴즈 메이커
+                    사자성어 학습지 메이커
                   </h1>
                   <p className="text-[10px] text-gray-400 truncate mt-0.5">
-                    초등 3 ~ 중학 3학년 학습 문제 생성기
+                    초3 ~ 중1 · 사자성어 1개 + 7문항 자동 생성
                   </p>
                 </div>
               </div>
 
-              {/* Spacer */}
               <div className="flex-1" />
 
-              {/* Help (?) — 항상 사용법 다시 볼 수 있게 */}
+              {/* Help */}
               <button
                 className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary-600 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
                 onClick={() => setShowWelcome(true)}
@@ -173,57 +146,43 @@ export default function App() {
               </button>
             </header>
 
-            {/* Main 3-panel layout */}
+            {/* 3-panel layout */}
             <div className="flex-1 flex overflow-hidden min-w-0">
-              {/* Left: 문항 DB (collapsible) */}
               {!leftCollapsed && (
                 <div className="w-[260px] sm:w-[280px] flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden flex flex-col">
-                  <LeftPanel
-                    onPreviewQuestion={handlePreviewQuestion}
-                    onManualCreate={handleManualCreate}
-                    onEditQuestion={handleEditQuestion}
+                  <SetLeftPanel
+                    onCreateNew={openCreateNew}
+                    onEditSet={openEditSet}
                     onOpenSettings={() => setShowSettings(true)}
                   />
                 </div>
               )}
 
-              {/* Center: 시험지 / 문항 미리보기 */}
               <div className="flex-1 min-w-0 bg-gray-50 overflow-hidden flex flex-col">
-                <CenterPanel
-                  activeTab={centerTab}
-                  onTabChange={setCenterTab}
-                  previewQuestion={previewQuestion}
-                  onEditQuestion={handleEditQuestion}
-                  onDuplicateQuestion={handleDuplicateQuestion}
+                <SetCenterPanel
+                  onCreateNew={openCreateNew}
+                  onEditSet={openEditSet}
                 />
               </div>
 
-              {/* Right: 시험지 작업 (collapsible) */}
               {!rightCollapsed && (
                 <div className="w-[240px] sm:w-[260px] flex-shrink-0 bg-white border-l border-gray-200 overflow-hidden flex flex-col">
-                  <RightPanel onOpenSettings={() => setShowSettings(true)} />
+                  <SetRightPanel onOpenSettings={() => setShowSettings(true)} />
                 </div>
               )}
             </div>
 
-            {/* Modals */}
-            {showEditor && (
-              <QuestionEditor
-                question={editingQuestion}
-                duplicateSource={duplicateSource}
-                onClose={handleCloseEditor}
-              />
-            )}
             {showSettings && (
               <SettingsModal onClose={() => setShowSettings(false)} />
             )}
+            {showEditor && <SetEditor onClose={() => setShowEditor(false)} />}
             {showWelcome && (
               <WelcomeModal
                 onClose={dismissWelcome}
                 onStart={() => {
                   dismissWelcome();
-                  /* 우측 패널이 닫혀 있으면 펼쳐서 "새 시험지 만들기" 폼이 보이도록 */
                   setRightCollapsed(false);
+                  setLeftCollapsed(false);
                 }}
               />
             )}

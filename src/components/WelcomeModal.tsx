@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, BookOpen, FilePlus, Eye, Download, ChevronRight, Sparkles } from 'lucide-react';
+import { X, Sparkles, FilePlus, BookOpen, FileText, Download, ChevronRight } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -7,8 +7,8 @@ interface Props {
 }
 
 /**
- * 첫 방문자를 위한 환영/안내 모달.
- * "이 앱이 뭐 하는 곳이고 어디서부터 시작하면 되는지"를 30초 안에 이해시키는 게 목표.
+ * 사자성어 학습지 메이커 환영 안내.
+ * 첫 방문 시 자동 표시, 이후 헤더 ?로 재방문 가능.
  */
 export default function WelcomeModal({ onClose, onStart }: Props) {
   const [step, setStep] = useState<0 | 1>(0);
@@ -19,10 +19,9 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-fadeIn"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-fadeIn relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 닫기 */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 p-2 text-white/80 hover:text-white rounded-lg z-10"
@@ -31,66 +30,70 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
           <X size={18} />
         </button>
 
-        {/* 헤더 */}
-        <div className="bg-gradient-to-br from-primary-500 via-primary-600 to-indigo-700 px-7 pt-8 pb-6 text-white relative">
+        {/* Hero header */}
+        <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 px-7 pt-8 pb-6 text-white">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
               <Sparkles size={18} className="text-white" />
             </div>
             <span className="text-xs font-semibold tracking-widest uppercase opacity-80">
-              퀴즈 메이커
+              사자성어 학습지 메이커
             </span>
           </div>
           <h1 className="text-2xl font-extrabold leading-tight mb-2">
-            {step === 0 ? '환영합니다 👋' : '4단계로 끝내요'}
+            {step === 0 ? '사자성어 학습지를 빠르게 만들어요 📜' : '4단계로 끝나요'}
           </h1>
           <p className="text-sm opacity-90 leading-relaxed">
             {step === 0
-              ? '초등 3학년부터 중학 3학년까지\n맞춤 시험지·학습지를 빠르게 만들 수 있어요.'
-              : '아래 단계를 따라 오시면\n5분 안에 첫 시험지가 완성됩니다.'}
+              ? '사자성어 1개 + 7문항 = A4 1페이지\n초3 ~ 중1 학생용 학습지를 자동으로 만들어 드립니다.'
+              : '아래 단계를 따라 오시면\n3분 안에 첫 학습지가 완성됩니다.'}
           </p>
         </div>
 
-        {/* 본문 */}
+        {/* Body */}
         <div className="px-7 py-6">
           {step === 0 ? (
             <div className="space-y-3">
               <Feature
-                icon={<BookOpen size={16} />}
-                color="#3B82F6"
-                title="다양한 과목 + 문항"
-                desc="세계사 · 사자성어 · 관용구 · 속담 · 맞춤법 · 어휘 · 중학 국어 (문학)"
+                icon={<BookOpen size={16} />} color="#8B5CF6"
+                title="사자성어 1개 = 학습지 1장"
+                desc="동문서답·일석이조·자화자찬 같은 사자성어 하나를 set으로 등록하면 자동으로 7문항이 구성돼요."
               />
               <Feature
-                icon={<FilePlus size={16} />}
-                color="#8B5CF6"
-                title="3가지 방법으로 문항 만들기"
-                desc="① 직접 작성  ② AI 채팅으로 생성 후 가져오기  ③ 이미 있는 문항 사용"
+                icon={<FilePlus size={16} />} color="#10B981"
+                title="고정 7문항 구조"
+                desc="① 한자 따라쓰기 + 한글음 ② ~ ⑥ 4지선다 객관식 ⑦ 사자성어 사용 문장 만들기"
               />
               <Feature
-                icon={<Eye size={16} />}
-                color="#10B981"
-                title="20종의 시험지 디자인"
-                desc="초등용 10종 + 중학용 10종, 학년·과목별 최적화 템플릿"
+                icon={<FileText size={16} />} color="#F59E0B"
+                title="A4 1페이지에 정확히 fit"
+                desc="긴 보기·답안이 있어도 자동으로 폰트가 조정돼 한 장에 모든 문항이 들어갑니다."
               />
               <Feature
-                icon={<Download size={16} />}
-                color="#F59E0B"
-                title="A4 PDF로 출력"
-                desc="시험지 + 답안지/해설 별도 PDF, 인쇄 그대로"
+                icon={<Download size={16} />} color="#3B82F6"
+                title="PDF로 바로 출력"
+                desc="시험지 PDF + 답안지/해설 PDF 두 가지를 한 번에 받을 수 있어요."
               />
             </div>
           ) : (
             <div className="space-y-3">
-              <StepItem n={1} title="시험지 만들기" desc="우측 패널에서 제목과 과목·난이도를 선택해 새 시험지를 만들어요." color="#3B82F6" />
-              <StepItem n={2} title="문항 추가하기" desc="좌측 문항 DB에서 마음에 드는 문항을 클릭 또는 '🎲 랜덤'으로 한 번에 N개 선택." color="#8B5CF6" />
-              <StepItem n={3} title="미리보기 확인" desc="가운데 패널에서 시험지가 어떻게 나올지 확인 · 순서 변경 · 과목별 정렬." color="#10B981" />
-              <StepItem n={4} title="PDF 내보내기" desc="우측 '내보내기'에서 템플릿 선택 후 시험지 PDF + 답안지 PDF 출력." color="#F59E0B" />
+              <StepItem n={1} color="#8B5CF6"
+                title="새 학습지 만들기"
+                desc='좌측 "+ 새 set" 또는 시드 카드를 클릭해 사자성어 + 한자 + 뜻을 입력해요.' />
+              <StepItem n={2} color="#10B981"
+                title="7문항 채우기"
+                desc="1번(한자 쓰기) → 2~6번(객관식 4지선다) → 7번(문장 만들기) 순서로 인라인 폼에 작성해요." />
+              <StepItem n={3} color="#F59E0B"
+                title="A4 1페이지 미리보기"
+                desc="가운데 화면에서 실제 PDF와 같은 모습으로 확인하고, 길이가 맞지 않으면 자동 조정돼요." />
+              <StepItem n={4} color="#3B82F6"
+                title="PDF 출력"
+                desc='우측 "시험지 PDF" / "답안지+해설 PDF" 버튼으로 한 번에 출력해요.' />
             </div>
           )}
         </div>
 
-        {/* 하단 버튼 */}
+        {/* Footer */}
         <div className="px-7 pb-7 pt-2 flex items-center gap-2 bg-gray-50 border-t border-gray-100">
           {step === 0 ? (
             <>
@@ -102,7 +105,7 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
               </button>
               <button
                 onClick={() => setStep(1)}
-                className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm flex items-center justify-center gap-1"
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-sm flex items-center justify-center gap-1"
               >
                 다음 — 사용법 보기 <ChevronRight size={14} />
               </button>
@@ -125,7 +128,7 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
                 onClick={onStart}
                 className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm flex items-center justify-center gap-1"
               >
-                <FilePlus size={14} /> 첫 시험지 만들기
+                <FilePlus size={14} /> 첫 학습지 만들기
               </button>
             </>
           )}
@@ -152,7 +155,7 @@ function Feature({ icon, color, title, desc }: { icon: React.ReactNode; color: s
   );
 }
 
-function StepItem({ n, title, desc, color }: { n: number; title: string; desc: string; color: string }) {
+function StepItem({ n, color, title, desc }: { n: number; color: string; title: string; desc: string }) {
   return (
     <div className="flex items-start gap-3">
       <div
