@@ -1,5 +1,4 @@
 import type { TestPaper } from '../types';
-import { QUESTION_TYPE_LABELS, DIFFICULTY_LABELS } from '../types';
 import { getTemplate, buildTemplateCSS, type PDFTemplate } from './pdfTemplates';
 
 function esc(text: string): string {
@@ -76,68 +75,38 @@ export function generateTestPaperHTML(
   showAnswerKey: boolean,
   template: PDFTemplate,
 ): string {
-  const date = new Date(test.createdAt).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric',
-  });
-  const diffLabel = DIFFICULTY_LABELS[test.difficulty].replace(/\s*\(.*?\)/, '');
-  const totalScore = test.questions.length * 10;
+  // subjectName/difficulty/date는 더 이상 시험지 본문에 노출하지 않지만,
+  // 템플릿 내부 처리를 위해 변수만 유지 (해설지 배너 등에서 활용 가능)
+  void subjectName;
   const css = FONT_IMPORTS + buildTemplateCSS(template);
 
   let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
 <title>${esc(test.title)}</title>
 <style>${css}</style></head><body><div class="page">`;
 
-  // Header (style varies by template)
+  // Header — 제목 + 이름 입력 칸 (시험지) / 답안 배너 (해설지)
   if (template.headerStyle === 'side-stripe') {
     html += `<div class="header"><div class="header-text">
       <h1>${esc(test.title)}</h1>
-      <div class="header-sub">
-        <span>${esc(subjectName)}</span><span>${esc(diffLabel)}</span><span>${date}</span><span>${test.questions.length}문항</span>
-      </div>
+      ${showAnswerKey ? '' : '<div class="header-name">이름 <span class="blank"></span></div>'}
     </div></div>`;
   } else {
     html += `<div class="header">
       <h1>${esc(test.title)}</h1>
-      <div class="header-sub">
-        <span>${esc(subjectName)}</span><span>${esc(diffLabel)}</span><span>${date}</span><span>${test.questions.length}문항</span>
-      </div>
+      ${showAnswerKey ? '' : '<div class="header-name">이름 <span class="blank"></span></div>'}
     </div>`;
   }
 
-  // Info row or answer banner
-  if (!showAnswerKey) {
-    html += `<div class="info-row">
-      <div class="field">이름 <span class="blank"></span></div>
-      <div class="field">날짜 <span class="blank"></span></div>
-      <div class="field">점수 <span class="score-blank"></span> / ${totalScore}</div>
-    </div>`;
-  } else {
+  // 해설지일 때만 답안 배너 표시 (시험지의 info-row는 제거됨)
+  if (showAnswerKey) {
     html += `<div class="answer-banner">답안 및 해설</div>`;
   }
 
-  // Group by type if mixed
-  const typeGroups = new Map<string, typeof test.questions>();
-  test.questions.forEach((q) => {
-    const group = typeGroups.get(q.type) || [];
-    group.push(q);
-    typeGroups.set(q.type, group);
-  });
-
+  // 모든 문항을 한 줄로 렌더링 (유형별 sec-title 라벨 제거)
   let idx = 0;
-  if (typeGroups.size > 1) {
-    for (const [type, questions] of typeGroups) {
-      const label = QUESTION_TYPE_LABELS[type as keyof typeof QUESTION_TYPE_LABELS];
-      html += `<div class="sec-title">${esc(label)} (${questions.length}문항)</div>`;
-      for (const q of questions) {
-        html += renderQuestion(q, idx, showAnswerKey);
-        idx++;
-      }
-    }
-  } else {
-    for (const q of test.questions) {
-      html += renderQuestion(q, idx, showAnswerKey);
-      idx++;
-    }
+  for (const q of test.questions) {
+    html += renderQuestion(q, idx, showAnswerKey);
+    idx++;
   }
 
   // Memo section (test paper only)

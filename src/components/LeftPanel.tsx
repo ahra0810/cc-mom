@@ -85,6 +85,34 @@ export default function LeftPanel({ onPreviewQuestion, onManualCreate, onEditQue
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((q) => selectedIds.has(q.id));
   const someSelected = selectedIds.size > 0;
+  const [randomCount, setRandomCount] = useState<string>('');
+
+  /* 현재 필터링된 문항 중 N개를 무작위로 선택 (Fisher-Yates shuffle) */
+  const selectRandomN = () => {
+    const n = parseInt(randomCount, 10);
+    if (!Number.isFinite(n) || n <= 0) {
+      toast('warning', '1 이상의 숫자를 입력해 주세요');
+      return;
+    }
+    if (filtered.length === 0) {
+      toast('warning', '선택할 문항이 없습니다');
+      return;
+    }
+    const target = Math.min(n, filtered.length);
+    const pool = [...filtered];
+    /* Fisher-Yates partial shuffle — 앞에서 target 개만 셔플 */
+    for (let i = 0; i < target; i++) {
+      const j = i + Math.floor(Math.random() * (pool.length - i));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const picked = pool.slice(0, target).map((q) => q.id);
+    setSelectedIds(new Set(picked));
+    if (target < n) {
+      toast('info', `필터된 ${filtered.length}개 중 ${target}개를 무작위로 선택했습니다`);
+    } else {
+      toast('success', `랜덤으로 ${target}개를 선택했습니다`);
+    }
+  };
 
   const selectAllFiltered = () => {
     if (allFilteredSelected) {
@@ -312,7 +340,7 @@ export default function LeftPanel({ onPreviewQuestion, onManualCreate, onEditQue
         )}
       </div>
 
-      {/* ─── Group + Sort + Select All ─── */}
+      {/* ─── Group + Sort + Select All + Random N ─── */}
       <div className="px-3 pb-2 flex-shrink-0 flex items-center gap-1.5 text-[11px] border-b border-gray-100">
         <button
           onClick={selectAllFiltered}
@@ -333,6 +361,31 @@ export default function LeftPanel({ onPreviewQuestion, onManualCreate, onEditQue
             {someSelected ? `${selectedIds.size}개 선택` : '전체 선택'}
           </span>
         </button>
+
+        {/* 랜덤 N개 선택 */}
+        <div className="flex items-center gap-0.5 ml-1">
+          <input
+            type="number"
+            min={1}
+            max={filtered.length || 1}
+            placeholder="N"
+            value={randomCount}
+            onChange={(e) => setRandomCount(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') selectRandomN();
+            }}
+            className="w-9 px-1 py-0.5 text-[11px] text-center border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+            title={`현재 필터된 ${filtered.length}개 중 N개를 무작위로 선택`}
+            aria-label="랜덤 선택 개수"
+          />
+          <button
+            onClick={selectRandomN}
+            className="px-1.5 py-0.5 text-[10px] font-bold text-white bg-primary-600 hover:bg-primary-700 rounded"
+            title="입력한 개수만큼 랜덤 선택"
+          >
+            🎲 랜덤
+          </button>
+        </div>
         <div className="ml-auto flex items-center gap-1.5">
           <Layers size={11} className="text-gray-400" />
           <select

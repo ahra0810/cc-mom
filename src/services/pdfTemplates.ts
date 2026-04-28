@@ -408,27 +408,21 @@ body {
 /* ═══ Header ═══ */
 ${buildHeaderCSS(t, densityVars)}
 
-/* ═══ Info row & Banner ═══ */
-.info-row {
-  display: flex; justify-content: space-between; align-items: center;
-  border: 1.5px solid ${t.accentColor}; border-radius: 4px;
-  padding: 7px 14px; margin: 10px 0 14px;
-  font-size: ${t.baseFontSize - 1.5}pt; color: ${t.textColor};
-  background: ${t.bgAccent};
+/* ═══ Header name field (이름 입력 칸 — 제목 바로 아래) ═══ */
+.header-name {
+  margin-top: 8px; font-size: ${t.baseFontSize - 1}pt; color: ${t.textColor}cc;
+  display: inline-flex; align-items: center; gap: 6px;
 }
-.info-row .field { display: flex; align-items: center; gap: 4px; }
-.info-row .blank { display: inline-block; width: 90px; border-bottom: 1px solid ${t.accentColor}; margin-left: 2px; height: 16px; }
-.info-row .score-blank { display: inline-block; width: 36px; border-bottom: 1px solid ${t.accentColor}; margin: 0 2px; height: 16px; text-align: center; }
+.header-name .blank {
+  display: inline-block; min-width: 140px; border-bottom: 1px solid ${t.accentColor};
+  height: 16px; margin-left: 2px;
+}
+
+/* ═══ Answer banner (해설지 전용) ═══ */
 .answer-banner {
   text-align: center; font-size: ${t.baseFontSize}pt; font-weight: 800; color: ${t.primaryColor};
   border: 2px solid ${t.primaryColor}; padding: 7px 0; margin: 10px 0 14px;
   letter-spacing: 4px; background: ${t.bgAccent};
-}
-
-/* ═══ Section title ═══ */
-.sec-title {
-  font-size: ${t.baseFontSize - 0.5}pt; font-weight: 700; color: ${t.primaryColor};
-  padding: 5px 0 4px; margin: 14px 0 6px; border-bottom: 1.5px solid ${t.primaryColor};
 }
 
 /* ═══ Question ═══ */
