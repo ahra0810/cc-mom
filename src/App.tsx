@@ -50,8 +50,10 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [duplicateSource, setDuplicateSource] = useState<Question | null>(null);
 
-  // Center panel state
-  const [centerTab, setCenterTab] = useState<'preview' | 'test'>('preview');
+  // Center panel state — 기본은 '시험지' 탭이라 첫 방문자가 바로
+  // EmptyTestHero(빠른 시작 카드)를 볼 수 있다. 좌측 DB에서 문항을
+  // 클릭하면 handlePreviewQuestion이 'preview'로 자동 전환한다.
+  const [centerTab, setCenterTab] = useState<'preview' | 'test'>('test');
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
 
   // Panel collapse state (auto-collapse based on viewport size)
