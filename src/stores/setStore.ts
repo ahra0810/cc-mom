@@ -57,6 +57,7 @@ interface SetStore {
   addSet: (set: QuestionSet) => void;
   updateSet: (id: string, updates: Partial<QuestionSet>) => void;
   deleteSet: (id: string) => void;
+  deleteSets: (ids: string[]) => number;  // 일괄 삭제 — 삭제된 개수 반환
   duplicateSet: (id: string) => string | null;
 
   /* Editing — draft 기반 */
@@ -131,6 +132,20 @@ export const useSetStore = create<SetStore>()(
           sets: state.sets.filter((s) => s.id !== id),
           selectedSetId: state.selectedSetId === id ? null : state.selectedSetId,
         })),
+
+      deleteSets: (ids) => {
+        if (!Array.isArray(ids) || ids.length === 0) return 0;
+        const toDelete = new Set(ids);
+        const before = get().sets.length;
+        set((state) => ({
+          sets: state.sets.filter((s) => !toDelete.has(s.id)),
+          selectedSetId:
+            state.selectedSetId && toDelete.has(state.selectedSetId)
+              ? null
+              : state.selectedSetId,
+        }));
+        return before - get().sets.length;
+      },
 
       duplicateSet: (id) => {
         const original = get().sets.find((s) => s.id === id);

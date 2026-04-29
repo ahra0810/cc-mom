@@ -8,9 +8,14 @@
  * - Set 카드: idiom + 한자 + 의미 + 진행률 + 액션
  * - 단일 선택(라디오) — 선택 = 출력 대상
  * - 카드 액션: 편집, 복제, 삭제
+ * - **선택 모드**: 체크박스 + 전체 선택 + 일괄 삭제 / 일괄 JSON 내보내기
  */
-import { useState, useMemo } from 'react';
-import { Search, X, Plus, Pencil, Copy, Trash2, Settings, Check, Filter, ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import {
+  Search, X, Plus, Pencil, Copy, Trash2, Settings, Check,
+  Filter, ChevronDown, ChevronRight,
+  CheckSquare, Square, ListChecks, Download,
+} from 'lucide-react';
 import { useSetStore } from '../stores/setStore';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
@@ -44,6 +49,7 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
   const selectedSetId = useSetStore((s) => s.selectedSetId);
   const selectSet = useSetStore((s) => s.selectSet);
   const deleteSet = useSetStore((s) => s.deleteSet);
+  const deleteSets = useSetStore((s) => s.deleteSets);
   const duplicateSet = useSetStore((s) => s.duplicateSet);
   const allSets = useSetStore((s) => s.sets);
 
@@ -52,6 +58,10 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
 
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [showFilters, setShowFilters] = useState(false);
+
+  /* ── 선택 모드 ── */
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
 
   const filtered = getFilteredSets();
   const sorted = useMemo(() => {
@@ -70,6 +80,96 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
     return arr;
   }, [filtered, sortKey]);
 
+  /* 선택 모드를 빠져나가거나 필터로 카드가 사라지면 체크 정리 */
+  useEffect(() => {
+    if (!selectionMode && checkedIds.size > 0) {
+      setCheckedIds(new Set());
+    }
+  }, [selectionMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* 보이는 카드(필터 적용됨)에 한해 전체 선택 상태 계산 */
+  const visibleIds = useMemo(() => sorted.map((s) => s.id), [sorted]);
+  const checkedVisibleCount = useMemo(
+    () => visibleIds.filter((id) => checkedIds.has(id)).length,
+    [visibleIds, checkedIds],
+  );
+  const allVisibleChecked = visibleIds.length > 0 && checkedVisibleCount === visibleIds.length;
+  const someVisibleChecked = checkedVisibleCount > 0 && !allVisibleChecked;
+
+  const toggleAllVisible = () => {
+    if (allVisibleChecked) {
+      /* 전체 해제 (현재 보이는 것만) */
+      const next = new Set(checkedIds);
+      for (const id of visibleIds) next.delete(id);
+      setCheckedIds(next);
+    } else {
+      /* 보이는 것 전체 선택 */
+      const next = new Set(checkedIds);
+      for (const id of visibleIds) next.add(id);
+      setCheckedIds(next);
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    const next = new Set(checkedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setCheckedIds(next);
+  };
+
+  const enterSelection = () => {
+    setSelectionMode(true);
+    setCheckedIds(new Set());
+  };
+  const exitSelection = () => {
+    setSelectionMode(false);
+    setCheckedIds(new Set());
+  };
+
+  /* 일괄 삭제 */
+  const handleBulkDelete = async () => {
+    if (checkedIds.size === 0) {
+      toast('error', '선택된 set이 없어요');
+      return;
+    }
+    const ok = await confirm({
+      title: '선택한 set 일괄 삭제',
+      message: `선택한 ${checkedIds.size}개의 사자성어 set을 삭제합니다.\n이 작업은 되돌릴 수 없습니다.\n계속하시겠습니까?`,
+      variant: 'danger',
+      confirmText: '삭제',
+    });
+    if (!ok) return;
+    const removed = deleteSets(Array.from(checkedIds));
+    toast('success', `${removed}개의 set을 삭제했어요`);
+    exitSelection();
+  };
+
+  /* 일괄 JSON 내보내기 — 체크된 set만 */
+  const handleBulkExport = () => {
+    if (checkedIds.size === 0) {
+      toast('error', '선택된 set이 없어요');
+      return;
+    }
+    const subset = allSets.filter((s) => checkedIds.has(s.id));
+    const json = JSON.stringify({ version: 1, sets: subset }, null, 2);
+    try {
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `idiom-sets-${subset.length}-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('success', `${subset.length}개의 set을 내보냈어요`);
+    } catch (e) {
+      console.error(e);
+      toast('error', '내보내기 실패');
+    }
+  };
+
+  /* 단건 액션 (기존 동작) */
   const handleDelete = async (s: QuestionSet) => {
     const ok = await confirm({
       title: '사자성어 set 삭제',
@@ -90,6 +190,11 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
     }
   };
 
+  const handleCardClick = (s: QuestionSet) => {
+    if (selectionMode) toggleOne(s.id);
+    else selectSet(s.id);
+  };
+
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
@@ -100,6 +205,18 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
           <span className="text-[10px] text-gray-400 flex-shrink-0">{filtered.length}/{allSets.length}</span>
         </div>
         <div className="flex items-center gap-0.5 flex-shrink-0">
+          <button
+            className={`p-1.5 rounded transition-colors ${
+              selectionMode
+                ? 'text-purple-600 bg-purple-50'
+                : 'text-gray-400 hover:text-purple-600 hover:bg-gray-100'
+            }`}
+            onClick={() => (selectionMode ? exitSelection() : enterSelection())}
+            title={selectionMode ? '선택 모드 종료' : '선택 모드 (일괄 삭제·내보내기)'}
+            aria-label="선택 모드 토글"
+          >
+            <ListChecks size={13} />
+          </button>
           <button
             className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-gray-100 rounded transition-colors"
             onClick={onCreateNew}
@@ -118,6 +235,56 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
           </button>
         </div>
       </div>
+
+      {/* 선택 모드 액션 바 */}
+      {selectionMode && (
+        <div className="px-3 py-2 bg-purple-50 border-b border-purple-200 flex items-center gap-2 flex-shrink-0 animate-fadeIn">
+          <button
+            onClick={toggleAllVisible}
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-purple-700 hover:text-purple-900"
+            title={allVisibleChecked ? '전체 해제' : '전체 선택'}
+          >
+            {allVisibleChecked ? (
+              <CheckSquare size={14} className="text-purple-600" />
+            ) : someVisibleChecked ? (
+              <div className="w-3.5 h-3.5 rounded border-2 border-purple-600 bg-purple-600 flex items-center justify-center">
+                <div className="w-1.5 h-0.5 bg-white" />
+              </div>
+            ) : (
+              <Square size={14} className="text-purple-600" />
+            )}
+            전체 선택
+          </button>
+          <span className="text-[11px] text-purple-700 font-mono">
+            {checkedIds.size} / {visibleIds.length}
+          </span>
+          <div className="flex-1" />
+          <button
+            onClick={handleBulkExport}
+            disabled={checkedIds.size === 0}
+            className="btn btn-secondary !py-1 !px-2 !text-[10.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+            title="선택한 set만 JSON으로 내보내기"
+          >
+            <Download size={11} /> 내보내기
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            disabled={checkedIds.size === 0}
+            className="btn btn-danger !py-1 !px-2 !text-[10.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+            title="선택한 set 일괄 삭제"
+          >
+            <Trash2 size={11} /> 삭제
+          </button>
+          <button
+            onClick={exitSelection}
+            className="p-1 text-purple-600 hover:text-purple-900 rounded"
+            title="선택 모드 종료"
+            aria-label="선택 모드 종료"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
 
       {/* Search */}
       <div className="px-3 pt-2 flex-shrink-0">
@@ -212,7 +379,9 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
               key={s.id}
               set={s}
               isSelected={selectedSetId === s.id}
-              onSelect={() => selectSet(s.id)}
+              selectionMode={selectionMode}
+              isChecked={checkedIds.has(s.id)}
+              onClick={() => handleCardClick(s)}
               onEdit={() => onEditSet(s.id)}
               onDuplicate={() => handleDuplicate(s)}
               onDelete={() => handleDelete(s)}
@@ -226,11 +395,13 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
 
 /* ─── Set 카드 ─── */
 function SetCard({
-  set: s, isSelected, onSelect, onEdit, onDuplicate, onDelete,
+  set: s, isSelected, selectionMode, isChecked, onClick, onEdit, onDuplicate, onDelete,
 }: {
   set: QuestionSet;
   isSelected: boolean;
-  onSelect: () => void;
+  selectionMode: boolean;
+  isChecked: boolean;
+  onClick: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -241,21 +412,32 @@ function SetCard({
   const hanja = s.meta.domain === 'four-char-idiom' ? s.meta.hanja : '';
   const meaning = s.meta.domain === 'four-char-idiom' ? s.meta.meaning : '';
 
+  /* 카드 배경 — 선택 모드의 체크 우선, 그 다음 출력 선택 */
+  let bgClass = 'hover:bg-gray-50';
+  if (selectionMode && isChecked) bgClass = 'bg-purple-100/80 hover:bg-purple-100';
+  else if (!selectionMode && isSelected) bgClass = 'bg-purple-50/80';
+
   return (
     <div
-      className={`relative px-3 py-2.5 border-b border-gray-100 cursor-pointer transition-colors group ${
-        isSelected ? 'bg-purple-50/80' : 'hover:bg-gray-50'
-      }`}
-      onClick={onSelect}
+      className={`relative px-3 py-2.5 border-b border-gray-100 cursor-pointer transition-colors group ${bgClass}`}
+      onClick={onClick}
     >
       <div className="flex items-start gap-2">
-        {/* Radio indicator */}
+        {/* 좌측 인디케이터 — 선택 모드면 체크박스, 아니면 라디오 */}
         <div className="flex-shrink-0 mt-1">
-          <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
-            isSelected ? 'border-purple-600 bg-purple-600' : 'border-gray-300 bg-white'
-          }`}>
-            {isSelected && <Check size={8} strokeWidth={3} className="text-white" />}
-          </div>
+          {selectionMode ? (
+            <div className={`w-3.5 h-3.5 rounded border-2 flex items-center justify-center ${
+              isChecked ? 'border-purple-600 bg-purple-600' : 'border-gray-300 bg-white'
+            }`}>
+              {isChecked && <Check size={9} strokeWidth={3} className="text-white" />}
+            </div>
+          ) : (
+            <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+              isSelected ? 'border-purple-600 bg-purple-600' : 'border-gray-300 bg-white'
+            }`}>
+              {isSelected && <Check size={8} strokeWidth={3} className="text-white" />}
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -280,33 +462,35 @@ function SetCard({
           </div>
         </div>
 
-        {/* Actions (hover) */}
-        <div className="flex flex-col gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-amber-600 hover:bg-amber-50"
-            title="편집"
-            aria-label="편집"
-          >
-            <Pencil size={10} />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-            className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50"
-            title="복제"
-            aria-label="복제"
-          >
-            <Copy size={10} />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50"
-            title="삭제"
-            aria-label="삭제"
-          >
-            <Trash2 size={10} />
-          </button>
-        </div>
+        {/* Actions (hover) — 선택 모드에서는 숨김 */}
+        {!selectionMode && (
+          <div className="flex flex-col gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-amber-600 hover:bg-amber-50"
+              title="편집"
+              aria-label="편집"
+            >
+              <Pencil size={10} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+              className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+              title="복제"
+              aria-label="복제"
+            >
+              <Copy size={10} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50"
+              title="삭제"
+              aria-label="삭제"
+            >
+              <Trash2 size={10} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
