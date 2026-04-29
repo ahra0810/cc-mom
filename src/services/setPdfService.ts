@@ -223,26 +223,40 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   background: white;
 }
 
-/* ─── Header — 이름 칸만 우상단에 (이중선/구분선 없음) ─── */
-.header {
-  display: flex; justify-content: flex-end; align-items: center;
-  padding: 0; margin-bottom: 5mm;
+/* ─── 상단 2단 레이아웃: [메타 카드 | 이름 카드] ─── */
+.top-row {
+  display: flex; gap: 5mm;
+  margin-bottom: 5mm;
   flex-shrink: 0;
+  align-items: stretch; /* 두 카드 높이 동일 */
 }
-.header-name {
-  font-size: ${baseFs}pt; color: ${t.textColor}; font-weight: 700;
-  display: inline-flex; align-items: flex-end; gap: 3mm;
-}
-.header-name .blank {
-  display: inline-block; min-width: 70mm;
-  border-bottom: 1.5px solid ${t.textColor}; /* 한 줄만 */
-  height: 12mm; /* 1.2cm 기록 공간 */
-}
+.top-row > .meta-block { flex: 1.7 1 0; margin-bottom: 0; }
+.top-row > .name-card { flex: 1 1 0; }
+
+/* 답안지일 때만 등장하는 배너 */
 .answer-banner { text-align: center; font-weight: 800; color: ${t.primaryColor}; border: 1.5px solid ${t.primaryColor}; padding: 2mm 0; margin-bottom: 4mm; letter-spacing: 4px; background: ${t.bgAccent}; flex-shrink: 0; }
 
-/* ─── Meta block ─── */
-.meta-block { border: 1.5px solid ${t.accentColor}; border-radius: 4px; padding: 4mm 6mm; margin-bottom: 4mm; background: ${t.bgAccent}66; flex-shrink: 0; text-align: center; }
-.meta-hanja { font-family: 'Noto Serif KR', serif; font-size: ${baseFs + 8}pt; font-weight: 700; letter-spacing: 4mm; padding-left: 4mm; color: ${t.primaryColor}; line-height: 1.2; }
+/* ─── Name card (우측) — 메타 카드와 동일 톤·테두리 ─── */
+.name-card {
+  border: 1.5px solid ${t.accentColor}; border-radius: 4px;
+  background: ${t.bgAccent}66;
+  padding: 4mm 5mm;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.name-card-row {
+  display: flex; align-items: flex-end; gap: 3mm;
+  font-size: ${baseFs}pt; font-weight: 700; color: ${t.textColor};
+}
+.name-card-row .label { flex-shrink: 0; padding-bottom: 0.5mm; }
+.name-card-row .blank {
+  flex: 1 1 auto;
+  border-bottom: 1.5px solid ${t.textColor};
+  height: 11mm; /* 약 1.1cm 기록 공간 */
+}
+
+/* ─── Meta block (좌측 / 답안지에서는 풀폭) ─── */
+.meta-block { border: 1.5px solid ${t.accentColor}; border-radius: 4px; padding: 4mm 6mm; background: ${t.bgAccent}66; flex-shrink: 0; text-align: center; margin-bottom: 5mm; }
+.meta-hanja { font-family: 'Noto Serif KR', serif; font-size: ${baseFs + 8}pt; font-weight: 700; letter-spacing: 3mm; padding-left: 3mm; color: ${t.primaryColor}; line-height: 1.2; }
 .meta-idiom { font-size: ${baseFs + 1}pt; font-weight: 700; color: ${t.textColor}; margin-top: 2mm; }
 .meta-meaning { font-size: ${baseFs - 0.5}pt; color: ${t.textColor}cc; margin-top: 1mm; }
 .meta-origin { font-size: ${baseFs - 1.5}pt; color: ${t.textColor}99; margin-top: 1mm; font-style: italic; }
@@ -341,15 +355,23 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 
   let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${esc(set.title)}</title><style>${css}</style></head><body><div class="page">`;
 
-  /* Header — 시험지명 제거, 이름 칸만 우상단 / 답안지일 때는 정중앙 배너 */
+  /* 상단:
+   *  - 시험지(showAnswer=false): 좌측 메타 카드 + 우측 이름 카드의 2단 행
+   *  - 답안지(showAnswer=true): "답안 및 해설" 배너 + 풀폭 메타 (이름 칸 불필요) */
   if (showAnswer) {
     html += `<div class="answer-banner">답안 및 해설</div>`;
+    html += renderMetaBlock(meta, t);
   } else {
-    html += `<div class="header"><div class="header-name">이름 <span class="blank"></span></div></div>`;
+    html += `<div class="top-row">`;
+    html += renderMetaBlock(meta, t);
+    html += `<div class="name-card">
+      <div class="name-card-row">
+        <span class="label">이름</span>
+        <span class="blank"></span>
+      </div>
+    </div>`;
+    html += `</div>`;
   }
-
-  /* Meta block */
-  html += renderMetaBlock(meta, t);
 
   /* 8 slots */
   html += `<div class="set">`;
