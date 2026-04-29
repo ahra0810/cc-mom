@@ -338,6 +338,29 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   height: 11mm; /* 약 1.1cm 기록 공간 */
 }
 
+/* ─── Answer key card (우측, 답안지 전용) ─── */
+.answer-key-card {
+  border: 1.5px solid ${t.primaryColor};
+  border-radius: 4px;
+  background: ${t.bgAccent};
+  padding: 4mm 5mm;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center;
+  gap: 1mm;
+}
+.ak-label {
+  font-size: ${baseFs + 1}pt;
+  font-weight: 800;
+  color: ${t.primaryColor};
+  letter-spacing: 4px;
+}
+.ak-meta {
+  font-size: ${baseFs - 2}pt;
+  color: ${t.textColor}99;
+  font-weight: 600;
+  letter-spacing: 0.3mm;
+}
+
 /* ─── Meta block (좌측 / 답안지에서는 풀폭) ─── */
 .meta-block { border: 1.5px solid ${t.accentColor}; border-radius: 4px; padding: 4mm 6mm; background: ${t.bgAccent}66; flex-shrink: 0; text-align: center; margin-bottom: 5mm; }
 .meta-hanja { font-family: 'Noto Serif KR', serif; font-size: ${baseFs + 8}pt; font-weight: 700; letter-spacing: 3mm; padding-left: 3mm; color: ${t.primaryColor}; line-height: 1.2; }
@@ -468,13 +491,23 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   justify-content: space-between;
   gap: 2mm; /* 최소 간격 보장 (overflow 방지) */
 }
-/* 답안지 모드: 슬롯은 자연 크기로 컴팩트하게 위에 쌓고, 해설 그리드가 아래에 자리. */
+/* 답안지 모드: 슬롯은 자연 크기로 컴팩트하게 위에 쌓고, 해설 그리드가 아래에 자리.
+ * 시험지보다 슬롯 간격을 살짝 좁혀 해설 그리드와 페이지 하단 여백을 확보. */
 .page.answer-mode .set {
   flex: 0 0 auto;
   justify-content: flex-start;
-  gap: 2.5mm;
+  gap: 1.8mm;
 }
-.page.answer-mode .qb-frame { flex: 0 0 auto; }
+.page.answer-mode .qb-frame { flex: 0 0 auto; padding: 3mm 5mm 3mm 5mm; }
+/* 답안지에서 한자 박스는 학생 활동이 끝났으므로 살짝 작아도 됨 */
+.page.answer-mode .slot1-grid {
+  grid-template-columns: 78mm 1fr;
+  gap: 4mm;
+  margin: 1mm 0 0 0;
+}
+.page.answer-mode .hanja-tracing-row { max-width: 78mm; gap: 3mm; }
+.page.answer-mode .hanja-tracing-box { font-size: ${baseFs + 9}pt; }
+.page.answer-mode .slot1-grid .answer-line { height: 10mm; }
 .q { display: flex; gap: 3mm; page-break-inside: avoid; flex: 0 0 auto; }
 .q-num { flex-shrink: 0; width: 7mm; font-size: ${baseFs}pt; font-weight: 800; color: ${t.primaryColor}; padding-top: 0.5mm; }
 .q-body { flex: 1; min-width: 0; }
@@ -568,11 +601,11 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .explain { margin-top: 1.5mm; font-size: ${baseFs - 1.5}pt; color: ${t.textColor}cc; line-height: 1.5; padding: 1mm 2mm; background: ${t.bgAccent}; border-left: 2px solid ${t.accentColor}; }
 .explain-label { font-weight: 800; color: ${t.primaryColor}; margin-right: 2mm; }
 
-/* ─── 답안지 하단 해설 그리드 — 표준 정답표 양식 ─── */
+/* ─── 답안지 하단 해설 그리드 — 표준 정답표 양식 (컴팩트) ─── */
 .answer-explanations {
   flex-shrink: 0;
-  margin-top: 4mm;
-  padding-top: 3mm;
+  margin-top: 3mm;
+  padding-top: 2mm;
   border-top: 1.5px solid ${t.accentColor};
 }
 .ax-title {
@@ -581,20 +614,20 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   font-weight: 800;
   color: ${t.primaryColor};
   letter-spacing: 1mm;
-  padding: 0.5mm 3mm;
+  padding: 0.4mm 2.5mm;
   border-radius: 1mm;
   background: ${t.bgAccent};
-  margin-bottom: 2mm;
+  margin-bottom: 1.5mm;
 }
 .ax-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5mm 6mm;
+  gap: 1mm 5mm;
 }
 .ax-item {
-  display: flex; align-items: baseline; gap: 2mm;
-  font-size: ${baseFs - 2}pt;
-  line-height: 1.4;
+  display: flex; align-items: baseline; gap: 1.5mm;
+  font-size: ${baseFs - 2.5}pt;
+  line-height: 1.35;
   color: ${t.textColor}d0;
   break-inside: avoid;
 }
@@ -603,7 +636,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   width: 4mm;
   font-weight: 800;
   color: ${t.primaryColor};
-  font-size: ${baseFs - 1.5}pt;
+  font-size: ${baseFs - 2}pt;
 }
 .ax-body { flex: 1; min-width: 0; }
 .ax-answer {
@@ -634,23 +667,25 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   }
   html += `<div class="page${showAnswer ? ' answer-mode' : ''}">`;
 
-  /* 상단:
-   *  - 시험지(showAnswer=false): 좌측 메타 카드 + 우측 이름 카드의 2단 행
-   *  - 답안지(showAnswer=true): "답안 및 해설" 배너 + 풀폭 메타 (이름 칸 불필요) */
+  /* 상단 — 시험지·답안지 모두 동일한 2단 [메타 | 보조] 구조.
+   *  - 시험지: 우측은 "이름 ___" 카드
+   *  - 답안지: 우측은 "정답 및 해설" 카드 (시각 통일감 + 별도 배너 불필요) */
+  html += `<div class="top-row">`;
+  html += renderMetaBlock(meta, t);
   if (showAnswer) {
-    html += `<div class="answer-banner">답안 및 해설</div>`;
-    html += renderMetaBlock(meta, t);
+    html += `<div class="answer-key-card">
+      <div class="ak-label">답안 및 해설</div>
+      <div class="ak-meta">${set.slots.length}문항 · ${esc(set.title)}</div>
+    </div>`;
   } else {
-    html += `<div class="top-row">`;
-    html += renderMetaBlock(meta, t);
     html += `<div class="name-card">
       <div class="name-card-row">
         <span class="label">이름</span>
         <span class="blank"></span>
       </div>
     </div>`;
-    html += `</div>`;
   }
+  html += `</div>`;
 
   /* 8 slots — quiz-banner 템플릿일 때만 qb-frame(굵은 테두리 + 코랄 큐오테이션)으로 감쌈 */
   const isQuizBanner = t.metaStyle === 'quiz-banner';
