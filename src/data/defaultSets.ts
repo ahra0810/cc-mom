@@ -31,7 +31,7 @@ const set1Slots: SetSlots = [
   q({
     type: 'hanja-writing',
     difficulty: 'medium',
-    question: '다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\n\n뜻: 묻는 말에 엉뚱한 답을 함',
+    question: '다음 한자를 따라 쓰고, 옆 칸에 한글음을 쓰세요.\n\n뜻: 묻는 말에 엉뚱한 답을 함',
     answer: '동문서답',
     hanjaTrace: '東問西答',
     explanation: '동문서답(東問西答): 동쪽을 물었는데 서쪽으로 답한다는 뜻으로, 묻는 말에 전혀 다른 엉뚱한 대답을 하는 것을 비유하는 말.',
@@ -97,7 +97,7 @@ const set1Slots: SetSlots = [
 const set2Slots: SetSlots = [
   q({
     type: 'hanja-writing', difficulty: 'easy',
-    question: '다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\n\n뜻: 한 번에 두 가지 이익을 얻음',
+    question: '다음 한자를 따라 쓰고, 옆 칸에 한글음을 쓰세요.\n\n뜻: 한 번에 두 가지 이익을 얻음',
     answer: '일석이조',
     hanjaTrace: '一石二鳥',
     explanation: '일석이조(一石二鳥): 돌 하나로 새 두 마리를 잡는다는 뜻. 한 가지 일로 두 가지 이득을 얻을 때 씁니다.',
@@ -168,7 +168,7 @@ const set2Slots: SetSlots = [
 const set3Slots: SetSlots = [
   q({
     type: 'hanja-writing', difficulty: 'medium',
-    question: '다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\n\n뜻: 자기가 한 일을 자기 스스로 칭찬함',
+    question: '다음 한자를 따라 쓰고, 옆 칸에 한글음을 쓰세요.\n\n뜻: 자기가 한 일을 자기 스스로 칭찬함',
     answer: '자화자찬',
     hanjaTrace: '自畫自讚',
     explanation: '자화자찬(自畫自讚): 자기가 그린 그림을 자기가 칭찬한다는 뜻. 자기 일을 스스로 자랑할 때 쓰는 말.',
@@ -244,7 +244,7 @@ const set3Slots: SetSlots = [
 const set4Slots: SetSlots = [
   q({
     type: 'hanja-writing', difficulty: 'hard',
-    question: '다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\n\n뜻: 큰 그릇은 늦게 만들어진다',
+    question: '다음 한자를 따라 쓰고, 옆 칸에 한글음을 쓰세요.\n\n뜻: 큰 그릇은 늦게 만들어진다',
     answer: '대기만성',
     hanjaTrace: '大器晩成',
     explanation: '대기만성(大器晩成): 큰 그릇은 늦게 완성된다는 뜻. 큰 인물은 시간이 오래 걸려 이루어진다는 비유.',
@@ -325,7 +325,7 @@ const set4Slots: SetSlots = [
 const set5Slots: SetSlots = [
   q({
     type: 'hanja-writing', difficulty: 'easy',
-    question: '다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\n\n뜻: 어릴 때부터 같이 놀던 친한 친구',
+    question: '다음 한자를 따라 쓰고, 옆 칸에 한글음을 쓰세요.\n\n뜻: 어릴 때부터 같이 놀던 친한 친구',
     answer: '죽마고우',
     hanjaTrace: '竹馬故友',
     explanation: '죽마고우(竹馬故友): 대나무로 만든 말을 타고 놀던 옛 친구. 어릴 적부터 함께 자란 친한 친구를 가리킵니다.',

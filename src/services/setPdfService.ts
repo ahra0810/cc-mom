@@ -107,7 +107,23 @@ function renderMetaBlock(meta: IdiomMeta, t: SetTemplate): string {
   </div>`;
 }
 
-/* ─── 슬롯 1: hanja-writing ─── */
+/* 질문 텍스트가 "주문장\n\n부속(뜻/대화/지문)" 형태이면 분리.
+ * 부속은 .q-context 박스로 분리 렌더해 큰 \n\n 빈 줄 여백 제거 + 시각 구분. */
+function splitQuestion(text: string): { main: string; context: string } {
+  if (!text) return { main: '', context: '' };
+  const idx = text.indexOf('\n\n');
+  if (idx === -1) return { main: text, context: '' };
+  return { main: text.slice(0, idx).trim(), context: text.slice(idx + 2).trim() };
+}
+
+function renderQuestionText(q: Question): string {
+  const { main, context } = splitQuestion(q.question);
+  let h = `<p class="q-text">${esc(main)}</p>`;
+  if (context) h += `<div class="q-context">${esc(context)}</div>`;
+  return h;
+}
+
+/* ─── 슬롯 1: hanja-writing — [한자 박스 | 한글음 칸] 2단 ─── */
 function renderSlot1(q: Question, idx: number, showAnswer: boolean): string {
   const hanja = q.hanjaTrace || '';
   const hanjaChars = [...hanja].slice(0, 4);
@@ -116,24 +132,25 @@ function renderSlot1(q: Question, idx: number, showAnswer: boolean): string {
   let h = `<div class="q slot-1">`;
   h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
   h += `<div class="q-body">`;
-  h += `<p class="q-text">${esc(q.question)}</p>`;
+  h += renderQuestionText(q);
 
-  /* 한자 따라쓰기 박스 4개 */
+  /* 좌: 한자 4박스 / 우: 한글음 답란 */
+  h += `<div class="slot1-grid">`;
   h += `<div class="hanja-tracing-row">`;
   for (const ch of hanjaChars) {
     h += `<div class="hanja-tracing-box">${esc(ch)}</div>`;
   }
   h += `</div>`;
 
-  /* 한글음 답란 */
   h += `<div class="answer-row">`;
-  h += `<span class="answer-label">한글음:</span>`;
+  h += `<span class="answer-label">한글음</span>`;
   if (showAnswer) {
     h += `<span class="answer-filled">${esc(q.answer || '')}</span>`;
   } else {
     h += `<span class="answer-line"></span>`;
   }
   h += `</div>`;
+  h += `</div>`; /* /slot1-grid */
 
   if (showAnswer && q.explanation) {
     h += `<div class="explain"><span class="explain-label">해설</span>${esc(q.explanation)}</div>`;
@@ -153,7 +170,7 @@ function renderMcSlot(q: Question, idx: number, showAnswer: boolean): string {
   let h = `<div class="q slot-mc">`;
   h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
   h += `<div class="q-body">`;
-  h += `<p class="q-text">${esc(q.question)}</p>`;
+  h += renderQuestionText(q);
 
   if (q.options && q.options.length > 0) {
     const labels = ['\u2460', '\u2461', '\u2462', '\u2463'];
@@ -181,7 +198,7 @@ function renderSlot8(q: Question, idx: number, showAnswer: boolean): string {
   let h = `<div class="q slot-last">`;
   h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
   h += `<div class="q-body">`;
-  h += `<p class="q-text">${esc(q.question)}</p>`;
+  h += renderQuestionText(q);
 
   if (showAnswer && q.answer) {
     h += `<div class="answer-box">예시 답안: ${esc(q.answer)}</div>`;
@@ -197,15 +214,25 @@ function renderSlot8(q: Question, idx: number, showAnswer: boolean): string {
   return h;
 }
 
-/* ─── 메인 HTML 생성 ─── */
-export function generateSetHTML(set: QuestionSet, templateId: string | undefined, showAnswer: boolean): string {
+/* ─── 메인 HTML 생성 ───
+ * forPrint=true 일 때만 "머리글/바닥글 끄기" 안내 배너 추가
+ * (iframe 미리보기에서는 false로 호출되어 안내 배너가 안 보임). */
+export function generateSetHTML(
+  set: QuestionSet,
+  templateId: string | undefined,
+  showAnswer: boolean,
+  forPrint = false,
+): string {
   const t = getSetTemplate(templateId);
   const baseFs = pickFontSize(set, t.baseFontSize);
   const meta = set.meta as IdiomMeta;
 
   const css = `
 ${FONT_IMPORTS}
-@page { size: A4 portrait; margin: 12mm 14mm; }
+/* 브라우저 인쇄 머리글/바닥글 영역 자체를 제거하기 위해 page margin = 0
+ * (이 영역에 표시되던 날짜·문서 제목·URL·페이지번호가 더 이상 들어갈 자리가 없어짐).
+ * 페이지 안전 여백(12mm × 14mm)은 .page 의 internal padding 으로 대체. */
+@page { size: A4 portrait; margin: 0; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
   font-family: ${t.fontStack};
@@ -215,7 +242,8 @@ html, body {
 }
 body { font-size: ${baseFs}pt; line-height: 1.6; }
 .page {
-  width: 182mm; height: 273mm;
+  width: 210mm; height: 297mm;
+  padding: 12mm 14mm;
   margin: 0 auto;
   display: flex; flex-direction: column;
   page-break-after: always;
@@ -298,10 +326,31 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .q { display: flex; gap: 3mm; page-break-inside: avoid; flex: 0 0 auto; }
 .q-num { flex-shrink: 0; width: 7mm; font-size: ${baseFs}pt; font-weight: 800; color: ${t.primaryColor}; padding-top: 0.5mm; }
 .q-body { flex: 1; min-width: 0; }
-.q-text { font-size: ${baseFs}pt; font-weight: 600; line-height: 1.5; margin-bottom: 1.5mm; white-space: pre-wrap; }
+.q-text { font-size: ${baseFs}pt; font-weight: 600; line-height: 1.5; margin-bottom: 1mm; white-space: pre-wrap; }
 
-/* ─── 1번: 한자 따라쓰기 ─── */
-.hanja-tracing-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: 3mm 0 6mm 0; max-width: 90mm; }
+/* 부속 컨텍스트 박스 — 뜻풀이·대화·지문 등을 옅은 회색 박스로 분리.
+ * "주문장\n\n부속" 패턴에서 부속이 여기로 빠져 큰 빈 줄 여백을 없앰. */
+.q-context {
+  background: ${t.textColor}0d;          /* 약 5% alpha */
+  border-left: 2px solid ${t.textColor}33;
+  border-radius: 2px;
+  padding: 1.5mm 3mm;
+  margin: 1mm 0 1.5mm 0;
+  font-size: ${baseFs - 0.5}pt;
+  color: ${t.textColor}cc;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* ─── 1번 본문: [한자 박스 | 한글음 답란] 2단 그리드 ─── */
+.slot1-grid {
+  display: grid;
+  grid-template-columns: 90mm 1fr;
+  gap: 6mm;
+  align-items: center;
+  margin: 2mm 0 1mm 0;
+}
+.hanja-tracing-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; max-width: 90mm; }
 .hanja-tracing-box {
   border: 1.5px solid ${t.textColor}66;
   aspect-ratio: 1;
@@ -310,11 +359,24 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.textColor}33;
   font-family: 'Noto Serif KR', serif;
 }
-/* 한글음 답란 — 한자 박스와 충분한 간격 + 줄도 더 두툼하게 */
-.answer-row { display: flex; align-items: baseline; gap: 2mm; margin-top: 6mm; padding-top: 2mm; font-size: ${baseFs - 0.5}pt; }
-.answer-label { font-weight: 700; color: ${t.primaryColor}; }
-.answer-line { display: inline-block; flex: 1; min-width: 60mm; border-bottom: 1.5px solid ${t.textColor}aa; height: 8mm; }
-.answer-filled { font-weight: 700; color: ${t.primaryColor}; border-bottom: 1.5px solid ${t.primaryColor}; padding-bottom: 1px; min-width: 30mm; display: inline-block; }
+/* 한글음 답란 — 1번 그리드 우측 칸. 라벨 위, 줄 아래로 세로 정렬 */
+.slot1-grid .answer-row {
+  display: flex; flex-direction: column; align-items: stretch;
+  gap: 1.5mm;
+  font-size: ${baseFs - 0.5}pt;
+}
+.slot1-grid .answer-label { font-weight: 700; color: ${t.primaryColor}; }
+.slot1-grid .answer-line {
+  display: block; width: 100%;
+  border-bottom: 1.5px solid ${t.textColor}aa;
+  height: 14mm; /* 한글 4자 손글씨 여유 */
+}
+.slot1-grid .answer-filled {
+  font-weight: 700; color: ${t.primaryColor};
+  border-bottom: 1.5px solid ${t.primaryColor};
+  padding-bottom: 1px; min-width: 30mm; display: inline-block;
+  font-size: ${baseFs + 1}pt;
+}
 
 /* ─── 2~7번: 객관식 — truncate 금지, 줄바꿈 허용, 길이에 따라 1/2단 ─── */
 .opts {
@@ -332,10 +394,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 .opts .correct { font-weight: 800; color: ${t.primaryColor}; }
 
-/* ─── 8번: 작성 영역 — 1.3cm 줄 간격, 정확히 2줄 ─── */
+/* ─── 8번: 작성 영역 — 1.3cm 줄 간격, 정확히 2줄 ───
+ * 첫 번째 줄 위에도 학생이 손글씨를 쓸 공간이 보장되도록
+ * margin-top을 충분히 확보 (질문 텍스트와의 시각적 간격 + 첫 줄 위 쓰기 공간) */
 .writing-lines {
   height: 26mm; /* 1.3cm × 2줄 */
-  margin: 2mm 0 0 0;
+  margin: 5mm 0 0 0; /* 질문 텍스트와의 분리 */
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
@@ -351,9 +415,27 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 /* ─── Explanation ─── */
 .explain { margin-top: 1.5mm; font-size: ${baseFs - 1.5}pt; color: ${t.textColor}cc; line-height: 1.5; padding: 1mm 2mm; background: ${t.bgAccent}; border-left: 2px solid ${t.accentColor}; }
 .explain-label { font-weight: 800; color: ${t.primaryColor}; margin-right: 2mm; }
+
+/* ─── 인쇄 시 숨김 안내 배너 ─── */
+.print-hint {
+  position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+  background: #1f2937; color: #fff;
+  padding: 10px 16px; border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px; line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  z-index: 9999; max-width: 520px;
+}
+.print-hint b { color: #fcd34d; }
+@media print { .print-hint { display: none !important; } }
 `;
 
-  let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${esc(set.title)}</title><style>${css}</style></head><body><div class="page">`;
+  /* title을 비워 브라우저 인쇄 머리글의 "문서 제목" 칸이 비도록 함 */
+  let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title> </title><style>${css}</style></head><body>`;
+  if (forPrint) {
+    html += `<div class="print-hint">💡 인쇄 시 페이지 상·하단에 날짜/URL이 함께 출력된다면, <b>인쇄 옵션 → "옵션" → "머리글 및 바닥글"</b>을 꺼 주세요.</div>`;
+  }
+  html += `<div class="page">`;
 
   /* 상단:
    *  - 시험지(showAnswer=false): 좌측 메타 카드 + 우측 이름 카드의 2단 행
@@ -388,12 +470,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 
 /* ─── PDF 출력 (인쇄 다이얼로그) ─── */
 export function exportSetToPDF(set: QuestionSet, templateId?: string): void {
-  const html = generateSetHTML(set, templateId, false);
+  const html = generateSetHTML(set, templateId, false, true);
   openPrintWindow(html);
 }
 
 export function exportSetAnswerKeyToPDF(set: QuestionSet, templateId?: string): void {
-  const html = generateSetHTML(set, templateId, true);
+  const html = generateSetHTML(set, templateId, true, true);
   openPrintWindow(html);
 }
 

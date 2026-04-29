@@ -98,11 +98,12 @@ export function syncSlot1FromMeta(slot1: Question, meta: SetMeta): Question {
     hanjaTrace: meta.hanja || undefined,
     /* answer는 한글음 (idiom). 이미 사용자가 채웠으면 덮어쓰지 않음 */
     answer: slot1.answer || meta.idiom || '',
-    /* question 자동 채움 — 사용자가 이미 작성했으면 유지 */
+    /* question 자동 채움 — 사용자가 이미 작성했으면 유지.
+     * 부속(뜻)은 \n\n 뒤에 둬서 PDF에서 옅은 회색 컨텍스트 박스로 분리됨. */
     question: slot1.question
       ? slot1.question
       : meta.meaning
-        ? `다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요.\n\n뜻: ${meta.meaning}`
+        ? `다음 한자를 따라 쓰고, 옆 칸에 한글음을 쓰세요.\n\n뜻: ${meta.meaning}`
         : '',
   };
 }
