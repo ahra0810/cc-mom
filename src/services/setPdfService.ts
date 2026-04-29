@@ -305,6 +305,38 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   /* page-break-after 제거 — 단일 페이지 시험지에서 빈 2페이지가 생기는 문제 방지 */
   overflow: hidden;
   background: white;
+  position: relative;
+}
+
+/* ─── 답안지 식별 시그널 (시험지와 한눈에 구분) ───
+ * 1) 상단에 빨강 그라디언트 스트립 + "정답 · 해설" 흰 글자
+ * 2) 답안 카드 / 해설 그리드 보더가 빨강으로 통일 (페이지 안에서 시각적 액자 형성)
+ * 3) 색상은 템플릿과 독립된 universal red — 어떤 템플릿이든 동일한 시그널
+ */
+.page.answer-mode::before {
+  content: '정답  ·  해설  ·  ANSWER KEY';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 7mm;
+  background: linear-gradient(90deg, #DC2626 0%, #991B1B 100%);
+  color: white;
+  font-size: ${baseFs - 1}pt;
+  font-weight: 900;
+  letter-spacing: 4mm;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  z-index: 1;
+}
+/* 우하단 작은 코너 라벨 — 페이지 양 끝 시각적 균형 */
+.page.answer-mode::after {
+  content: 'ANSWER KEY';
+  position: absolute;
+  bottom: 5mm; right: 14mm;
+  font-size: ${baseFs - 3}pt;
+  font-weight: 800;
+  color: #DC2626aa;
+  letter-spacing: 1.5mm;
+  z-index: 1;
 }
 
 /* ─── 상단 2단 레이아웃: [메타 카드 | 이름 카드] ─── */
@@ -338,25 +370,35 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   height: 11mm; /* 약 1.1cm 기록 공간 */
 }
 
-/* ─── Answer key card (우측, 답안지 전용) ─── */
+/* ─── Answer key card (우측, 답안지 전용) — 빨강 톤으로 시험지와 강하게 구분 ─── */
 .answer-key-card {
-  border: 1.5px solid ${t.primaryColor};
+  border: 2px solid #DC2626;
   border-radius: 4px;
-  background: ${t.bgAccent};
+  background: #FEF2F2;
   padding: 4mm 5mm;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   text-align: center;
   gap: 1mm;
+  position: relative;
+}
+.answer-key-card::before {
+  content: '✓';
+  position: absolute;
+  top: 1.5mm; left: 3mm;
+  font-size: ${baseFs + 4}pt;
+  font-weight: 900;
+  color: #DC2626;
+  line-height: 1;
 }
 .ak-label {
   font-size: ${baseFs + 1}pt;
-  font-weight: 800;
-  color: ${t.primaryColor};
+  font-weight: 900;
+  color: #B91C1C;
   letter-spacing: 4px;
 }
 .ak-meta {
   font-size: ${baseFs - 2}pt;
-  color: ${t.textColor}99;
+  color: #7F1D1D;
   font-weight: 600;
   letter-spacing: 0.3mm;
 }
@@ -601,22 +643,23 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .explain { margin-top: 1.5mm; font-size: ${baseFs - 1.5}pt; color: ${t.textColor}cc; line-height: 1.5; padding: 1mm 2mm; background: ${t.bgAccent}; border-left: 2px solid ${t.accentColor}; }
 .explain-label { font-weight: 800; color: ${t.primaryColor}; margin-right: 2mm; }
 
-/* ─── 답안지 하단 해설 그리드 — 표준 정답표 양식 (컴팩트) ─── */
+/* ─── 답안지 하단 해설 그리드 — 표준 정답표 양식 (컴팩트, 빨강 톤) ───
+ * 상단 스트립과 하단 그리드가 모두 빨강 → 시각적 액자 효과로 "정답지" 느낌 강화. */
 .answer-explanations {
   flex-shrink: 0;
   margin-top: 3mm;
   padding-top: 2mm;
-  border-top: 1.5px solid ${t.accentColor};
+  border-top: 1.5px solid #DC2626;
 }
 .ax-title {
   display: inline-block;
   font-size: ${baseFs - 1}pt;
-  font-weight: 800;
-  color: ${t.primaryColor};
-  letter-spacing: 1mm;
-  padding: 0.4mm 2.5mm;
+  font-weight: 900;
+  color: white;
+  letter-spacing: 2mm;
+  padding: 0.6mm 3mm;
   border-radius: 1mm;
-  background: ${t.bgAccent};
+  background: #DC2626;
   margin-bottom: 1.5mm;
 }
 .ax-grid {
@@ -635,13 +678,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   flex-shrink: 0;
   width: 4mm;
   font-weight: 800;
-  color: ${t.primaryColor};
+  color: #DC2626;
   font-size: ${baseFs - 2}pt;
 }
 .ax-body { flex: 1; min-width: 0; }
 .ax-answer {
   font-weight: 800;
-  color: ${t.primaryColor};
+  color: #B91C1C;
   margin-right: 0.8mm;
 }
 .ax-text { color: ${t.textColor}cc; }
