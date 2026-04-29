@@ -29,3 +29,6 @@ template-references-embedded.html
 
 # 교과서 자료 (저작권 보호 — 개인 학습용으로만 보관)
 textbooks/*.pdf
+
+# Claude Code internal state
+.claude/
