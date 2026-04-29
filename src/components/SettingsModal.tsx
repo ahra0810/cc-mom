@@ -319,10 +319,26 @@ export default function SettingsModal({ onClose }: Props) {
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Sparkles size={12} /> AI 프롬프트 가이드 (2종)
             </h3>
-            <p className="text-xs text-gray-500 leading-relaxed mb-3">
-              ChatGPT·Claude에 붙여넣어 사자성어 set JSON을 받으세요. 결과 JSON은 아래 "가져오기"에서 붙여넣으면 자동 검증·추가됩니다.<br />
-              두 프롬프트 모두 "정답 누설 방지" 규칙과 "그럴싸한 distractor" 가이드라인을 강제합니다.
-            </p>
+            <div className="text-xs text-gray-600 leading-relaxed mb-3 space-y-1.5">
+              <p>
+                아래 프롬프트를 복사해 <b className="text-gray-800">ChatGPT · Claude · Gemini</b> 어디든 붙여넣어 사자성어 set JSON을 받으세요. 세 모델 모두 동일한 JSON 형식으로 작동합니다.
+              </p>
+              <p className="text-gray-500">
+                결과 JSON은 아래 "JSON 가져오기"에 붙여넣으면 자동 검증·추가됩니다. 두 프롬프트 모두 "정답 누설 방지" 규칙과 "그럴싸한 distractor" 가이드라인을 강제합니다.
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] text-gray-400">권장 모델:</span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-[10px] text-emerald-700 font-semibold">
+                  ChatGPT (GPT-4o / o1)
+                </span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-50 border border-purple-200 text-[10px] text-purple-700 font-semibold">
+                  Claude (Sonnet / Opus)
+                </span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-[10px] text-blue-700 font-semibold">
+                  Gemini (1.5 Pro / 2.0)
+                </span>
+              </div>
+            </div>
 
             {/* 버전 A: 사용자가 사자성어 직접 지정 */}
             <div className="rounded border border-purple-200 bg-purple-50/40 p-3 mb-3">
