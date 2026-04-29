@@ -185,9 +185,7 @@ function renderSlot1(q: Question, idx: number, showAnswer: boolean): string {
   h += `</div>`;
   h += `</div>`; /* /slot1-grid */
 
-  if (showAnswer && q.explanation) {
-    h += `<div class="explain"><span class="explain-label">해설</span>${esc(q.explanation)}</div>`;
-  }
+  /* 인라인 해설은 답안지에서 제거 — 페이지 하단의 컴팩트 해설 그리드로 통합. */
 
   h += `</div></div>`;
   return h;
@@ -218,9 +216,7 @@ function renderMcSlot(q: Question, idx: number, showAnswer: boolean): string {
     h += `</div>`;
   }
 
-  if (showAnswer && q.explanation) {
-    h += `<div class="explain"><span class="explain-label">해설</span>${esc(q.explanation)}</div>`;
-  }
+  /* 인라인 해설은 답안지에서 제거 — 페이지 하단의 컴팩트 해설 그리드로 통합. */
 
   h += `</div></div>`;
   return h;
@@ -239,12 +235,37 @@ function renderSlot8(q: Question, idx: number, showAnswer: boolean): string {
     h += `<div class="writing-lines"></div>`;
   }
 
-  if (showAnswer && q.explanation) {
-    h += `<div class="explain"><span class="explain-label">해설</span>${esc(q.explanation)}</div>`;
-  }
+  /* 인라인 해설은 답안지에서 제거 — 페이지 하단의 컴팩트 해설 그리드로 통합. */
 
   h += `</div></div>`;
   return h;
+}
+
+/* ─── 답안지 하단 해설 그리드 — 시험지 정답 매칭용 컴팩트 양식 ─── */
+function renderAnswerExplanations(set: QuestionSet): string {
+  const items: string[] = [];
+  set.slots.forEach((q, idx) => {
+    if (!q.explanation) return;
+    /* 객관식이면 정답 보기 번호 함께 표시 (① ~ ④) */
+    let answerMark = '';
+    if (q.type === 'multiple-choice' && q.options) {
+      const ai = q.options.indexOf(q.answer);
+      if (ai >= 0) answerMark = ['\u2460', '\u2461', '\u2462', '\u2463'][ai] + ' ';
+    }
+    items.push(
+      `<div class="ax-item">
+        <span class="ax-num">${idx + 1}</span>
+        <span class="ax-body">
+          ${answerMark ? `<span class="ax-answer">${answerMark}</span>` : ''}<span class="ax-text">${esc(q.explanation)}</span>
+        </span>
+      </div>`
+    );
+  });
+  if (items.length === 0) return '';
+  return `<div class="answer-explanations">
+    <div class="ax-title">해설</div>
+    <div class="ax-grid">${items.join('')}</div>
+  </div>`;
 }
 
 /* ─── 메인 HTML 생성 ───
@@ -447,6 +468,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   justify-content: space-between;
   gap: 2mm; /* 최소 간격 보장 (overflow 방지) */
 }
+/* 답안지 모드: 슬롯은 자연 크기로 컴팩트하게 위에 쌓고, 해설 그리드가 아래에 자리. */
+.page.answer-mode .set {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  gap: 2.5mm;
+}
+.page.answer-mode .qb-frame { flex: 0 0 auto; }
 .q { display: flex; gap: 3mm; page-break-inside: avoid; flex: 0 0 auto; }
 .q-num { flex-shrink: 0; width: 7mm; font-size: ${baseFs}pt; font-weight: 800; color: ${t.primaryColor}; padding-top: 0.5mm; }
 .q-body { flex: 1; min-width: 0; }
@@ -536,9 +564,54 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 .answer-box { display: inline-block; font-size: ${baseFs - 1}pt; font-weight: 700; color: ${t.primaryColor}; border-bottom: 1.5px solid ${t.primaryColor}; padding-bottom: 1px; }
 
-/* ─── Explanation ─── */
+/* ─── Explanation (legacy, 더 이상 인라인 렌더하지 않음) ─── */
 .explain { margin-top: 1.5mm; font-size: ${baseFs - 1.5}pt; color: ${t.textColor}cc; line-height: 1.5; padding: 1mm 2mm; background: ${t.bgAccent}; border-left: 2px solid ${t.accentColor}; }
 .explain-label { font-weight: 800; color: ${t.primaryColor}; margin-right: 2mm; }
+
+/* ─── 답안지 하단 해설 그리드 — 표준 정답표 양식 ─── */
+.answer-explanations {
+  flex-shrink: 0;
+  margin-top: 4mm;
+  padding-top: 3mm;
+  border-top: 1.5px solid ${t.accentColor};
+}
+.ax-title {
+  display: inline-block;
+  font-size: ${baseFs - 1}pt;
+  font-weight: 800;
+  color: ${t.primaryColor};
+  letter-spacing: 1mm;
+  padding: 0.5mm 3mm;
+  border-radius: 1mm;
+  background: ${t.bgAccent};
+  margin-bottom: 2mm;
+}
+.ax-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5mm 6mm;
+}
+.ax-item {
+  display: flex; align-items: baseline; gap: 2mm;
+  font-size: ${baseFs - 2}pt;
+  line-height: 1.4;
+  color: ${t.textColor}d0;
+  break-inside: avoid;
+}
+.ax-num {
+  flex-shrink: 0;
+  width: 4mm;
+  font-weight: 800;
+  color: ${t.primaryColor};
+  font-size: ${baseFs - 1.5}pt;
+}
+.ax-body { flex: 1; min-width: 0; }
+.ax-answer {
+  font-weight: 800;
+  color: ${t.primaryColor};
+  margin-right: 0.8mm;
+}
+.ax-text { color: ${t.textColor}cc; }
 
 /* ─── 인쇄 시 숨김 안내 배너 ─── */
 .print-hint {
@@ -559,7 +632,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   if (forPrint) {
     html += `<div class="print-hint">💡 인쇄 시 페이지 상·하단에 날짜/URL이 함께 출력된다면, <b>인쇄 옵션 → "옵션" → "머리글 및 바닥글"</b>을 꺼 주세요.</div>`;
   }
-  html += `<div class="page">`;
+  html += `<div class="page${showAnswer ? ' answer-mode' : ''}">`;
 
   /* 상단:
    *  - 시험지(showAnswer=false): 좌측 메타 카드 + 우측 이름 카드의 2단 행
@@ -595,6 +668,11 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   html += `</div>`;
   if (isQuizBanner) {
     html += `</div>`;
+  }
+
+  /* 답안지 — 페이지 하단의 컴팩트 해설 그리드 (시험지엔 안 들어감) */
+  if (showAnswer) {
+    html += renderAnswerExplanations(set);
   }
 
   html += `</div></body></html>`;
