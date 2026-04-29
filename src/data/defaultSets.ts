@@ -208,15 +208,10 @@ const set3Slots: SetSlots = [
   }),
   q({
     type: 'multiple-choice', difficulty: 'medium',
-    question: '"자화자찬"의 한자 풀이로 알맞은 것은?',
-    options: [
-      '스스로(自)·그림(畫)·스스로(自)·칭찬(讚)',
-      '아들(子)·화목(和)·아들(子)·밥(餐)',
-      '스스로(自)·불(火)·스스로(自)·참여(參)',
-      '자주(紫)·벼(禾)·이(茲)·칭찬(讚)',
-    ],
-    answer: '스스로(自)·그림(畫)·스스로(自)·칭찬(讚)',
-    explanation: '"스스로 자기 그림을 칭찬한다"는 풀이가 자화자찬의 본뜻입니다.',
+    question: '다음 중 "자화자찬"의 한자 표기로 올바른 것은?',
+    options: ['自畫自讚', '子和子餐', '自火自參', '紫禾茲讚'],
+    answer: '自畫自讚',
+    explanation: '自(스스로 자) · 畫(그림 화) · 自(스스로 자) · 讚(기릴 찬)이 바른 표기입니다.',
   }),
   q({
     type: 'multiple-choice', difficulty: 'medium',
@@ -289,15 +284,10 @@ const set4Slots: SetSlots = [
   }),
   q({
     type: 'multiple-choice', difficulty: 'hard',
-    question: '"대기만성"의 한자 풀이로 알맞은 것은?',
-    options: [
-      '크다(大)·그릇(器)·늦다(晩)·이루다(成)',
-      '대신(代)·기운(氣)·만(萬)·별(星)',
-      '상대(對)·부치다(寄)·가득(滿)·정성(誠)',
-      '크다(大)·기운(氣)·만(萬)·성(城)',
-    ],
-    answer: '크다(大)·그릇(器)·늦다(晩)·이루다(成)',
-    explanation: '"큰 그릇은 늦게 완성된다"는 뜻을 한자로 풀어냅니다.',
+    question: '다음 중 "대기만성"의 한자 표기로 올바른 것은?',
+    options: ['大器晩成', '代氣萬星', '對寄滿誠', '大氣萬城'],
+    answer: '大器晩成',
+    explanation: '大(클 대) · 器(그릇 기) · 晩(늦을 만) · 成(이룰 성)이 바른 표기입니다.',
   }),
   q({
     type: 'multiple-choice', difficulty: 'hard',
@@ -340,9 +330,9 @@ const set5Slots: SetSlots = [
   q({
     type: 'multiple-choice', difficulty: 'easy',
     question: '"죽마고우"에서 "죽마(竹馬)"가 뜻하는 것은?',
-    options: ['대나무 말 (어릴 적 장난감)', '진짜 말', '대나무 숲', '말 그림'],
-    answer: '대나무 말 (어릴 적 장난감)',
-    explanation: '어린 아이들이 대나무 막대를 말처럼 타고 놀던 모습에서 유래했습니다.',
+    options: ['대나무로 만든 말', '진짜 살아 있는 말', '대나무가 자라는 숲', '말을 그린 그림'],
+    answer: '대나무로 만든 말',
+    explanation: '어린 아이들이 대나무 막대를 말처럼 타고 놀던 데서 유래한 표현입니다.',
   }),
   q({
     type: 'multiple-choice', difficulty: 'easy',
