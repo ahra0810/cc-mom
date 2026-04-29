@@ -309,25 +309,11 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 
 /* ─── 답안지 식별 시그널 (시험지와 한눈에 구분) ───
- * 1) 상단에 빨강 그라디언트 스트립 + "정답 · 해설" 흰 글자
- * 2) 답안 카드 / 해설 그리드 보더가 빨강으로 통일 (페이지 안에서 시각적 액자 형성)
- * 3) 색상은 템플릿과 독립된 universal red — 어떤 템플릿이든 동일한 시그널
+ * 1) 답안 카드(우상단)가 빨강 톤
+ * 2) 하단 해설 그리드 보더·라벨이 빨강
+ * 3) 우하단 작은 "ANSWER KEY" 코너 워터마크
+ * 색상은 템플릿과 독립된 universal red — 어떤 템플릿이든 동일한 시그널
  */
-.page.answer-mode::before {
-  content: '정답  ·  해설  ·  ANSWER KEY';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 7mm;
-  background: linear-gradient(90deg, #DC2626 0%, #991B1B 100%);
-  color: white;
-  font-size: ${baseFs - 1}pt;
-  font-weight: 900;
-  letter-spacing: 4mm;
-  display: flex; align-items: center; justify-content: center;
-  -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  z-index: 1;
-}
-/* 우하단 작은 코너 라벨 — 페이지 양 끝 시각적 균형 */
 .page.answer-mode::after {
   content: 'ANSWER KEY';
   position: absolute;
