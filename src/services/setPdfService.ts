@@ -241,29 +241,38 @@ function renderSlot8(q: Question, idx: number, showAnswer: boolean): string {
   return h;
 }
 
-/* ─── 답안지 하단 해설 그리드 — 시험지 정답 매칭용 컴팩트 양식 ─── */
+/* ─── 답안지 하단 정답 그리드 — 시험지 정답 매칭용 컴팩트 양식 ───
+ * 슬롯 유형별 표시:
+ *   - hanja-writing: 한글음만 (예: "동문서답")
+ *   - multiple-choice: 정답 마커 + 보기 텍스트 (예: "① 묻는 말에 엉뚱하게 답함")
+ *   - sentence-making: "예) <모범답안>" 또는 답변이 없으면 생략
+ * 해설(explanation) 필드는 표시하지 않음 — 1번처럼 정답을 그대로 풀어 쓰는 경우가 많아
+ * 시각적 노이즈만 키움. 필요한 경우 사용자가 직접 해설 표시 토글을 추가하면 됨. */
 function renderAnswerExplanations(set: QuestionSet): string {
   const items: string[] = [];
   set.slots.forEach((q, idx) => {
-    if (!q.explanation) return;
-    /* 객관식이면 정답 보기 번호 함께 표시 (① ~ ④) */
-    let answerMark = '';
-    if (q.type === 'multiple-choice' && q.options) {
+    let display = '';
+    if (q.type === 'hanja-writing') {
+      if (q.answer) display = q.answer;
+    } else if (q.type === 'multiple-choice' && q.options) {
       const ai = q.options.indexOf(q.answer);
-      if (ai >= 0) answerMark = ['\u2460', '\u2461', '\u2462', '\u2463'][ai] + ' ';
+      const marker = ai >= 0 ? ['\u2460', '\u2461', '\u2462', '\u2463'][ai] + ' ' : '';
+      display = `${marker}${q.answer}`;
+    } else if (q.type === 'sentence-making') {
+      if (q.answer) display = `예) ${q.answer}`;
     }
+    if (!display) return;
+
     items.push(
       `<div class="ax-item">
         <span class="ax-num">${idx + 1}</span>
-        <span class="ax-body">
-          ${answerMark ? `<span class="ax-answer">${answerMark}</span>` : ''}<span class="ax-text">${esc(q.explanation)}</span>
-        </span>
+        <span class="ax-text">${esc(display)}</span>
       </div>`
     );
   });
   if (items.length === 0) return '';
   return `<div class="answer-explanations">
-    <div class="ax-title">해설</div>
+    <div class="ax-title">정답</div>
     <div class="ax-grid">${items.join('')}</div>
   </div>`;
 }
@@ -310,20 +319,9 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 
 /* ─── 답안지 식별 시그널 (시험지와 한눈에 구분) ───
  * 1) 답안 카드(우상단)가 빨강 톤
- * 2) 하단 해설 그리드 보더·라벨이 빨강
- * 3) 우하단 작은 "ANSWER KEY" 코너 워터마크
+ * 2) 하단 정답 그리드 보더·라벨이 빨강
  * 색상은 템플릿과 독립된 universal red — 어떤 템플릿이든 동일한 시그널
  */
-.page.answer-mode::after {
-  content: 'ANSWER KEY';
-  position: absolute;
-  bottom: 5mm; right: 14mm;
-  font-size: ${baseFs - 3}pt;
-  font-weight: 800;
-  color: #DC2626aa;
-  letter-spacing: 1.5mm;
-  z-index: 1;
-}
 
 /* ─── 상단 2단 레이아웃: [메타 카드 | 이름 카드] ─── */
 .top-row {
@@ -651,13 +649,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .ax-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1mm 5mm;
+  gap: 1.2mm 6mm;
 }
 .ax-item {
-  display: flex; align-items: baseline; gap: 1.5mm;
-  font-size: ${baseFs - 2.5}pt;
-  line-height: 1.35;
-  color: ${t.textColor}d0;
+  display: flex; align-items: baseline; gap: 2mm;
+  font-size: ${baseFs - 1.5}pt;
+  line-height: 1.4;
+  color: ${t.textColor};
   break-inside: avoid;
 }
 .ax-num {
@@ -665,15 +663,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   width: 4mm;
   font-weight: 800;
   color: #DC2626;
-  font-size: ${baseFs - 2}pt;
+  font-size: ${baseFs - 1}pt;
 }
-.ax-body { flex: 1; min-width: 0; }
-.ax-answer {
-  font-weight: 800;
-  color: #B91C1C;
-  margin-right: 0.8mm;
+.ax-text {
+  flex: 1; min-width: 0;
+  font-weight: 600;
+  color: ${t.textColor};
 }
-.ax-text { color: ${t.textColor}cc; }
 
 /* ─── 인쇄 시 숨김 안내 배너 ─── */
 .print-hint {
