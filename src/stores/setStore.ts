@@ -357,7 +357,10 @@ export const useSetStore = create<SetStore>()(
         selectedSetId: state.selectedSetId,
         selectedTemplateId: state.selectedTemplateId,
       }),
-      /* 첫 부팅 / 빈 상태 / 슬롯 수 불일치 → 시드 자동 주입 */
+      /* 첫 부팅 / 빈 상태 / 슬롯 수 불일치 → 시드 자동 주입.
+       * 추가: 시드 set(id가 'seed-set-'로 시작)은 항상 DEFAULT_SETS의 최신 버전으로 교체.
+       *      → 코드에서 시드 문항을 수정해도 기존 사용자가 자동으로 새 버전을 받음.
+       *      사용자가 만든 set(id 다름)은 그대로 유지. */
       merge: (persisted: unknown, current) => {
         const p = persisted as {
           sets?: QuestionSet[];
@@ -365,15 +368,37 @@ export const useSetStore = create<SetStore>()(
           selectedTemplateId?: string | null;
         } | undefined;
         const persistedSets = Array.isArray(p?.sets) ? p!.sets! : [];
-        /* 모든 set이 SLOT_COUNT 슬롯이어야 유효. 하나라도 다르면 폐기 */
+
+        /* 슬롯 수 검사 — 8슬롯 구조가 아니면 전부 시드로 리셋 */
         const allValid =
           persistedSets.length > 0 &&
           persistedSets.every((s) => Array.isArray(s.slots) && s.slots.length === SLOT_COUNT);
-        const sets = allValid ? persistedSets : DEFAULT_SETS;
+
+        if (!allValid) {
+          return {
+            ...current,
+            sets: DEFAULT_SETS,
+            selectedSetId: null,
+            selectedTemplateId: p?.selectedTemplateId ?? null,
+          };
+        }
+
+        /* 시드 set은 최신 DEFAULT_SETS 버전으로 자동 갱신, 사용자 set은 보존 */
+        const seedById = new Map(DEFAULT_SETS.map((s) => [s.id, s]));
+        const persistedIds = new Set(persistedSets.map((s) => s.id));
+
+        /* 1단계: 기존 순서대로 순회 — 시드면 최신 버전으로 교체, 사용자 set은 그대로 */
+        const sets: QuestionSet[] = persistedSets.map((s) => seedById.get(s.id) ?? s);
+
+        /* 2단계: persisted에 없는 새 시드(향후 DEFAULT_SETS에 추가될 수 있음)는 뒤에 추가 */
+        for (const seed of DEFAULT_SETS) {
+          if (!persistedIds.has(seed.id)) sets.push(seed);
+        }
+
         return {
           ...current,
           sets,
-          selectedSetId: allValid ? (p?.selectedSetId ?? null) : null,
+          selectedSetId: p?.selectedSetId ?? null,
           selectedTemplateId: p?.selectedTemplateId ?? null,
         };
       },
