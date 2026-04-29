@@ -38,12 +38,15 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
   const selectedSetId = useSetStore((s) => s.selectedSetId);
   const sets = useSetStore((s) => s.sets);
   const updateSet = useSetStore((s) => s.updateSet);
+  const selectedTemplateId = useSetStore((s) => s.selectedTemplateId);
+  const setSelectedTemplateId = useSetStore((s) => s.setSelectedTemplateId);
   const selectedSet = sets.find((s) => s.id === selectedSetId);
 
   const { toast } = useToast();
 
-  /* 템플릿 선택 — 로컬 상태 (영속화 X) */
-  const [templateId, setTemplateId] = useState<string>(SET_TEMPLATES[0].id);
+  /* 현재 적용된 템플릿 id — store가 null이면 첫 번째(idiom-classic) 기본값 */
+  const templateId = selectedTemplateId ?? SET_TEMPLATES[0].id;
+  const setTemplateId = (id: string) => setSelectedTemplateId(id);
 
   /* 빠른 편집 로컬 상태 — selectedSet 변경 시 동기화 */
   const [quickTitle, setQuickTitle] = useState('');

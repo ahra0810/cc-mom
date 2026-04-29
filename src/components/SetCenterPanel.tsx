@@ -30,6 +30,7 @@ const ZOOM_STEP = 0.05;
 export default function SetCenterPanel({ onCreateNew, onEditSet }: Props) {
   const selectedSetId = useSetStore((s) => s.selectedSetId);
   const sets = useSetStore((s) => s.sets);
+  const selectedTemplateId = useSetStore((s) => s.selectedTemplateId);
   const selectedSet = sets.find((s) => s.id === selectedSetId);
 
   const [showAnswer, setShowAnswer] = useState(false);
@@ -44,8 +45,8 @@ export default function SetCenterPanel({ onCreateNew, onEditSet }: Props) {
 
   const html = useMemo(() => {
     if (!selectedSet) return '';
-    return generateSetHTML(selectedSet, undefined, showAnswer);
-  }, [selectedSet, showAnswer]);
+    return generateSetHTML(selectedSet, selectedTemplateId ?? undefined, showAnswer);
+  }, [selectedSet, selectedTemplateId, showAnswer]);
 
   /* iframe 내용 갱신 */
   useEffect(() => {

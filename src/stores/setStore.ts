@@ -46,6 +46,8 @@ interface SetStore {
   /* 영속 상태 */
   sets: QuestionSet[];
   selectedSetId: string | null;
+  /** 가운데 미리보기 + PDF 출력에 공유되는 템플릿 id. null이면 기본 템플릿. */
+  selectedTemplateId: string | null;
 
   /* 휘발성 상태 */
   editingSetDraft: QuestionSet | null;
@@ -69,6 +71,8 @@ interface SetStore {
 
   /* Selection (출력 대상) */
   selectSet: (id: string | null) => void;
+  /* Template — 미리보기·PDF 출력 양쪽에 적용 */
+  setSelectedTemplateId: (id: string | null) => void;
 
   /* Filter */
   setFilters: (f: Partial<SetFilters>) => void;
@@ -107,6 +111,7 @@ export const useSetStore = create<SetStore>()(
     (set, get) => ({
       sets: [],
       selectedSetId: null,
+      selectedTemplateId: null,
       editingSetDraft: null,
       filters: { domain: null, difficulty: null, search: '' },
 
@@ -235,6 +240,7 @@ export const useSetStore = create<SetStore>()(
 
       /* Selection */
       selectSet: (id) => set({ selectedSetId: id }),
+      setSelectedTemplateId: (id) => set({ selectedTemplateId: id }),
 
       /* Filter */
       setFilters: (f) =>
@@ -349,10 +355,15 @@ export const useSetStore = create<SetStore>()(
       partialize: (state) => ({
         sets: state.sets,
         selectedSetId: state.selectedSetId,
+        selectedTemplateId: state.selectedTemplateId,
       }),
       /* 첫 부팅 / 빈 상태 / 슬롯 수 불일치 → 시드 자동 주입 */
       merge: (persisted: unknown, current) => {
-        const p = persisted as { sets?: QuestionSet[]; selectedSetId?: string | null } | undefined;
+        const p = persisted as {
+          sets?: QuestionSet[];
+          selectedSetId?: string | null;
+          selectedTemplateId?: string | null;
+        } | undefined;
         const persistedSets = Array.isArray(p?.sets) ? p!.sets! : [];
         /* 모든 set이 SLOT_COUNT 슬롯이어야 유효. 하나라도 다르면 폐기 */
         const allValid =
@@ -363,6 +374,7 @@ export const useSetStore = create<SetStore>()(
           ...current,
           sets,
           selectedSetId: allValid ? (p?.selectedSetId ?? null) : null,
+          selectedTemplateId: p?.selectedTemplateId ?? null,
         };
       },
     }
