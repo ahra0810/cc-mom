@@ -40,31 +40,47 @@ function pickFontSize(set: QuestionSet, base: number): number {
   let maxOptionLen = 0;
   let oneColMcCount = 0;
   let wrappedOptionCount = 0;
+  let contextChars = 0;     /* \n\n 뒤 부속(뜻·대화·지문) — q-context 박스로 별도 렌더 */
+  let contextSlotCount = 0; /* 부속 박스가 있는 슬롯 수 */
+
   for (const q of set.slots) {
-    totalChars += (q.question || '').length;
+    const qText = q.question || '';
+    const idxNN = qText.indexOf('\n\n');
+    if (idxNN !== -1) {
+      totalChars += idxNN;
+      const ctx = qText.slice(idxNN + 2);
+      contextChars += ctx.length;
+      contextSlotCount++;
+    } else {
+      totalChars += qText.length;
+    }
     totalChars += (q.options || []).join('').length;
     totalChars += (q.answer || '').length;
     if (q.type === 'multiple-choice' && q.options) {
       const localMax = Math.max(0, ...q.options.map((o) => o.length));
       if (localMax > maxOptionLen) maxOptionLen = localMax;
       if (localMax >= 18) oneColMcCount++;
-      /* 1단에서도 줄바꿈할 만한 길이(약 35자+)는 추가 비용 */
       for (const o of q.options) if (o.length >= 35) wrappedOptionCount++;
     }
   }
+
   let fs = base;
-  if (totalChars >= 1300) fs -= 1.5;
-  else if (totalChars >= 950) fs -= 1.0;
-  else if (totalChars >= 700) fs -= 0.5;
+  /* 본문 글자수 기반 — q-context 글자도 합산 (회색 박스도 세로 공간 차지) */
+  const allChars = totalChars + contextChars;
+  if (allChars >= 1300) fs -= 1.5;
+  else if (allChars >= 950) fs -= 1.0;
+  else if (allChars >= 700) fs -= 0.5;
 
   /* 1단으로 펼치는 객관식이 많을수록 세로 공간 압박 → 추가 축소 */
   if (oneColMcCount >= 4) fs -= 1.0;
   else if (oneColMcCount >= 2) fs -= 0.5;
 
-  /* 줄바꿈할 만큼 긴 옵션이 여럿 있으면 한 단계 더 */
+  /* 줄바꿈할 만큼 긴 옵션이 여럿 */
   if (wrappedOptionCount >= 3) fs -= 0.5;
 
-  /* 안전 하한 */
+  /* q-context 박스가 여러 개거나 본문이 긴 경우 추가 축소 */
+  if (contextSlotCount >= 2 || contextChars >= 60) fs -= 0.5;
+
   return Math.max(fs, 9);
 }
 
@@ -231,10 +247,12 @@ export function generateSetHTML(
 ${FONT_IMPORTS}
 /* 브라우저 인쇄 머리글/바닥글 영역 자체를 제거하기 위해 page margin = 0
  * (이 영역에 표시되던 날짜·문서 제목·URL·페이지번호가 더 이상 들어갈 자리가 없어짐).
- * 페이지 안전 여백(12mm × 14mm)은 .page 의 internal padding 으로 대체. */
+ * 페이지 안전 여백은 .page 의 internal padding 으로 대체.
+ * 모든 변(상·하·좌·우)에 14mm 동일 padding 을 적용해 위아래 여백이 시각적으로 같게 보이도록 함. */
 @page { size: A4 portrait; margin: 0; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
+  margin: 0; padding: 0;
   font-family: ${t.fontStack};
   color: ${t.textColor};
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
@@ -243,10 +261,10 @@ html, body {
 body { font-size: ${baseFs}pt; line-height: 1.6; }
 .page {
   width: 210mm; height: 297mm;
-  padding: 12mm 14mm;
+  padding: 14mm; /* 상·하·좌·우 동일 — 위아래 여백 대칭 */
   margin: 0 auto;
   display: flex; flex-direction: column;
-  page-break-after: always;
+  /* page-break-after 제거 — 단일 페이지 시험지에서 빈 2페이지가 생기는 문제 방지 */
   overflow: hidden;
   background: white;
 }
@@ -345,10 +363,10 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 /* ─── 1번 본문: [한자 박스 | 한글음 답란] 2단 그리드 ─── */
 .slot1-grid {
   display: grid;
-  grid-template-columns: 90mm 1fr;
-  gap: 6mm;
+  grid-template-columns: 88mm 1fr;
+  gap: 5mm;
   align-items: center;
-  margin: 2mm 0 1mm 0;
+  margin: 1.5mm 0 0 0;
 }
 .hanja-tracing-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; max-width: 90mm; }
 .hanja-tracing-box {
@@ -399,7 +417,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
  * margin-top을 충분히 확보 (질문 텍스트와의 시각적 간격 + 첫 줄 위 쓰기 공간) */
 .writing-lines {
   height: 26mm; /* 1.3cm × 2줄 */
-  margin: 5mm 0 0 0; /* 질문 텍스트와의 분리 */
+  margin: 3.5mm 0 0 0; /* 질문 텍스트와의 분리 */
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
