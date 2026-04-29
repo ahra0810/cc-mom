@@ -115,13 +115,13 @@ function renderMetaBlock(meta: IdiomMeta, t: SetTemplate): string {
   }
 
   if (t.metaStyle === 'quiz-banner') {
-    /* 퀴즈 배너 — 민트 리본 + 큰 한글 + 4 한자 박스 (학생이 따라 쓰는 활동) */
+    /* 퀴즈 배너 — 민트 리본 + [큰 한글 | 한자] + 뜻풀이.
+     * 한자 따라쓰기는 1번 슬롯에 이미 있으므로 메타에는 참고용으로 한 줄만. */
     return `<div class="meta-block meta-quiz-banner">
       <div class="qb-ribbon">퀴즈로 배워나가는 사자성어</div>
-      <div class="qb-title">${esc(meta.idiom)}</div>
-      <div class="qb-subtitle">네모 칸에 한자를 적어 보세요</div>
-      <div class="qb-hanja-row">
-        ${hanjaChars.map((c) => `<div class="qb-hanja-cell">${esc(c)}</div>`).join('')}
+      <div class="qb-title-row">
+        <span class="qb-title">${esc(meta.idiom)}</span>
+        <span class="qb-title-hanja">${esc(meta.hanja)}</span>
       </div>
       <div class="qb-meaning-row">
         <span class="qb-meaning-label">뜻풀이</span>
@@ -350,12 +350,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .meta-big-friendly .meta-idiom { font-size: ${baseFs + 2}pt; }
 .meta-big-friendly .meta-meaning { font-size: ${baseFs}pt; }
 
-/* ─── Meta: quiz-banner — 민트 리본 + 큰 한글 + 4 한자 박스 + 뜻풀이 ─── */
+/* ─── Meta: quiz-banner — 민트 리본 + [한글 + 한자] + 뜻풀이 (컴팩트) ─── */
 .meta-quiz-banner {
   background: white;
   border: none;
   border-radius: 0;
-  padding: 1mm 2mm 2mm 2mm;
+  padding: 1mm 2mm;
   margin-bottom: 0;
   text-align: center;
 }
@@ -366,44 +366,32 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   font-weight: 800;
   font-size: ${baseFs - 1}pt;
   letter-spacing: 1mm;
-  padding: 1.2mm 6mm;
+  padding: 1mm 5mm;
   border-radius: 1.5mm;
   margin-bottom: 1.5mm;
 }
+.qb-title-row {
+  display: flex; align-items: baseline; justify-content: center; gap: 4mm;
+  margin: 0.5mm 0 2mm 0;
+  line-height: 1;
+}
 .qb-title {
-  font-size: ${baseFs + 14}pt;
+  font-size: ${baseFs + 13}pt;
   font-weight: 900;
   color: ${t.textColor};
-  letter-spacing: 2mm;
-  line-height: 1;
-  margin: 0.5mm 0;
+  letter-spacing: 1.5mm;
 }
-.qb-subtitle {
-  font-size: ${baseFs - 2}pt;
-  color: ${t.textColor}99;
-  margin: 1mm 0 1.5mm 0;
-}
-.qb-hanja-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2.5mm;
-  max-width: 70mm;
-  margin: 0 auto;
-}
-.qb-hanja-cell {
-  border: 1.5px solid ${t.textColor};
-  border-radius: 1mm;
-  aspect-ratio: 1;
-  display: flex; align-items: center; justify-content: center;
+.qb-title-hanja {
   font-family: 'Noto Serif KR', serif;
-  font-size: ${baseFs + 6}pt;
-  color: ${t.textColor}26;  /* 옅게 — 학생이 따라 적도록 */
-  font-weight: 600;
-  background: white;
+  font-size: ${baseFs + 4}pt;
+  font-weight: 700;
+  color: ${t.primaryColor};
+  letter-spacing: 1mm;
+  border-left: 2px solid ${t.accentColor};
+  padding-left: 3mm;
 }
 .qb-meaning-row {
-  margin-top: 2.5mm;
-  padding: 1.5mm 3mm;
+  padding: 1.2mm 3mm;
   background: #FEF3C7;       /* 노란 하이라이트 */
   border-radius: 1mm;
   font-size: ${baseFs - 0.5}pt;
