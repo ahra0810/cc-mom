@@ -23,7 +23,7 @@ export interface SetTemplate {
   baseFontSize: number;
 
   /* 메타 박스 스타일 */
-  metaStyle: 'classic' | 'hanja-emphasis' | 'big-friendly';
+  metaStyle: 'classic' | 'hanja-emphasis' | 'big-friendly' | 'quiz-banner';
 
   /* 미리보기 카드 색상 스와치 */
   swatch: string[];
@@ -68,6 +68,19 @@ export const SET_TEMPLATES: SetTemplate[] = [
     baseFontSize: 12,
     metaStyle: 'big-friendly',
     swatch: ['#EA580C', '#FDBA74', '#FFF7ED'],
+  },
+  {
+    id: 'idiom-quiz-banner',
+    name: '퀴즈 배너',
+    description: '민트 리본 + 큰 한글 제목 + 한자 4박스 활동지 — "퀴즈로 배워나가는 사자성어" 스타일',
+    primaryColor: '#0F766E',  /* 민트 다크 */
+    accentColor: '#5EEAD4',   /* 민트 라이트 */
+    bgAccent: '#F0FDFA',      /* 민트 매우 옅음 */
+    textColor: '#1F2937',
+    fontStack: "'NanumSquareNeo','Pretendard','Noto Sans KR',sans-serif",
+    baseFontSize: 11,
+    metaStyle: 'quiz-banner',
+    swatch: ['#5EEAD4', '#FB923C', '#FCD34D'],
   },
 ];
 

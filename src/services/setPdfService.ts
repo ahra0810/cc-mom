@@ -114,6 +114,23 @@ function renderMetaBlock(meta: IdiomMeta, t: SetTemplate): string {
     </div>`;
   }
 
+  if (t.metaStyle === 'quiz-banner') {
+    /* 퀴즈 배너 — 민트 리본 + 큰 한글 + 4 한자 박스 (학생이 따라 쓰는 활동) */
+    return `<div class="meta-block meta-quiz-banner">
+      <div class="qb-ribbon">퀴즈로 배워나가는 사자성어</div>
+      <div class="qb-title">${esc(meta.idiom)}</div>
+      <div class="qb-subtitle">네모 칸에 한자를 적어 보세요</div>
+      <div class="qb-hanja-row">
+        ${hanjaChars.map((c) => `<div class="qb-hanja-cell">${esc(c)}</div>`).join('')}
+      </div>
+      <div class="qb-meaning-row">
+        <span class="qb-meaning-label">뜻풀이</span>
+        <span class="qb-meaning-text">${esc(meta.meaning)}</span>
+        ${meta.origin ? ` <span class="qb-origin">· ${esc(meta.origin)}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
   /* classic (기본) */
   return `<div class="meta-block meta-classic">
     <div class="meta-hanja">${esc(meta.hanja)}</div>
@@ -333,6 +350,107 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .meta-big-friendly .meta-idiom { font-size: ${baseFs + 2}pt; }
 .meta-big-friendly .meta-meaning { font-size: ${baseFs}pt; }
 
+/* ─── Meta: quiz-banner — 민트 리본 + 큰 한글 + 4 한자 박스 + 뜻풀이 ─── */
+.meta-quiz-banner {
+  background: white;
+  border: none;
+  border-radius: 0;
+  padding: 1mm 2mm 2mm 2mm;
+  margin-bottom: 0;
+  text-align: center;
+}
+.qb-ribbon {
+  display: inline-block;
+  background: ${t.accentColor};
+  color: ${t.primaryColor};
+  font-weight: 800;
+  font-size: ${baseFs - 1}pt;
+  letter-spacing: 1mm;
+  padding: 1.2mm 6mm;
+  border-radius: 1.5mm;
+  margin-bottom: 1.5mm;
+}
+.qb-title {
+  font-size: ${baseFs + 14}pt;
+  font-weight: 900;
+  color: ${t.textColor};
+  letter-spacing: 2mm;
+  line-height: 1;
+  margin: 0.5mm 0;
+}
+.qb-subtitle {
+  font-size: ${baseFs - 2}pt;
+  color: ${t.textColor}99;
+  margin: 1mm 0 1.5mm 0;
+}
+.qb-hanja-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2.5mm;
+  max-width: 70mm;
+  margin: 0 auto;
+}
+.qb-hanja-cell {
+  border: 1.5px solid ${t.textColor};
+  border-radius: 1mm;
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Noto Serif KR', serif;
+  font-size: ${baseFs + 6}pt;
+  color: ${t.textColor}26;  /* 옅게 — 학생이 따라 적도록 */
+  font-weight: 600;
+  background: white;
+}
+.qb-meaning-row {
+  margin-top: 2.5mm;
+  padding: 1.5mm 3mm;
+  background: #FEF3C7;       /* 노란 하이라이트 */
+  border-radius: 1mm;
+  font-size: ${baseFs - 0.5}pt;
+  text-align: left;
+  display: inline-block;
+  max-width: 100%;
+}
+.qb-meaning-label {
+  display: inline-block;
+  background: ${t.primaryColor};
+  color: white;
+  font-weight: 800;
+  padding: 0.3mm 2mm;
+  border-radius: 1mm;
+  margin-right: 2mm;
+  font-size: ${baseFs - 1}pt;
+  letter-spacing: 0.5mm;
+}
+.qb-meaning-text { color: ${t.textColor}; font-weight: 600; }
+.qb-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
+
+/* quiz-banner 템플릿일 때, 본문 .set 외곽에 굵은 프레임 + 코랄 큐오테이션 장식 */
+.qb-frame {
+  border: 1.8px solid ${t.textColor};
+  border-radius: 1.5mm;
+  padding: 5mm 5mm 4mm 5mm;
+  margin-top: 1mm;
+  position: relative;
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column;
+}
+.qb-frame::before, .qb-frame::after {
+  content: '';
+  position: absolute; top: -2mm; width: 6mm; height: 4mm;
+  background: #FB923C;       /* 코랄 */
+  border-radius: 1mm;
+}
+.qb-frame::before { left: 6mm; }
+.qb-frame::after { right: 6mm; }
+.qb-quote {
+  position: absolute; top: -1mm;
+  font-size: ${baseFs + 14}pt; font-weight: 900;
+  color: #FB923C; line-height: 1;
+}
+.qb-quote.left { left: 14mm; }
+.qb-quote.right { right: 14mm; transform: scaleX(-1); }
+
 /* ─── Set body — 8문항 + 자동 균등 분배 ─── */
 .set {
   display: flex; flex-direction: column;
@@ -473,7 +591,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
     html += `</div>`;
   }
 
-  /* 8 slots */
+  /* 8 slots — quiz-banner 템플릿일 때만 qb-frame(굵은 테두리 + 코랄 큐오테이션)으로 감쌈 */
+  const isQuizBanner = t.metaStyle === 'quiz-banner';
+  if (isQuizBanner) {
+    html += `<div class="qb-frame">`;
+    html += `<span class="qb-quote left">&ldquo;</span>`;
+    html += `<span class="qb-quote right">&rdquo;</span>`;
+  }
   html += `<div class="set">`;
   set.slots.forEach((q, idx) => {
     if (idx === 0) html += renderSlot1(q, idx, showAnswer);
@@ -481,6 +605,9 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
     else html += renderMcSlot(q, idx, showAnswer);
   });
   html += `</div>`;
+  if (isQuizBanner) {
+    html += `</div>`;
+  }
 
   html += `</div></body></html>`;
   return html;
