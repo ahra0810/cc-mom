@@ -7,7 +7,7 @@
 import type { Question, Difficulty } from './index';
 
 /* ─── 도메인 ─── */
-export type SetDomain = 'four-char-idiom' | 'proverb';
+export type SetDomain = 'four-char-idiom' | 'proverb' | 'idiomatic-phrase';
 
 /* ─── 슬롯 — 도메인별로 type이 다르므로 readonly Question[] ───
  * 길이/타입 검증은 setValidator.validateSet이 도메인 slotConfig 기반으로 수행.
@@ -82,8 +82,21 @@ export interface ProverbMeta {
   origin?: string;
 }
 
+/** 관용어 메타 — 한국어 관용 표현 (예: "발이 넓다", "손이 크다") */
+export interface IdiomaticPhraseMeta {
+  domain: 'idiomatic-phrase';
+  /** 관용어 본문 (예: "발이 넓다") */
+  phrase: string;
+  /** 뜻풀이 (예: "아는 사람이 많다") */
+  meaning: string;
+  /** 예문 (선택) — 표현이 실제로 쓰이는 한 문장 */
+  example?: string;
+  /** 유래 / 어원 (선택) */
+  origin?: string;
+}
+
 /** 도메인별 메타 union (discriminated by `domain`) */
-export type SetMeta = IdiomMeta | ProverbMeta;
+export type SetMeta = IdiomMeta | ProverbMeta | IdiomaticPhraseMeta;
 
 /* ─── Set 컨테이너 ─── */
 export interface QuestionSet {

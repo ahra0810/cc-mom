@@ -452,20 +452,23 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .qb-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
 
 /* ─── 속담 도메인 메타 — 큰 따옴표로 본문 강조 ─── */
-.proverb-quote-block {
+.proverb-quote-block,
+.phrase-quote-block {
   text-align: center;
   margin-bottom: 2mm;
   font-family: 'Noto Serif KR', serif;
   line-height: 1.4;
 }
-.proverb-quote-mark {
+.proverb-quote-mark,
+.phrase-quote-mark {
   font-size: ${baseFs + 14}pt;
   color: ${t.primaryColor};
   font-weight: 900;
   vertical-align: middle;
   line-height: 1;
 }
-.proverb-body {
+.proverb-body,
+.phrase-body {
   font-size: ${baseFs + 4}pt;
   font-weight: 700;
   color: ${t.primaryColor};

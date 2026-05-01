@@ -13,11 +13,13 @@
 import type { DomainConfig, DomainId } from './types';
 import { idiomDomainConfig } from './four-char-idiom';
 import { proverbDomainConfig } from './proverb';
+import { idiomaticPhraseDomainConfig } from './idiomatic-phrase';
 
 /* ─── 등록된 모든 도메인 ─── */
 export const DOMAIN_REGISTRY = {
   'four-char-idiom': idiomDomainConfig,
   'proverb': proverbDomainConfig,
+  'idiomatic-phrase': idiomaticPhraseDomainConfig,
 } as const satisfies Record<DomainId, DomainConfig>;
 
 /* ─── lookup ─── */
