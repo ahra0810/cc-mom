@@ -28,7 +28,7 @@ import {
 import { SET_TEMPLATES } from '../services/setPdfTemplates';
 import type { Difficulty } from '../types';
 import { DIFFICULTY_LABELS } from '../types';
-import type { IdiomMeta } from '../types/sets';
+import { getDomain } from '../domains/registry';
 
 interface Props {
   onOpenSettings: () => void;
@@ -72,7 +72,7 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
             <Printer size={20} className="text-gray-400" />
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            왼쪽에서 출력할 사자성어 set을<br />선택하면 PDF로 내보낼 수 있어요.
+            왼쪽에서 출력할 학습지 set을<br />선택하면 PDF로 내보낼 수 있어요.
           </p>
         </div>
         <div className="px-3 py-2 border-t border-gray-200 flex-shrink-0">
@@ -86,7 +86,9 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
 
   const completion = getSlotCompletionCount(selectedSet);
   const isReady = completion === 8;
-  const meta = selectedSet.meta as IdiomMeta;
+  /* 도메인별 카드 요약 — idiom의 한자 단일 글자 / 속담의 첫 글자 등 */
+  const domain = getDomain(selectedSet.domain);
+  const summary = domain.getCardSummary(selectedSet.meta);
 
   const commitQuickField = (field: 'title' | 'difficulty', value: string) => {
     if (field === 'title') {
@@ -150,18 +152,19 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
                   className="text-[15px] font-bold text-purple-700 leading-none"
                   style={{ fontFamily: "'Noto Serif KR', serif" }}
                 >
-                  {meta.hanja?.[0] || '?'}
+                  {/* 도메인별 카드 요약의 subhead 첫 글자 (idiom: 한자 / proverb: 속담 첫자 등) */}
+                  {summary.subhead?.[0] || '?'}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] font-bold text-gray-800 truncate">
-                  {meta.idiom || '사자성어 미입력'}
+                  {summary.headline || `${domain.labels.subjectName} 미입력`}
                 </div>
                 <div
                   className="text-[11px] text-gray-500 truncate"
                   style={{ fontFamily: "'Noto Serif KR', serif" }}
                 >
-                  {meta.hanja || '—'}
+                  {summary.subhead || '—'}
                 </div>
               </div>
             </div>

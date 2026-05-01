@@ -9,8 +9,9 @@
  *  - 7번: 5줄 작성 영역
  */
 import type { Question } from '../types';
-import type { QuestionSet, IdiomMeta } from '../types/sets';
-import { getSetTemplate, type SetTemplate } from './setPdfTemplates';
+import type { QuestionSet } from '../types/sets';
+import { getSetTemplate } from './setPdfTemplates';
+import { getDomain } from '../domains/registry';
 
 const FONT_IMPORTS = `
 @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css');
@@ -84,61 +85,7 @@ function pickFontSize(set: QuestionSet, base: number): number {
   return Math.max(fs, 9);
 }
 
-/* ─── 메타 박스 — metaStyle 분기 ─── */
-function renderMetaBlock(meta: IdiomMeta, t: SetTemplate): string {
-  const hanjaChars = [...(meta.hanja || '')].slice(0, 4);
-  while (hanjaChars.length < 4) hanjaChars.push('');
-
-  if (t.metaStyle === 'hanja-emphasis') {
-    /* 한자 4자를 큰 가로 박스로 — 서예 풍 */
-    return `<div class="meta-block meta-hanja-emphasis">
-      <div class="meta-hanja-row">
-        ${hanjaChars.map((c) => `<div class="meta-hanja-cell">${esc(c)}</div>`).join('')}
-      </div>
-      <div class="meta-hanja-foot">
-        <span class="meta-idiom">${esc(meta.idiom)}</span>
-        <span class="meta-meaning">${esc(meta.meaning)}</span>
-        ${meta.origin ? `<span class="meta-origin">· ${esc(meta.origin)}</span>` : ''}
-      </div>
-    </div>`;
-  }
-
-  if (t.metaStyle === 'big-friendly') {
-    /* 저학년 친화 — 둥근 카드 + 별 장식 */
-    return `<div class="meta-block meta-big-friendly">
-      <div class="meta-friendly-star">★</div>
-      <div class="meta-hanja">${esc(meta.hanja)}</div>
-      <div class="meta-idiom">${esc(meta.idiom)}</div>
-      <div class="meta-meaning">${esc(meta.meaning)}</div>
-      ${meta.origin ? `<div class="meta-origin">출전: ${esc(meta.origin)}</div>` : ''}
-    </div>`;
-  }
-
-  if (t.metaStyle === 'quiz-banner') {
-    /* 퀴즈 배너 — 민트 리본 + [큰 한글 | 한자] + 뜻풀이.
-     * 한자 따라쓰기는 1번 슬롯에 이미 있으므로 메타에는 참고용으로 한 줄만. */
-    return `<div class="meta-block meta-quiz-banner">
-      <div class="qb-ribbon">퀴즈로 배워나가는 사자성어</div>
-      <div class="qb-title-row">
-        <span class="qb-title">${esc(meta.idiom)}</span>
-        <span class="qb-title-hanja">${esc(meta.hanja)}</span>
-      </div>
-      <div class="qb-meaning-row">
-        <span class="qb-meaning-label">뜻풀이</span>
-        <span class="qb-meaning-text">${esc(meta.meaning)}</span>
-        ${meta.origin ? ` <span class="qb-origin">· ${esc(meta.origin)}</span>` : ''}
-      </div>
-    </div>`;
-  }
-
-  /* classic (기본) */
-  return `<div class="meta-block meta-classic">
-    <div class="meta-hanja">${esc(meta.hanja)}</div>
-    <div class="meta-idiom">${esc(meta.idiom)}</div>
-    <div class="meta-meaning">${esc(meta.meaning)}</div>
-    ${meta.origin ? `<div class="meta-origin">출전: ${esc(meta.origin)}</div>` : ''}
-  </div>`;
-}
+/* 메타 박스 렌더는 src/domains/<id>/pdfMeta.ts에서 도메인별로 정의 → registry로 위임. */
 
 /* 질문 텍스트가 "주문장\n\n부속(뜻/대화/지문)" 형태이면 분리.
  * 부속은 .q-context 박스로 분리 렌더해 큰 \n\n 빈 줄 여백 제거 + 시각 구분. */
@@ -222,6 +169,27 @@ function renderMcSlot(q: Question, idx: number, showAnswer: boolean): string {
   return h;
 }
 
+/* ─── short-answer (예: 속담 빈칸 채우기) ─── */
+function renderShortAnswerSlot(q: Question, idx: number, showAnswer: boolean): string {
+  let h = `<div class="q slot-short">`;
+  h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
+  h += `<div class="q-body">`;
+  h += renderQuestionText(q);
+
+  /* 정답 라인 — 시험지에서는 빈 줄, 답안지에서는 정답 채워짐 */
+  h += `<div class="answer-row">`;
+  h += `<span class="answer-label">정답</span>`;
+  if (showAnswer) {
+    h += `<span class="answer-filled">${esc(q.answer || '')}</span>`;
+  } else {
+    h += `<span class="answer-line"></span>`;
+  }
+  h += `</div>`;
+
+  h += `</div></div>`;
+  return h;
+}
+
 /* ─── 슬롯 8: sentence-making (마지막 슬롯) ─── */
 function renderSlot8(q: Question, idx: number, showAnswer: boolean): string {
   let h = `<div class="q slot-last">`;
@@ -288,7 +256,7 @@ export function generateSetHTML(
 ): string {
   const t = getSetTemplate(templateId);
   const baseFs = pickFontSize(set, t.baseFontSize);
-  const meta = set.meta as IdiomMeta;
+  const meta = set.meta;
 
   const css = `
 ${FONT_IMPORTS}
@@ -482,6 +450,28 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 .qb-meaning-text { color: ${t.textColor}; font-weight: 600; }
 .qb-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
+
+/* ─── 속담 도메인 메타 — 큰 따옴표로 본문 강조 ─── */
+.proverb-quote-block {
+  text-align: center;
+  margin-bottom: 2mm;
+  font-family: 'Noto Serif KR', serif;
+  line-height: 1.4;
+}
+.proverb-quote-mark {
+  font-size: ${baseFs + 14}pt;
+  color: ${t.primaryColor};
+  font-weight: 900;
+  vertical-align: middle;
+  line-height: 1;
+}
+.proverb-body {
+  font-size: ${baseFs + 4}pt;
+  font-weight: 700;
+  color: ${t.primaryColor};
+  margin: 0 2mm;
+  letter-spacing: 0.5mm;
+}
 
 /* quiz-banner 템플릿일 때, 본문 .set 외곽에 굵은 프레임 + 코랄 큐오테이션 장식 */
 .qb-frame {
@@ -696,7 +686,8 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
    *  - 시험지: 우측은 "이름 ___" 카드
    *  - 답안지: 우측은 "정답 및 해설" 카드 (시각 통일감 + 별도 배너 불필요) */
   html += `<div class="top-row">`;
-  html += renderMetaBlock(meta, t);
+  /* 메타 박스 렌더링은 도메인 위임 — 도메인별로 hanja+meaning, proverb+lesson 등 다양 */
+  html += getDomain(set.domain).renderMetaBlock(meta, t, baseFs);
   if (showAnswer) {
     html += `<div class="answer-key-card">
       <div class="ak-label">답안 및 해설</div>
@@ -720,10 +711,23 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
     html += `<span class="qb-quote right">&rdquo;</span>`;
   }
   html += `<div class="set">`;
+  /* 슬롯 렌더링 — slot.type 기반. 도메인별 슬롯 구성을 자유롭게 유지. */
   set.slots.forEach((q, idx) => {
-    if (idx === 0) html += renderSlot1(q, idx, showAnswer);
-    else if (idx === 7) html += renderSlot8(q, idx, showAnswer);
-    else html += renderMcSlot(q, idx, showAnswer);
+    switch (q.type) {
+      case 'hanja-writing':
+        html += renderSlot1(q, idx, showAnswer);
+        break;
+      case 'short-answer':
+        html += renderShortAnswerSlot(q, idx, showAnswer);
+        break;
+      case 'sentence-making':
+        html += renderSlot8(q, idx, showAnswer);
+        break;
+      case 'multiple-choice':
+      default:
+        html += renderMcSlot(q, idx, showAnswer);
+        break;
+    }
   });
   html += `</div>`;
   if (isQuizBanner) {

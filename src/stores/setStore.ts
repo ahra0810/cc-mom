@@ -22,10 +22,36 @@ import { SLOT_COUNT } from '../types/sets';
 import {
   validateSet,
   createEmptySet,
-  syncSlot1FromMeta,
-  syncSlot8FromMeta,
+  applyDomainSlotSync,
 } from '../services/setValidator';
-import { DEFAULT_SETS } from '../data/defaultSets';
+import { getDomain, listDomains } from '../domains/registry';
+import { DEFAULT_SETS as IDIOM_DEFAULTS } from '../data/defaultSets';
+
+/* 모든 도메인의 시드 합집합 — 사자성어 시드(기존 위치)는 idiomDomainConfig.defaultSets로
+ * 이미 노출되지만, 호환을 위해 IDIOM_DEFAULTS도 포함. listDomains()는 도메인 등록 순서를 따른다. */
+const ALL_DEFAULT_SETS: QuestionSet[] = (() => {
+  const merged: QuestionSet[] = [];
+  const seen = new Set<string>();
+  /* 기존 사자성어 시드 우선 유지 (id 호환) */
+  for (const s of IDIOM_DEFAULTS) {
+    if (!seen.has(s.id)) {
+      merged.push(s);
+      seen.add(s.id);
+    }
+  }
+  /* 그 외 등록된 도메인의 시드 추가 */
+  for (const d of listDomains()) {
+    for (const s of d.defaultSets) {
+      if (!seen.has(s.id)) {
+        merged.push(s);
+        seen.add(s.id);
+      }
+    }
+  }
+  return merged;
+})();
+/* 기존 코드의 DEFAULT_SETS 참조와 호환을 위해 alias */
+const DEFAULT_SETS = ALL_DEFAULT_SETS;
 
 /* ─── 필터 ─── */
 export interface SetFilters {
@@ -98,13 +124,7 @@ function toSetSlots(slots: Question[]): SetSlots {
   return slots as unknown as SetSlots;
 }
 
-/* ─── 메타와 슬롯 1·7번 자동 동기화 ─── */
-function applyMetaSync(set: QuestionSet): QuestionSet {
-  const slots = [...set.slots] as Question[];
-  slots[0] = syncSlot1FromMeta(slots[0], set.meta);
-  slots[7] = syncSlot8FromMeta(slots[7], set.meta);
-  return { ...set, slots: toSetSlots(slots) };
-}
+/* 메타 → 슬롯 자동 동기화는 setValidator.applyDomainSlotSync에서 처리. */
 
 /* ─── Store 구현 ─── */
 export const useSetStore = create<SetStore>()(
@@ -183,23 +203,16 @@ export const useSetStore = create<SetStore>()(
         set((state) => {
           if (!state.editingSetDraft) return state;
           const merged: SetMeta = { ...state.editingSetDraft.meta, ...metaUpdates } as SetMeta;
-          /* idiom 변경 시 title 자동 업데이트 (사용자가 별도 변경하지 않은 경우) */
-          let newTitle = state.editingSetDraft.title;
-          if (
-            merged.domain === 'four-char-idiom' &&
-            merged.idiom &&
-            (!state.editingSetDraft.title ||
-              state.editingSetDraft.title === '새 학습지' ||
-              state.editingSetDraft.title.endsWith(' 학습지'))
-          ) {
-            newTitle = `${merged.idiom} 학습지`;
-          }
+          /* title 자동 생성 — 도메인 위임 */
+          const cfg = getDomain(merged.domain);
+          const newTitle = cfg.deriveTitle(merged, state.editingSetDraft.title);
           const next: QuestionSet = {
             ...state.editingSetDraft,
             meta: merged,
             title: newTitle,
           };
-          return { editingSetDraft: applyMetaSync(next) };
+          /* 메타 변경 → 슬롯 자동 동기화 (도메인 위임) */
+          return { editingSetDraft: applyDomainSlotSync(next) };
         }),
 
       updateDraftSlot: (idx, updates) =>
@@ -276,10 +289,12 @@ export const useSetStore = create<SetStore>()(
           if (filters.domain && s.domain !== filters.domain) return false;
           if (filters.difficulty && s.difficulty !== filters.difficulty) return false;
           if (term) {
+            /* 도메인별 메타 검색 — getDomain(d).getSearchHaystack 위임 */
+            const cfg = getDomain(s.meta.domain);
             const haystack = [
               s.title,
               s.tags?.join(' ') || '',
-              s.meta.domain === 'four-char-idiom' ? `${s.meta.idiom} ${s.meta.hanja} ${s.meta.meaning} ${s.meta.origin || ''}` : '',
+              cfg.getSearchHaystack(s.meta),
               ...((s.slots as unknown as Question[]).map((q) => `${q.question} ${q.answer} ${(q.options || []).join(' ')}`)),
             ].join(' ').toLowerCase();
             if (!haystack.includes(term)) return false;
@@ -320,13 +335,21 @@ export const useSetStore = create<SetStore>()(
           existingIds.add(id);
 
           const now = Date.now();
+          /* 도메인 폴백 — 도메인이 없거나 미등록된 경우 'four-char-idiom'으로 기본화.
+           * 메타에도 도메인 명시 보강 (discriminated union 보장) */
+          const knownDomain: SetDomain =
+            (setObj.domain as SetDomain) || 'four-char-idiom';
           const partial: Partial<QuestionSet> = {
             ...setObj,
+            domain: knownDomain,
             id,
             createdAt: typeof setObj.createdAt === 'number' ? setObj.createdAt : now,
             updatedAt: now,
             source: 'ai-imported',
           };
+          if (setObj.meta && typeof setObj.meta === 'object') {
+            partial.meta = { ...setObj.meta, domain: knownDomain } as typeof setObj.meta;
+          }
 
           /* 슬롯 ID 보장 */
           if (Array.isArray(setObj.slots)) {
@@ -335,7 +358,7 @@ export const useSetStore = create<SetStore>()(
               id: typeof q?.id === 'string' && q.id ? q.id : nanoid(),
               createdAt: typeof q?.createdAt === 'number' ? q.createdAt : now,
               source: q?.source || 'ai-imported',
-              subjectId: q?.subjectId || (setObj.domain || 'four-char-idiom'),
+              subjectId: q?.subjectId || knownDomain,
             }));
             partial.slots = slotsWithIds as unknown as SetSlots;
           }

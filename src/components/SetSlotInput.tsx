@@ -1,33 +1,33 @@
 /**
- * SetSlotInput — 슬롯 위치별 입력 컴포넌트.
- * 1번: hanja-writing (한자 따라쓰기 + 한글음)
- * 2~6번: multiple-choice (4지선다)
- * 7번: sentence-making (서술형)
+ * SetSlotInput — 슬롯별 입력 컴포넌트.
+ *
+ * 분기는 슬롯 인덱스가 아닌 `slot.type` 기준 (도메인별 슬롯 구성이 다양해질 수 있음).
+ * 라벨은 도메인 레지스트리에서 가져옵니다.
  */
 import { Check, AlertCircle } from 'lucide-react';
 import type { Question } from '../types';
-import type { SlotIndex } from '../types/sets';
+import type { SlotIndex, SetDomain } from '../types/sets';
+import { getDomain } from '../domains/registry';
 
 interface Props {
   index: SlotIndex;
   slot: Question;
+  domain: SetDomain;
   onChange: (updates: Partial<Question>) => void;
   errorMessages?: string[];
   isComplete: boolean;
 }
 
-const SLOT_TITLES: readonly string[] = [
-  '1번 — 한자 쓰기 (한글음 + 따라쓰기)',
-  '2번 — 객관식',
-  '3번 — 객관식',
-  '4번 — 객관식',
-  '5번 — 객관식',
-  '6번 — 객관식',
-  '7번 — 문장 만들기 (서술형)',
-];
-
-export default function SetSlotInput({ index, slot, onChange, errorMessages = [], isComplete }: Props) {
-  const title = SLOT_TITLES[index];
+export default function SetSlotInput({
+  index,
+  slot,
+  domain,
+  onChange,
+  errorMessages = [],
+  isComplete,
+}: Props) {
+  const cfg = getDomain(domain);
+  const title = cfg.labels.slotLabels[index] ?? `${index + 1}번`;
 
   return (
     <div
@@ -42,31 +42,23 @@ export default function SetSlotInput({ index, slot, onChange, errorMessages = []
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-2">
-          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold ${
-            isComplete ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
+          <div
+            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold ${
+              isComplete ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-600'
+            }`}
+          >
             {isComplete ? <Check size={10} strokeWidth={3} /> : index + 1}
           </div>
           <span className="text-xs font-bold text-gray-700">{title}</span>
         </div>
       </div>
 
-      {/* Body */}
+      {/* Body — slot.type 기준 분기 */}
       <div className="p-3 space-y-2.5">
-        {/* 1번: hanja-writing */}
-        {index === 0 && (
-          <Slot1HanjaWriting slot={slot} onChange={onChange} />
-        )}
-
-        {/* 2~6번: multiple-choice */}
-        {index >= 1 && index <= 5 && (
-          <SlotMultipleChoice slot={slot} onChange={onChange} />
-        )}
-
-        {/* 7번: sentence-making */}
-        {index === 6 && (
-          <Slot7SentenceMaking slot={slot} onChange={onChange} />
-        )}
+        {slot.type === 'hanja-writing' && <SlotHanjaWriting slot={slot} onChange={onChange} />}
+        {slot.type === 'multiple-choice' && <SlotMultipleChoice slot={slot} onChange={onChange} />}
+        {slot.type === 'sentence-making' && <SlotSentenceMaking slot={slot} onChange={onChange} />}
+        {slot.type === 'short-answer' && <SlotShortAnswer slot={slot} onChange={onChange} />}
 
         {/* 공통: 해설 */}
         <div>
@@ -95,20 +87,26 @@ export default function SetSlotInput({ index, slot, onChange, errorMessages = []
   );
 }
 
-/* ─── 1번: 한자 쓰기 ─── */
-function Slot1HanjaWriting({ slot, onChange }: { slot: Question; onChange: (u: Partial<Question>) => void }) {
+/* ─── 한자 쓰기 (사자성어 1번) ─── */
+function SlotHanjaWriting({
+  slot,
+  onChange,
+}: {
+  slot: Question;
+  onChange: (u: Partial<Question>) => void;
+}) {
   return (
     <>
       <div>
         <label className="text-[10px] font-medium text-gray-500 mb-1 block">문제 본문</label>
         <textarea
           className="input-field !text-xs min-h-[60px] resize-y"
-          placeholder='예: "다음 사자성어의 한자를 보고 한글음을 쓴 후, 옆 칸에 한자를 따라 쓰세요."'
+          placeholder='예: "다음 한자를 따라 쓰고, 옆 칸에 한글음을 쓰세요."'
           value={slot.question}
           onChange={(e) => onChange({ question: e.target.value })}
         />
         <p className="text-[10px] text-gray-400 mt-1">
-          💡 메타에 사자성어 정보를 입력하면 자동으로 채워집니다.
+          💡 메타 정보를 입력하면 자동으로 채워집니다.
         </p>
       </div>
 
@@ -144,8 +142,14 @@ function Slot1HanjaWriting({ slot, onChange }: { slot: Question; onChange: (u: P
   );
 }
 
-/* ─── 2~6번: 객관식 ─── */
-function SlotMultipleChoice({ slot, onChange }: { slot: Question; onChange: (u: Partial<Question>) => void }) {
+/* ─── 객관식 4지선다 ─── */
+function SlotMultipleChoice({
+  slot,
+  onChange,
+}: {
+  slot: Question;
+  onChange: (u: Partial<Question>) => void;
+}) {
   const options = slot.options || ['', '', '', ''];
 
   const updateOption = (idx: number, value: string) => {
@@ -161,7 +165,7 @@ function SlotMultipleChoice({ slot, onChange }: { slot: Question; onChange: (u: 
         <label className="text-[10px] font-medium text-gray-500 mb-1 block">문제 본문</label>
         <textarea
           className="input-field !text-xs min-h-[40px] resize-y"
-          placeholder='예: "이 사자성어의 뜻으로 알맞은 것은?"'
+          placeholder='예: "이 표현의 뜻으로 알맞은 것은?"'
           value={slot.question}
           onChange={(e) => onChange({ question: e.target.value })}
         />
@@ -173,7 +177,7 @@ function SlotMultipleChoice({ slot, onChange }: { slot: Question; onChange: (u: 
         </label>
         <div className="space-y-1.5">
           {[0, 1, 2, 3].map((i) => {
-            const labels = ['\u2460', '\u2461', '\u2462', '\u2463'];
+            const labels = ['①', '②', '③', '④'];
             const opt = options[i] || '';
             const isAnswer = slot.answer === opt && opt.trim() !== '';
             return (
@@ -205,8 +209,52 @@ function SlotMultipleChoice({ slot, onChange }: { slot: Question; onChange: (u: 
   );
 }
 
-/* ─── 7번: 서술형 ─── */
-function Slot7SentenceMaking({ slot, onChange }: { slot: Question; onChange: (u: Partial<Question>) => void }) {
+/* ─── 단답형 (속담 빈칸 채우기 등) ─── */
+function SlotShortAnswer({
+  slot,
+  onChange,
+}: {
+  slot: Question;
+  onChange: (u: Partial<Question>) => void;
+}) {
+  return (
+    <>
+      <div>
+        <label className="text-[10px] font-medium text-gray-500 mb-1 block">문제 본문</label>
+        <textarea
+          className="input-field !text-xs min-h-[50px] resize-y"
+          placeholder='예: "다음 빈칸을 채우세요: 가는 말이 ___ 오는 말이 곱다"'
+          value={slot.question}
+          onChange={(e) => onChange({ question: e.target.value })}
+        />
+        <p className="text-[10px] text-gray-400 mt-1">
+          💡 빈칸 자리는 "___" (밑줄 3개)로 표시하세요.
+        </p>
+      </div>
+
+      <div>
+        <label className="text-[10px] font-medium text-gray-500 mb-1 block">
+          정답 (빈칸에 들어갈 어절)
+        </label>
+        <input
+          className="input-field !text-xs"
+          placeholder="예: 고와야"
+          value={slot.answer}
+          onChange={(e) => onChange({ answer: e.target.value })}
+        />
+      </div>
+    </>
+  );
+}
+
+/* ─── 서술형 (문장 만들기) ─── */
+function SlotSentenceMaking({
+  slot,
+  onChange,
+}: {
+  slot: Question;
+  onChange: (u: Partial<Question>) => void;
+}) {
   return (
     <>
       <div>
@@ -218,7 +266,7 @@ function Slot7SentenceMaking({ slot, onChange }: { slot: Question; onChange: (u:
           onChange={(e) => onChange({ question: e.target.value })}
         />
         <p className="text-[10px] text-gray-400 mt-1">
-          💡 메타에 사자성어를 입력하면 자동으로 채워집니다.
+          💡 메타 정보를 입력하면 자동으로 채워집니다.
         </p>
       </div>
 

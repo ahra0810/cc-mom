@@ -37,15 +37,15 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
               <Sparkles size={18} className="text-white" />
             </div>
             <span className="text-xs font-semibold tracking-widest uppercase opacity-80">
-              사자성어 학습지 메이커
+              학습지 메이커
             </span>
           </div>
           <h1 className="text-2xl font-extrabold leading-tight mb-2">
-            {step === 0 ? '사자성어 학습지를 빠르게 만들어요 📜' : '4단계로 끝나요'}
+            {step === 0 ? '학습지를 빠르게 만들어요 📜' : '4단계로 끝나요'}
           </h1>
           <p className="text-sm opacity-90 leading-relaxed">
             {step === 0
-              ? '사자성어 1개 + 8문항 = A4 1페이지\n초3 ~ 중1 학생용 학습지를 자동으로 만들어 드립니다.'
+              ? '키워드 1개 + 8문항 = A4 1페이지\n초3 ~ 중1 학생용 학습지를 자동으로 만들어 드립니다.'
               : '아래 단계를 따라 오시면\n3분 안에 첫 학습지가 완성됩니다.'}
           </p>
         </div>
@@ -56,13 +56,13 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
             <div className="space-y-3">
               <Feature
                 icon={<BookOpen size={16} />} color="#8B5CF6"
-                title="사자성어 1개 = 학습지 1장"
-                desc="동문서답·일석이조·자화자찬 같은 사자성어 하나를 set으로 등록하면 자동으로 8문항이 구성돼요."
+                title="키워드 1개 = 학습지 1장"
+                desc="사자성어·속담·관용구 같은 키워드 하나를 set으로 등록하면 자동으로 8문항이 구성돼요."
               />
               <Feature
                 icon={<FilePlus size={16} />} color="#10B981"
                 title="고정 8문항 구조"
-                desc="① 한자 따라쓰기 + 한글음 ② ~ ⑦ 4지선다 객관식 ⑧ 사자성어 사용 문장 만들기"
+                desc="① 도메인 특수 문항 (예: 한자 쓰기) ② ~ ⑦ 4지선다 객관식 ⑧ 사용 문장 만들기"
               />
               <Feature
                 icon={<FileText size={16} />} color="#F59E0B"
@@ -79,10 +79,10 @@ export default function WelcomeModal({ onClose, onStart }: Props) {
             <div className="space-y-3">
               <StepItem n={1} color="#8B5CF6"
                 title="새 학습지 만들기"
-                desc='좌측 "+ 새 set" 또는 시드 카드를 클릭해 사자성어 + 한자 + 뜻을 입력해요.' />
+                desc='좌측 "+ 새 set" 또는 시드 카드를 클릭해 도메인을 고르고 메타 정보를 입력해요.' />
               <StepItem n={2} color="#10B981"
                 title="8문항 채우기"
-                desc="1번(한자 쓰기) → 2~7번(객관식 4지선다) → 8번(문장 만들기) 순서로 인라인 폼에 작성해요." />
+                desc="도메인별 1번 특수 문항 → 2~7번 객관식 → 8번 문장 만들기 순서로 인라인 폼에 작성해요." />
               <StepItem n={3} color="#F59E0B"
                 title="A4 1페이지 미리보기"
                 desc="가운데 화면에서 실제 PDF와 같은 모습으로 확인하고, 길이가 맞지 않으면 자동 조정돼요." />

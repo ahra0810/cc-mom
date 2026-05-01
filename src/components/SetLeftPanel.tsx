@@ -22,7 +22,8 @@ import { useConfirm } from './ConfirmDialog';
 import { getSlotCompletionCount } from '../services/setValidator';
 import type { Difficulty } from '../types';
 import { DIFFICULTY_LABELS } from '../types';
-import type { QuestionSet } from '../types/sets';
+import type { QuestionSet, SetDomain } from '../types/sets';
+import { getDomain, listDomains } from '../domains/registry';
 
 const DIFF_BADGE: Record<Difficulty, string> = {
   easy: 'badge-easy', medium: 'badge-medium', hard: 'badge-hard',
@@ -68,10 +69,11 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
     const arr = [...filtered];
     if (sortKey === 'recent') arr.sort((a, b) => b.updatedAt - a.updatedAt);
     else if (sortKey === 'idiom') {
+      /* 가나다순 — 도메인별 카드 헤드라인(idiom·proverb 등)으로 정렬 */
       arr.sort((a, b) => {
-        const ai = a.meta.domain === 'four-char-idiom' ? a.meta.idiom : '';
-        const bi = b.meta.domain === 'four-char-idiom' ? b.meta.idiom : '';
-        return ai.localeCompare(bi);
+        const ah = getDomain(a.meta.domain).getCardSummary(a.meta).headline;
+        const bh = getDomain(b.meta.domain).getCardSummary(b.meta).headline;
+        return ah.localeCompare(bh);
       });
     } else if (sortKey === 'difficulty') {
       const order: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2, advanced: 3, expert: 4 };
@@ -134,7 +136,7 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
     }
     const ok = await confirm({
       title: '선택한 set 일괄 삭제',
-      message: `선택한 ${checkedIds.size}개의 사자성어 set을 삭제합니다.\n이 작업은 되돌릴 수 없습니다.\n계속하시겠습니까?`,
+      message: `선택한 ${checkedIds.size}개의 학습지 set을 삭제합니다.\n이 작업은 되돌릴 수 없습니다.\n계속하시겠습니까?`,
       variant: 'danger',
       confirmText: '삭제',
     });
@@ -172,7 +174,7 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
   /* 단건 액션 (기존 동작) */
   const handleDelete = async (s: QuestionSet) => {
     const ok = await confirm({
-      title: '사자성어 set 삭제',
+      title: '학습지 set 삭제',
       message: `"${s.title}"을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
       variant: 'danger',
       confirmText: '삭제',
@@ -201,7 +203,7 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
       <div className="flex items-center justify-between px-3 h-11 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-base">📜</span>
-          <span className="text-xs font-bold text-gray-800 truncate">사자성어 set</span>
+          <span className="text-xs font-bold text-gray-800 truncate">학습지 set</span>
           <span className="text-[10px] text-gray-400 flex-shrink-0">{filtered.length}/{allSets.length}</span>
         </div>
         <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -220,7 +222,7 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
           <button
             className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-gray-100 rounded transition-colors"
             onClick={onCreateNew}
-            title="새 사자성어 set 만들기"
+            title="새 학습지 set 만들기"
             aria-label="새 set"
           >
             <Plus size={14} />
@@ -286,13 +288,16 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
         </div>
       )}
 
+      {/* 도메인 필터 pill — 등록된 도메인이 2개 이상일 때만 표시 */}
+      <DomainFilterPills />
+
       {/* Search */}
       <div className="px-3 pt-2 flex-shrink-0">
         <div className="relative">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
             className="input-field !pl-8 !pr-7 !py-1.5"
-            placeholder="사자성어 · 한자 · 뜻 · 본문 검색"
+            placeholder="키워드 · 본문 검색"
             value={filters.search}
             onChange={(e) => setFilters({ search: e.target.value })}
           />
@@ -393,6 +398,50 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
   );
 }
 
+/* ─── 도메인 필터 pill 행 — 등록된 도메인이 2개 이상일 때만 표시 ─── */
+function DomainFilterPills() {
+  const filters = useSetStore((s) => s.filters);
+  const setFilters = useSetStore((s) => s.setFilters);
+  const domains = listDomains();
+  if (domains.length < 2) return null;
+
+  return (
+    <div className="px-3 pt-2 flex items-center gap-1 overflow-x-auto flex-shrink-0">
+      <button
+        className={`flex-shrink-0 px-2 py-0.5 text-[10.5px] font-semibold rounded-full border transition-colors ${
+          !filters.domain
+            ? 'border-purple-500 bg-purple-500 text-white'
+            : 'border-gray-200 text-gray-600 hover:border-gray-400'
+        }`}
+        onClick={() => setFilters({ domain: null })}
+      >
+        전체
+      </button>
+      {domains.map((d) => {
+        const active = filters.domain === d.id;
+        return (
+          <button
+            key={d.id}
+            className={`flex-shrink-0 px-2 py-0.5 text-[10.5px] font-semibold rounded-full border transition-colors ${
+              active
+                ? 'border-transparent text-white'
+                : 'border-gray-200 text-gray-600 hover:border-gray-400'
+            }`}
+            style={
+              active
+                ? { backgroundColor: d.labels.accentColor, borderColor: d.labels.accentColor }
+                : undefined
+            }
+            onClick={() => setFilters({ domain: d.id as SetDomain })}
+          >
+            {d.labels.subjectName}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ─── Set 카드 ─── */
 function SetCard({
   set: s, isSelected, selectionMode, isChecked, onClick, onEdit, onDuplicate, onDelete,
@@ -408,9 +457,12 @@ function SetCard({
 }) {
   const completion = getSlotCompletionCount(s);
   const completionColor = completion === 8 ? 'bg-emerald-500' : completion >= 5 ? 'bg-amber-500' : 'bg-gray-400';
-  const idiom = s.meta.domain === 'four-char-idiom' ? s.meta.idiom : '';
-  const hanja = s.meta.domain === 'four-char-idiom' ? s.meta.hanja : '';
-  const meaning = s.meta.domain === 'four-char-idiom' ? s.meta.meaning : '';
+  /* 도메인별 카드 요약 — idiom의 경우 headline=idiom 한글, subhead=한자, body=뜻
+   *                  proverb의 경우 headline=속담 본문, subhead=뜻 등 */
+  const summary = getDomain(s.meta.domain).getCardSummary(s.meta);
+  const headline = summary.headline;
+  const subhead = summary.subhead;
+  const body = summary.body;
 
   /* 카드 배경 — 선택 모드의 체크 우선, 그 다음 출력 선택 */
   let bgClass = 'hover:bg-gray-50';
@@ -443,13 +495,13 @@ function SetCard({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm font-extrabold text-gray-800 truncate">{idiom}</span>
+            <span className="text-sm font-extrabold text-gray-800 truncate">{headline}</span>
             <span className="text-xs text-gray-500 font-normal" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-              {hanja}
+              {subhead}
             </span>
           </div>
           <p className="text-[11px] text-gray-500 leading-snug line-clamp-1 break-keep mt-0.5">
-            {meaning}
+            {body}
           </p>
           <div className="flex items-center gap-1.5 mt-1.5">
             <span className={`badge !text-[9px] !px-1.5 !py-0 ${DIFF_BADGE[s.difficulty]}`}>

@@ -1,10 +1,12 @@
 /**
- * SetEditor — 사자성어 set 풀스크린 편집 모달.
+ * SetEditor — 학습지 set 풀스크린 편집 모달.
  *
- * 좌측: 메타데이터 폼 (사자성어, 한자, 뜻, 출전, 제목, 난이도, 태그)
+ * 좌측: 학습지 정보(제목·난이도) + 도메인별 메타 폼 + 태그
  * 우측: 8슬롯 인라인 입력 (SetSlotInput)
  *
  * 저장 시 validateSet → 첫 에러 슬롯으로 스크롤
+ * 도메인별 메타 필드(사자성어 idiom·hanja·meaning / 속담 proverb·meaning 등)는
+ * src/domains/<id>/MetaEditor.tsx에서 정의되고 여기서는 위임만 합니다.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { X, Check, AlertTriangle } from 'lucide-react';
@@ -15,7 +17,8 @@ import { useConfirm } from './ConfirmDialog';
 import { getSlotCompletionCount } from '../services/setValidator';
 import type { Difficulty } from '../types';
 import { DIFFICULTY_LABELS } from '../types';
-import { SLOT_COUNT, type SlotIndex, type IdiomMeta } from '../types/sets';
+import { SLOT_COUNT, type SlotIndex } from '../types/sets';
+import { getDomain } from '../domains/registry';
 
 interface Props {
   onClose: () => void;
@@ -93,9 +96,11 @@ export default function SetEditor({ onClose }: Props) {
 
   if (!draft) return null;
 
-  /* 사자성어 메타 */
-  const meta = draft.meta as IdiomMeta;
+  /* 활성 도메인 — 메타 폼 / 라벨 / 카드 요약 모두 여기서 가져옴 */
+  const domain = getDomain(draft.domain);
+  const summary = domain.getCardSummary(draft.meta);
   const completion = getSlotCompletionCount(draft);
+  const DomainMetaEditor = domain.MetaEditor;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[70] flex items-stretch">
@@ -112,7 +117,9 @@ export default function SetEditor({ onClose }: Props) {
               <X size={18} />
             </button>
             <span className="text-sm font-bold text-gray-800 truncate">
-              {meta.idiom ? `${meta.idiom} 학습지 편집` : '새 사자성어 학습지'}
+              {summary.headline && summary.headline !== `${domain.labels.subjectName} 미입력`
+                ? `${summary.headline} 학습지 편집`
+                : `새 ${domain.labels.setNoun}`}
             </span>
             <span className={`text-[10px] flex-shrink-0 px-1.5 py-0.5 rounded ${
               completion === 8
@@ -150,7 +157,7 @@ export default function SetEditor({ onClose }: Props) {
               <label className="text-[11px] font-semibold text-gray-700 mb-1 block">제목</label>
               <input
                 className="input-field !text-xs"
-                placeholder="예: 동문서답 학습지"
+                placeholder={`예: ${domain.labels.setNoun}`}
                 value={draft.title}
                 onChange={(e) => updateDraftField('title', e.target.value)}
               />
@@ -169,53 +176,13 @@ export default function SetEditor({ onClose }: Props) {
               </select>
             </div>
 
-            <div className="border-t border-gray-200 pt-3 space-y-3">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">사자성어 정보</h3>
-              <div>
-                <label className="text-[11px] font-semibold text-gray-700 mb-1 block">
-                  사자성어 (한글 4자) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className="input-field !text-xs"
-                  placeholder="예: 동문서답"
-                  value={meta.idiom}
-                  onChange={(e) => updateDraftMeta({ idiom: e.target.value })}
-                  maxLength={4}
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-gray-700 mb-1 block">
-                  한자 (4자) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className="input-field !text-xs"
-                  placeholder="예: 東問西答"
-                  value={meta.hanja}
-                  onChange={(e) => updateDraftMeta({ hanja: e.target.value })}
-                  maxLength={4}
-                  style={{ fontFamily: "'Noto Serif KR', serif" }}
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-gray-700 mb-1 block">
-                  뜻풀이 <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  className="input-field !text-xs min-h-[60px] resize-y"
-                  placeholder="예: 묻는 말에 엉뚱한 답을 함"
-                  value={meta.meaning}
-                  onChange={(e) => updateDraftMeta({ meaning: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-gray-700 mb-1 block">출전 (선택)</label>
-                <input
-                  className="input-field !text-xs"
-                  placeholder="예: 사기열전"
-                  value={meta.origin || ''}
-                  onChange={(e) => updateDraftMeta({ origin: e.target.value })}
-                />
-              </div>
+            {/* 도메인별 메타 폼 */}
+            <div className="border-t border-gray-200 pt-3">
+              <DomainMetaEditor
+                meta={draft.meta}
+                onUpdate={updateDraftMeta}
+                errors={metaErrors}
+              />
             </div>
 
             {/* 메타 에러 */}
@@ -244,10 +211,9 @@ export default function SetEditor({ onClose }: Props) {
 
           {/* Right — 8슬롯 */}
           <main className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
-            <div className="text-xs text-gray-500 mb-2">
-              💡 1번 한자 따라쓰기 → 2~7번 객관식 → 8번 문장 만들기 순서로 작성하세요.
-              메타에 사자성어 정보를 채우면 1·8번이 자동으로 일부 채워집니다.
-            </div>
+            {domain.editorHint && (
+              <div className="text-xs text-gray-500 mb-2">{domain.editorHint}</div>
+            )}
             {Array.from({ length: SLOT_COUNT }, (_, i) => {
               const idx = i as SlotIndex;
               const slot = draft.slots[idx];
@@ -256,6 +222,7 @@ export default function SetEditor({ onClose }: Props) {
                   <SetSlotInput
                     index={idx}
                     slot={slot}
+                    domain={draft.domain}
                     onChange={(u) => updateDraftSlot(idx, u)}
                     errorMessages={slotErrors[idx] || []}
                     isComplete={!slotErrors[idx] || slotErrors[idx].length === 0}

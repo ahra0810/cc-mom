@@ -7,9 +7,12 @@ import SetRightPanel from './components/SetRightPanel';
 import SetEditor from './components/SetEditor';
 import SettingsModal from './components/SettingsModal';
 import WelcomeModal from './components/WelcomeModal';
+import NewSetDomainPicker from './components/NewSetDomainPicker';
 import { ToastProvider } from './components/Toast';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { useSetStore } from './stores/setStore';
+import { listDomains } from './domains/registry';
+import type { SetDomain } from './types/sets';
 
 const WELCOME_KEY = 'idiom-welcome-seen';
 
@@ -47,6 +50,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [showDomainPicker, setShowDomainPicker] = useState(false);
 
   const startNewSet = useSetStore((s) => s.startNewSet);
   const startEditSet = useSetStore((s) => s.startEditSet);
@@ -55,8 +59,19 @@ export default function App() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
 
+  /* 새 set 만들기 — 도메인이 1개면 즉시 SetEditor, 2개 이상이면 도메인 피커 모달 */
   const openCreateNew = () => {
-    startNewSet('four-char-idiom', 'medium');
+    const domains = listDomains();
+    if (domains.length === 1) {
+      startNewSet(domains[0].id as SetDomain, 'medium');
+      setShowEditor(true);
+    } else {
+      setShowDomainPicker(true);
+    }
+  };
+  const onDomainPicked = (domain: SetDomain) => {
+    startNewSet(domain, 'medium');
+    setShowDomainPicker(false);
     setShowEditor(true);
   };
   const openEditSet = (setId: string) => {
@@ -115,10 +130,10 @@ export default function App() {
                 </div>
                 <div className="flex flex-col min-w-0 leading-none">
                   <h1 className="text-[14px] font-extrabold text-gray-800 truncate tracking-tight">
-                    사자성어 학습지 메이커
+                    학습지 메이커
                   </h1>
                   <p className="text-[10px] text-gray-400 truncate mt-0.5">
-                    초3 ~ 중1 · 사자성어 1개 + 8문항 자동 생성
+                    초3 ~ 중1 · 키워드 1개 + 8문항 자동 생성 · A4 1페이지
                   </p>
                 </div>
               </div>
@@ -174,6 +189,12 @@ export default function App() {
 
             {showSettings && (
               <SettingsModal onClose={() => setShowSettings(false)} />
+            )}
+            {showDomainPicker && (
+              <NewSetDomainPicker
+                onClose={() => setShowDomainPicker(false)}
+                onPick={onDomainPicked}
+              />
             )}
             {showEditor && <SetEditor onClose={() => setShowEditor(false)} />}
             {showWelcome && (

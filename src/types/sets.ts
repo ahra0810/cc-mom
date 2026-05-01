@@ -1,27 +1,33 @@
 /**
- * Question Set 타입 — "사자성어 1개 + 8문항 = A4 1페이지 학습지" 단위.
+ * Question Set 타입 — "키워드 1개 + 8문항 = A4 1페이지 학습지" 단위.
  *
- * 도메인은 우선 사자성어(four-char-idiom)만, 추후 idiomatic / proverb /
- * vocabulary 등으로 SetMeta 와 SetDomain 의 union 만 확장하면 됨.
+ * 도메인 추가는 src/domains/<id>/index.ts에 DomainConfig를 등록하고
+ * 이 파일의 SetDomain union·SetMeta union을 확장하면 됩니다.
  */
 import type { Question, Difficulty } from './index';
 
 /* ─── 도메인 ─── */
-export type SetDomain = 'four-char-idiom';
+export type SetDomain = 'four-char-idiom' | 'proverb';
 
-/* ─── 8슬롯 readonly tuple ─── */
-export type SetSlots = readonly [
-  Question, /* 1: hanja-writing — 한자 따라쓰기 + 한글음 작성 */
-  Question, /* 2: multiple-choice */
-  Question, /* 3: multiple-choice */
-  Question, /* 4: multiple-choice */
-  Question, /* 5: multiple-choice */
-  Question, /* 6: multiple-choice */
-  Question, /* 7: multiple-choice */
-  Question, /* 8: sentence-making — 사자성어 사용 문장 만들기 */
+/* ─── 슬롯 — 도메인별로 type이 다르므로 readonly Question[] ───
+ * 길이/타입 검증은 setValidator.validateSet이 도메인 slotConfig 기반으로 수행.
+ * SetSlotsTuple은 코드에서 [Q, Q, ...] 8-tuple 가정 부분의 호환을 위해 유지. */
+export type SetSlots = readonly Question[];
+
+/* (legacy) 사자성어 도메인용 8-tuple — 일부 location에서 readonly tuple 가정으로 cast 사용 */
+export type SetSlotsTuple = readonly [
+  Question,
+  Question,
+  Question,
+  Question,
+  Question,
+  Question,
+  Question,
+  Question,
 ];
 
-/* ─── 슬롯별 강제 type — 검증 + 폼 분기에 사용 ─── */
+/* ─── 슬롯별 강제 type — 사자성어 도메인 기준 (legacy export) ───
+ * 도메인별 강제 타입은 src/domains/<id>/index.ts의 slotConfig.requiredTypes 참고. */
 export const REQUIRED_SLOT_TYPES = [
   'hanja-writing',
   'multiple-choice',
@@ -36,7 +42,7 @@ export const REQUIRED_SLOT_TYPES = [
 export type SlotIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 export const SLOT_COUNT = 8;
 
-/* 슬롯 위치별 한글 라벨 (UI 표시) */
+/* 슬롯 위치별 한글 라벨 (UI 표시) — legacy. 도메인별로는 domain.labels.slotLabels 사용. */
 export const SLOT_LABELS: readonly string[] = [
   '1번 한자 쓰기',
   '2번 객관식',
@@ -63,11 +69,21 @@ export interface IdiomMeta {
   origin?: string;
 }
 
-/* 추후 확장 예정:
- * export interface IdiomaticMeta { domain: 'idiomatic'; phrase: string; meaning: string; }
- * export interface ProverbMeta   { domain: 'proverb';   proverb: string; meaning: string; }
- */
-export type SetMeta = IdiomMeta;
+/** 속담 메타 */
+export interface ProverbMeta {
+  domain: 'proverb';
+  /** 속담 본문 (예: "가는 말이 고와야 오는 말이 곱다") */
+  proverb: string;
+  /** 뜻풀이 */
+  meaning: string;
+  /** 교훈 (선택) */
+  lesson?: string;
+  /** 유래·출전 (선택) */
+  origin?: string;
+}
+
+/** 도메인별 메타 union (discriminated by `domain`) */
+export type SetMeta = IdiomMeta | ProverbMeta;
 
 /* ─── Set 컨테이너 ─── */
 export interface QuestionSet {
@@ -79,7 +95,7 @@ export interface QuestionSet {
   difficulty: Difficulty;
   /** 도메인별 메타데이터 (discriminated union) */
   meta: SetMeta;
-  /** 정확히 8개의 Question */
+  /** 도메인의 slotConfig.count 만큼의 Question */
   slots: SetSlots;
   tags?: string[];
   createdAt: number;
@@ -89,8 +105,8 @@ export interface QuestionSet {
 
 /* ─── 검증 결과 ─── */
 export interface SetValidationError {
-  /** 'meta' | 'title' | 슬롯 인덱스(0-7) */
-  scope: 'meta' | 'title' | SlotIndex;
+  /** 'meta' | 'title' | 슬롯 인덱스(0-N) */
+  scope: 'meta' | 'title' | SlotIndex | number;
   /** 에러 사유 — UI 토스트 또는 인라인 표시 */
   message: string;
   /** 검증 실패한 필드 키 (선택) */

@@ -1,11 +1,12 @@
 /**
  * EmptySetHero — 가운데 패널에서 selected set이 없을 때 표시되는 환영 화면.
- * 시드 사자성어 set 5개를 카드로 보여주고 클릭하면 selectSet(id) 호출.
- * "직접 새 set 만들기" CTA로 SetEditor 오픈.
+ * 등록된 모든 도메인의 시드 set 카드를 보여주고 클릭하면 selectSet(id) 호출.
+ * "직접 새 set 만들기" CTA로 도메인 피커(또는 단일 도메인이면 바로 SetEditor) 오픈.
  */
 import { Sparkles, FilePlus, FileText, Eye, Download } from 'lucide-react';
 import { useSetStore } from '../stores/setStore';
 import { getSlotCompletionCount } from '../services/setValidator';
+import { getDomain, listDomains } from '../domains/registry';
 
 interface Props {
   onCreateNew: () => void;
@@ -14,6 +15,9 @@ interface Props {
 export default function EmptySetHero({ onCreateNew }: Props) {
   const sets = useSetStore((s) => s.sets);
   const selectSet = useSetStore((s) => s.selectSet);
+
+  const domains = listDomains();
+  const isMultiDomain = domains.length > 1;
 
   return (
     <div className="flex-1 overflow-y-auto bg-gradient-to-b from-purple-50/50 to-white p-6">
@@ -30,25 +34,26 @@ export default function EmptySetHero({ onCreateNew }: Props) {
             첫 학습지를 만들어 보세요
           </h2>
           <p className="text-sm text-gray-500 leading-relaxed">
-            아래 시드 사자성어 set 중 하나를 클릭하거나,
+            아래 시드 set 중 하나를 클릭해 미리 보거나,
             <br />
-            <strong className="text-purple-600">직접 새 사자성어 set을 만드세요.</strong>
+            <strong className="text-purple-600">직접 새 학습지 set을 만드세요.</strong>
           </p>
         </div>
 
-        {/* Quick start — 시드 set 카드 */}
+        {/* Quick start — 시드 set 카드 (모든 도메인) */}
         {sets.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center gap-1.5 mb-3">
               <Sparkles size={14} className="text-amber-500" />
               <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                ⚡ 빠르게 시작 — 시드 사자성어
+                ⚡ 빠르게 시작 — 시드 학습지
               </h3>
               <span className="text-[10px] text-gray-400">한 번 클릭으로 미리보기</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {sets.slice(0, 6).map((s) => {
-                if (s.meta.domain !== 'four-char-idiom') return null;
+                const cfg = getDomain(s.meta.domain);
+                const summary = cfg.getCardSummary(s.meta);
                 const completion = getSlotCompletionCount(s);
                 return (
                   <button
@@ -57,18 +62,38 @@ export default function EmptySetHero({ onCreateNew }: Props) {
                     className="text-left p-3 bg-white border border-gray-200 rounded-xl hover:border-purple-400 hover:shadow-md transition-all group"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-base flex-shrink-0 group-hover:scale-105 transition-transform">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-base flex-shrink-0 group-hover:scale-105 transition-transform"
+                        style={{
+                          backgroundColor: `${cfg.labels.accentColor}1F`, /* ~12% alpha */
+                          color: cfg.labels.accentColor,
+                        }}
+                      >
                         📜
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-extrabold text-gray-800 truncate">
-                          {s.meta.idiom} <span className="text-xs text-gray-500 font-normal">{s.meta.hanja}</span>
+                          {summary.headline}{' '}
+                          <span className="text-xs text-gray-500 font-normal">
+                            {summary.subhead}
+                          </span>
                         </div>
                         <div className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
-                          {s.meta.meaning}
+                          {summary.body}
                         </div>
-                        <div className="text-[10px] text-gray-400 mt-1">
-                          {completion}/7 문항
+                        <div className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                          {isMultiDomain && (
+                            <span
+                              className="inline-block px-1 rounded text-[9px] font-semibold"
+                              style={{
+                                backgroundColor: `${cfg.labels.accentColor}1F`,
+                                color: cfg.labels.accentColor,
+                              }}
+                            >
+                              {cfg.labels.subjectName}
+                            </span>
+                          )}
+                          {completion}/{cfg.slotConfig.count} 문항
                         </div>
                       </div>
                     </div>
@@ -85,13 +110,13 @@ export default function EmptySetHero({ onCreateNew }: Props) {
             onClick={onCreateNew}
             className="inline-flex items-center gap-2 px-5 py-3 text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm transition-colors"
           >
-            <FilePlus size={16} /> 직접 새 사자성어 set 만들기
+            <FilePlus size={16} /> 직접 새 학습지 set 만들기
           </button>
         </div>
 
         {/* Footer hint */}
         <div className="text-center text-[11px] text-gray-400 leading-relaxed pt-4 border-t border-gray-100">
-          💡 한 set은 사자성어 1개 + 8문항(한자 쓰기 1 + 객관식 6 + 문장 만들기 1) = A4 1페이지 학습지입니다.
+          💡 한 set은 키워드 1개 + 8문항 = A4 1페이지 학습지입니다.
         </div>
       </div>
     </div>
