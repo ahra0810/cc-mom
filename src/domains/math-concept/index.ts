@@ -111,6 +111,13 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
       'sentence-making',
     ],
     autoSyncedSlots: [0, 7],
+    /* 슬롯 0~3 = 페이지 1 (친근한 만남), 슬롯 4~7 = 페이지 2 (내 것으로 만들기) */
+    pageBreaks: [3],
+    pageHeaders: [
+      '🌱 친근한 만남 — 너도 이미 매일 쓰고 있어!',
+      '💪 잘 따라왔어! 이제 진짜 내 것으로 만들어 보자',
+    ],
+    repeatMetaOnEachPage: false,
   },
   createEmptyMeta: () => ({
     domain: 'math-concept',
@@ -130,5 +137,5 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
   },
   defaultSets: MATH_CONCEPT_DEFAULT_SETS,
   editorHint:
-    '💡 1번은 시드별로 학습 활동이 다양해요 (정의 빈칸 / 한자 풀이 / 시각 예시 中). 2~7번은 정의·한자·시각·관련용어·올바른예·잘못된예. 8번은 개념을 한 문장으로 설명. 메타에 개념어·정의를 채우면 1·8번이 자동으로 일부 채워집니다.',
+    '💡 수학 용어를 친근하게 알려주는 2페이지 학습지입니다. Page 1 (1~4번) = 친근한 만남: 흥미 도입·쉬운 정의·이름의 비밀·시각 만남. Page 2 (5~8번) = 내 것으로 만들기: 단짝 친구·일상 적용·잘못된 예·친구에게 알려주기. 메타에 개념어·정의를 채우면 1·8번 일부가 자동으로 채워집니다.',
 };

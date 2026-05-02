@@ -37,6 +37,18 @@ export interface DomainSlotConfig {
   requiredTypes: readonly Question['type'][];
   /** 메타 변경 시 자동 동기화되는 슬롯 인덱스. 비면 sync 안 함. */
   autoSyncedSlots: readonly number[];
+  /**
+   * 다중 페이지 분할 — 슬롯 인덱스 i 가 들어 있으면 슬롯 i 다음에 새 페이지 시작.
+   * 비어 있으면 (기본) 1페이지에 모두 들어감. 예: [3] = 슬롯 0~3 까지가 페이지 1, 슬롯 4~ 가 페이지 2.
+   */
+  pageBreaks?: readonly number[];
+  /**
+   * 페이지별 상단 헤더 문구. length === pageBreaks.length + 1.
+   * 비어 있으면 헤더 없이 렌더. 수포자 방지 격려 메시지 등.
+   */
+  pageHeaders?: readonly string[];
+  /** 페이지 2 이후에도 메타 박스를 다시 표시할지. 기본 false (페이지 1에만). */
+  repeatMetaOnEachPage?: boolean;
 }
 
 /* ─── PDF 카드 표시용 요약 ─── */

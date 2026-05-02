@@ -279,10 +279,38 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   padding: 14mm; /* 상·하·좌·우 동일 — 위아래 여백 대칭 */
   margin: 0 auto;
   display: flex; flex-direction: column;
-  /* page-break-after 제거 — 단일 페이지 시험지에서 빈 2페이지가 생기는 문제 방지 */
   overflow: hidden;
   background: white;
   position: relative;
+}
+/* 다중 페이지 시 페이지 사이 강제 분할 */
+.page.multi-page { page-break-after: always; }
+.page.multi-page:last-child { page-break-after: auto; }
+/* 페이지 격려 헤더 — 도메인이 pageHeaders 정의한 경우만 표시 */
+.page-encourage {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #FEF3C7;
+  border-left: 3px solid #F59E0B;
+  border-radius: 1.5mm;
+  padding: 2.5mm 4mm;
+  margin-bottom: 4mm;
+  flex-shrink: 0;
+}
+.pe-text {
+  font-size: ${baseFs}pt;
+  font-weight: 700;
+  color: #78350F;
+  letter-spacing: 0.2mm;
+}
+.pe-num {
+  font-size: ${baseFs - 2}pt;
+  font-weight: 600;
+  color: #92400E;
+  background: white;
+  border: 1px solid #FCD34D;
+  border-radius: 1mm;
+  padding: 0.2mm 1.5mm;
+  flex-shrink: 0;
 }
 
 /* ─── 답안지 식별 시그널 (시험지와 한눈에 구분) ───
@@ -730,66 +758,102 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   if (forPrint) {
     html += `<div class="print-hint">💡 인쇄 시 페이지 상·하단에 날짜/URL이 함께 출력된다면, <b>인쇄 옵션 → "옵션" → "머리글 및 바닥글"</b>을 꺼 주세요.</div>`;
   }
-  html += `<div class="page${showAnswer ? ' answer-mode' : ''}">`;
-
-  /* 상단 — 시험지·답안지 모두 동일한 2단 [메타 | 보조] 구조.
-   *  - 시험지: 우측은 "이름 ___" 카드
-   *  - 답안지: 우측은 "정답 및 해설" 카드 (시각 통일감 + 별도 배너 불필요) */
-  html += `<div class="top-row">`;
-  /* 메타 박스 렌더링은 도메인 위임 — 도메인별로 hanja+meaning, proverb+lesson 등 다양 */
-  html += getDomain(set.domain).renderMetaBlock(meta, t, baseFs);
-  if (showAnswer) {
-    html += `<div class="answer-key-card">
-      <div class="ak-label">답안 및 해설</div>
-      <div class="ak-meta">${set.slots.length}문항 · ${esc(set.title)}</div>
-    </div>`;
-  } else {
-    html += `<div class="name-card">
-      <div class="name-card-row">
-        <span class="label">이름</span>
-        <span class="blank"></span>
-      </div>
-    </div>`;
-  }
-  html += `</div>`;
-
-  /* 8 slots — quiz-banner 템플릿일 때만 qb-frame(굵은 테두리 + 코랄 큐오테이션)으로 감쌈 */
+  /* 도메인 슬롯 구성 — 다중 페이지 분할 지원 */
+  const cfg = getDomain(set.domain);
+  const pageBreaks = cfg.slotConfig.pageBreaks ?? [];
+  const pageHeaders = cfg.slotConfig.pageHeaders ?? [];
+  const repeatMeta = cfg.slotConfig.repeatMetaOnEachPage ?? false;
   const isQuizBanner = t.metaStyle === 'quiz-banner';
-  if (isQuizBanner) {
-    html += `<div class="qb-frame">`;
-    html += `<span class="qb-quote left">&ldquo;</span>`;
-    html += `<span class="qb-quote right">&rdquo;</span>`;
+  const slotsArr = set.slots as readonly Question[];
+
+  /* 슬롯을 페이지 그룹으로 분할 — pageBreaks=[3]이면 [0..3] / [4..N] */
+  const slotGroups: { startIdx: number; slots: Question[] }[] = [];
+  let lastBreak = -1;
+  for (const breakIdx of pageBreaks) {
+    slotGroups.push({
+      startIdx: lastBreak + 1,
+      slots: slotsArr.slice(lastBreak + 1, breakIdx + 1) as Question[],
+    });
+    lastBreak = breakIdx;
   }
-  html += `<div class="set">`;
-  /* 슬롯 렌더링 — slot.type 기반. 도메인별 슬롯 구성을 자유롭게 유지. */
-  set.slots.forEach((q, idx) => {
+  slotGroups.push({
+    startIdx: lastBreak + 1,
+    slots: slotsArr.slice(lastBreak + 1) as Question[],
+  });
+  const totalPages = slotGroups.length;
+  const isMultiPage = totalPages > 1;
+
+  /* 단일 슬롯 HTML 렌더 */
+  const renderOneSlot = (q: Question, globalIdx: number): string => {
     switch (q.type) {
       case 'hanja-writing':
-        html += renderSlot1(q, idx, showAnswer);
-        break;
+        return renderSlot1(q, globalIdx, showAnswer);
       case 'short-answer':
-        html += renderShortAnswerSlot(q, idx, showAnswer);
-        break;
+        return renderShortAnswerSlot(q, globalIdx, showAnswer);
       case 'sentence-making':
-        html += renderSlot8(q, idx, showAnswer);
-        break;
+        return renderSlot8(q, globalIdx, showAnswer);
       case 'multiple-choice':
       default:
-        html += renderMcSlot(q, idx, showAnswer);
-        break;
+        return renderMcSlot(q, globalIdx, showAnswer);
     }
-  });
-  html += `</div>`;
-  if (isQuizBanner) {
+  };
+
+  /* 페이지별 HTML 생성 */
+  slotGroups.forEach((group, pageIdx) => {
+    const isFirstPage = pageIdx === 0;
+    const isLastPage = pageIdx === totalPages - 1;
+    html += `<div class="page${showAnswer ? ' answer-mode' : ''}${isMultiPage ? ' multi-page' : ''}">`;
+
+    /* 페이지 격려 헤더 (multi-page일 때만) */
+    if (isMultiPage && pageHeaders[pageIdx]) {
+      html += `<div class="page-encourage">
+        <span class="pe-text">${esc(pageHeaders[pageIdx])}</span>
+        <span class="pe-num">${pageIdx + 1} / ${totalPages}</span>
+      </div>`;
+    }
+
+    /* 상단 — 첫 페이지에만 (또는 repeatMeta=true면 모든 페이지) */
+    if (isFirstPage || repeatMeta) {
+      html += `<div class="top-row">`;
+      html += cfg.renderMetaBlock(meta, t, baseFs);
+      if (showAnswer) {
+        html += `<div class="answer-key-card">
+          <div class="ak-label">답안 및 해설</div>
+          <div class="ak-meta">${set.slots.length}문항 · ${esc(set.title)}</div>
+        </div>`;
+      } else {
+        html += `<div class="name-card">
+          <div class="name-card-row">
+            <span class="label">이름</span>
+            <span class="blank"></span>
+          </div>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+
+    /* 슬롯 영역 */
+    if (isQuizBanner) {
+      html += `<div class="qb-frame">`;
+      html += `<span class="qb-quote left">&ldquo;</span>`;
+      html += `<span class="qb-quote right">&rdquo;</span>`;
+    }
+    html += `<div class="set">`;
+    group.slots.forEach((q, localIdx) => {
+      html += renderOneSlot(q, group.startIdx + localIdx);
+    });
     html += `</div>`;
-  }
+    if (isQuizBanner) html += `</div>`;
 
-  /* 답안지 — 페이지 하단의 컴팩트 해설 그리드 (시험지엔 안 들어감) */
-  if (showAnswer) {
-    html += renderAnswerExplanations(set);
-  }
+    /* 답안지 정답 그리드 — 마지막 페이지 하단에만 */
+    if (showAnswer && isLastPage) {
+      html += renderAnswerExplanations(set);
+    }
 
-  html += `</div></body></html>`;
+    html += `</div>`;
+  });
+
+  html += `</body></html>`;
   return html;
 }
 
