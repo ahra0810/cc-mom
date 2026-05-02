@@ -28,15 +28,17 @@ function esc(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
-/* ─── 자동 폰트 축소 — 컨텐츠 길이 + 옵션 길이 + 1단/2단 영향 ─── */
+/* ─── 자동 폰트 축소 — 컨텐츠 길이 + 옵션 길이 + 템플릿 영향 ─── */
 /**
  * 휴리스틱:
  *   - 총 글자수가 많으면 한 단계씩 축소
  *   - 옵션이 18자 이상이면 1단 그리드(=세로 4줄) 진입 — 한 단계 더 축소
- *   - 1단 옵션이 한 줄 폭(약 70자)을 넘어 줄바꿈하면 한 단계 더 축소
+ *   - 'festive' 메타 박스는 리본·타이틀이 더 커서 추가 축소
  *   - 9pt 하한
+ *
+ * 페이지 초과 방지가 최우선 — 페이지 fit 안 되면 학습 가치 0.
  */
-function pickFontSize(set: QuestionSet, base: number): number {
+function pickFontSize(set: QuestionSet, base: number, metaStyle?: string): number {
   let totalChars = 0;
   let maxOptionLen = 0;
   let oneColMcCount = 0;
@@ -81,6 +83,9 @@ function pickFontSize(set: QuestionSet, base: number): number {
 
   /* q-context 박스가 여러 개거나 본문이 긴 경우 추가 축소 */
   if (contextSlotCount >= 2 || contextChars >= 60) fs -= 0.5;
+
+  /* festive 메타 박스는 리본·타이틀·이모지로 일반 메타보다 ~10mm 더 큼 → 한 단계 일찍 축소 */
+  if (metaStyle === 'festive') fs -= 0.5;
 
   return Math.max(fs, 9);
 }
@@ -255,7 +260,7 @@ export function generateSetHTML(
   forPrint = false,
 ): string {
   const t = getSetTemplate(templateId);
-  const baseFs = pickFontSize(set, t.baseFontSize);
+  const baseFs = pickFontSize(set, t.baseFontSize, t.metaStyle);
   const meta = set.meta;
 
   const css = `
@@ -479,11 +484,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .qb-meaning-text { color: ${t.textColor}; font-weight: 600; }
 .qb-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
 
-/* ─── Festive 공통 (도메인별 컨셉을 발랄·이모지·리본으로 표현) ─── */
+/* ─── Festive 공통 (도메인별 컨셉을 발랄·이모지·리본으로 표현) ───
+ * 1페이지 fit 보장이 최우선이므로 메타 박스는 컴팩트하게.
+ * 리본·타이틀·이모지 사이즈를 일반 메타와 비슷한 수준으로 유지. */
 .meta-festive {
-  border: 2px solid ${t.accentColor};
-  border-radius: 4mm;
-  padding: 4mm 5mm 3mm 5mm;
+  border: 1.5px solid ${t.accentColor};
+  border-radius: 3mm;
+  padding: 3mm 5mm 2.5mm 5mm;
   background: linear-gradient(135deg, ${t.bgAccent} 0%, white 100%);
   text-align: center;
   position: relative;
@@ -494,33 +501,32 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   background: ${t.accentColor};
   color: ${t.primaryColor};
   font-weight: 800;
-  font-size: ${baseFs - 1}pt;
-  padding: 1mm 5mm;
-  border-radius: 6mm;
-  margin-bottom: 2mm;
-  letter-spacing: 0.3mm;
-  box-shadow: 0 1mm 2mm ${t.accentColor}40;
+  font-size: ${baseFs - 1.5}pt;
+  padding: 0.6mm 4mm;
+  border-radius: 4mm;
+  margin-bottom: 1.5mm;
+  letter-spacing: 0.2mm;
 }
 .festive-headline {
-  margin: 1mm 0 2mm 0;
-  display: flex; align-items: baseline; justify-content: center; gap: 3mm;
+  margin: 0.5mm 0 1.5mm 0;
+  display: flex; align-items: baseline; justify-content: center; gap: 2.5mm;
   flex-wrap: wrap;
+  line-height: 1.1;
 }
 .festive-title {
-  font-size: ${baseFs + 9}pt;
+  font-size: ${baseFs + 6}pt;
   font-weight: 900;
   color: ${t.primaryColor};
-  letter-spacing: 1.5mm;
-  line-height: 1.1;
+  letter-spacing: 1mm;
 }
 .festive-meaning {
   display: inline-block;
   font-size: ${baseFs - 0.5}pt;
   background: white;
   border: 1px dashed ${t.accentColor};
-  border-radius: 2mm;
-  padding: 1.2mm 4mm;
-  margin: 1mm 0 0 0;
+  border-radius: 1.5mm;
+  padding: 0.8mm 3mm;
+  margin: 0.5mm 0 0 0;
   text-align: left;
   max-width: 100%;
 }
@@ -530,106 +536,106 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: white;
   font-weight: 800;
   border-radius: 1mm;
-  padding: 0.2mm 1.8mm;
-  margin-right: 2mm;
+  padding: 0.1mm 1.5mm;
+  margin-right: 1.5mm;
   font-size: ${baseFs - 1.5}pt;
-  letter-spacing: 0.3mm;
+  letter-spacing: 0.2mm;
 }
 .fm-text { color: ${t.textColor}; font-weight: 600; }
 .fm-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
 
-/* ─── 사자성어 festive — 한자 4박스 골드 톤 ─── */
+/* ─── 사자성어 festive — 한자 4박스 골드 톤 (컴팩트) ─── */
 .idiom-festive .if-hanja-row {
   display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 2.5mm; max-width: 80mm; margin: 1mm auto 2mm auto;
+  gap: 2mm; max-width: 70mm; margin: 0.5mm auto 1mm auto;
 }
 .idiom-festive .if-hanja-cell {
   font-family: 'Noto Serif KR', serif;
-  font-size: ${baseFs + 6}pt;
+  font-size: ${baseFs + 4}pt;
   font-weight: 700;
   color: ${t.primaryColor};
   background: white;
   border: 1.5px solid ${t.accentColor};
-  border-radius: 1.5mm;
+  border-radius: 1mm;
   aspect-ratio: 1;
   display: flex; align-items: center; justify-content: center;
   line-height: 1;
 }
 
-/* ─── 속담 festive — 큰 따옴표 강조 ─── */
-.proverb-festive .pf-headline { line-height: 1.2; }
+/* ─── 속담 festive — 큰 따옴표 강조 (컴팩트) ─── */
+.proverb-festive .pf-headline { line-height: 1.15; }
 .proverb-festive .pf-quote {
-  font-size: ${baseFs + 12}pt; font-weight: 900;
+  font-size: ${baseFs + 8}pt; font-weight: 900;
   color: ${t.accentColor}; line-height: 1;
   font-family: 'Noto Serif KR', serif;
 }
 .proverb-festive .pf-title {
   font-family: 'Noto Serif KR', serif;
-  letter-spacing: 0.5mm;
-  font-size: ${baseFs + 5}pt;
+  letter-spacing: 0.3mm;
+  font-size: ${baseFs + 3}pt;
 }
 .proverb-festive .pf-lesson {
-  margin-top: 1.5mm;
+  margin-top: 1mm;
   font-size: ${baseFs - 1.5}pt;
   color: ${t.primaryColor};
   font-weight: 600;
 }
 .proverb-festive .pf-lesson strong { color: ${t.primaryColor}; }
 
-/* ─── 관용어 festive — 신체 이모지 캐릭터 + 말풍선 ─── */
-.phrase-festive .ipf-headline { gap: 4mm; }
+/* ─── 관용어 festive — 신체 이모지 캐릭터 + 말풍선 (컴팩트) ─── */
+.phrase-festive .ipf-headline { gap: 3mm; }
 .phrase-festive .ipf-emoji {
-  font-size: ${baseFs + 14}pt;
+  font-size: ${baseFs + 10}pt;
   line-height: 1;
 }
 .phrase-festive .ipf-title {
-  font-size: ${baseFs + 6}pt;
+  font-size: ${baseFs + 4}pt;
 }
 .phrase-festive .ipf-example {
-  margin-top: 1.5mm;
+  margin-top: 1mm;
   font-size: ${baseFs - 1.5}pt;
   color: ${t.textColor}cc;
   background: white;
   border: 1px solid ${t.accentColor};
-  border-radius: 2mm 2mm 2mm 0; /* 말풍선 모양 */
-  padding: 1mm 3mm;
+  border-radius: 1.5mm 1.5mm 1.5mm 0;
+  padding: 0.8mm 2.5mm;
   display: inline-block;
 }
 .phrase-festive .ipf-example strong { color: ${t.primaryColor}; }
 
-/* ─── 수학 festive — 마법 별 + 시각 예시 박스 ─── */
-.math-festive .mf-headline { gap: 4mm; }
+/* ─── 수학 festive — 마법 별 + 시각 예시 박스 (수학은 2페이지라 다소 여유) ─── */
+.math-festive .mf-headline { gap: 3mm; }
 .math-festive .mf-stars {
-  font-size: ${baseFs + 8}pt;
+  font-size: ${baseFs + 6}pt;
   color: ${t.accentColor};
   line-height: 1;
 }
 .math-festive .mf-title {
-  font-size: ${baseFs + 7}pt;
+  font-size: ${baseFs + 5}pt;
 }
 .math-festive .mf-hanja {
   font-family: 'Noto Serif KR', serif;
-  font-size: ${baseFs + 1}pt;
+  font-size: ${baseFs + 0.5}pt;
   font-weight: 700;
   color: ${t.primaryColor}cc;
   border: 1px solid ${t.accentColor};
   border-radius: 1mm;
-  padding: 0.3mm 1.5mm;
+  padding: 0.2mm 1.2mm;
 }
 .math-festive .mf-visual {
-  margin-top: 1.5mm;
+  margin-top: 1mm;
   font-size: ${baseFs - 1}pt;
   color: ${t.textColor};
   background: ${t.accentColor}1F;
   border-left: 3px solid ${t.accentColor};
   border-radius: 1mm;
-  padding: 1mm 3mm;
+  padding: 0.8mm 2.5mm;
   text-align: left;
   display: inline-block;
 }
 .math-festive .mf-visual strong { color: ${t.primaryColor}; font-weight: 800; }
 .math-festive .mf-related {
-  margin-top: 1mm;
+  margin-top: 0.8mm;
   font-size: ${baseFs - 1.5}pt;
   color: ${t.textColor}cc;
 }
