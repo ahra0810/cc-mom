@@ -451,6 +451,53 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .qb-meaning-text { color: ${t.textColor}; font-weight: 600; }
 .qb-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
 
+/* ─── 수학 개념어 도메인 메타 — term + 한자 태그 + 정의 박스 + 시각 예시 + 관련 용어 ─── */
+.mc-term-block {
+  text-align: center;
+  margin-bottom: 2mm;
+  display: flex; align-items: baseline; justify-content: center; gap: 3mm;
+}
+.mc-term-text {
+  font-size: ${baseFs + 8}pt;
+  font-weight: 900;
+  color: ${t.primaryColor};
+  letter-spacing: 1mm;
+}
+.mc-hanja-tag {
+  font-family: 'Noto Serif KR', serif;
+  font-size: ${baseFs + 1}pt;
+  font-weight: 700;
+  color: ${t.primaryColor}cc;
+  border: 1px solid ${t.accentColor};
+  border-radius: 1mm;
+  padding: 0.3mm 1.5mm;
+  letter-spacing: 0.3mm;
+}
+.mc-definition {
+  font-size: ${baseFs - 0.5}pt;
+  color: ${t.textColor};
+  font-weight: 600;
+  text-align: center;
+  padding: 1.5mm 3mm;
+  background: ${t.bgAccent};
+  border-radius: 1mm;
+  margin: 1mm 0;
+}
+.mc-visual {
+  font-size: ${baseFs - 1.5}pt;
+  color: ${t.textColor}cc;
+  text-align: center;
+  font-style: italic;
+  margin-top: 1mm;
+}
+.mc-related {
+  font-size: ${baseFs - 1.5}pt;
+  color: ${t.textColor}99;
+  text-align: center;
+  margin-top: 0.8mm;
+}
+.mc-related strong { color: ${t.primaryColor}; font-weight: 800; margin-right: 1mm; }
+
 /* ─── 속담 도메인 메타 — 큰 따옴표로 본문 강조 ─── */
 .proverb-quote-block,
 .phrase-quote-block {

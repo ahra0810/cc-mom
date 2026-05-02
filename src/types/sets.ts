@@ -7,7 +7,11 @@
 import type { Question, Difficulty } from './index';
 
 /* ─── 도메인 ─── */
-export type SetDomain = 'four-char-idiom' | 'proverb' | 'idiomatic-phrase';
+export type SetDomain =
+  | 'four-char-idiom'
+  | 'proverb'
+  | 'idiomatic-phrase'
+  | 'math-concept';
 
 /* ─── 슬롯 — 도메인별로 type이 다르므로 readonly Question[] ───
  * 길이/타입 검증은 setValidator.validateSet이 도메인 slotConfig 기반으로 수행.
@@ -95,8 +99,29 @@ export interface IdiomaticPhraseMeta {
   origin?: string;
 }
 
+/** 수학 개념어 메타 — 국어 학원에서 배우는 수학 용어 (예: "분모", "몫", "평균") */
+export interface MathConceptMeta {
+  domain: 'math-concept';
+  /** 개념어 본문 (예: "분모") */
+  term: string;
+  /** 한자 표기 (선택, 한자어인 경우만) — 순한국어("몫")는 빈 값 */
+  hanja?: string;
+  /** 정의 (예: "분수에서 아래에 쓰는 수") */
+  definition: string;
+  /** 시각/구체 예시 (선택) — 분수 표기, 예시 수치 등. 텍스트로 표현. */
+  visualExample?: string;
+  /** 관련 용어 (선택) — 짝/대비 학습 ("분모"의 경우 ["분자", "분수"]) */
+  relatedTerms?: string[];
+  /** 어원 / 한자 풀이 보조 (선택) */
+  origin?: string;
+}
+
 /** 도메인별 메타 union (discriminated by `domain`) */
-export type SetMeta = IdiomMeta | ProverbMeta | IdiomaticPhraseMeta;
+export type SetMeta =
+  | IdiomMeta
+  | ProverbMeta
+  | IdiomaticPhraseMeta
+  | MathConceptMeta;
 
 /* ─── Set 컨테이너 ─── */
 export interface QuestionSet {
