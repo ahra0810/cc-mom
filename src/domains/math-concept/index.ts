@@ -138,4 +138,5 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
   defaultSets: MATH_CONCEPT_DEFAULT_SETS,
   editorHint:
     '💡 수학 용어를 친근하게 알려주는 2페이지 학습지입니다. Page 1 (1~4번) = 친근한 만남: 흥미 도입·쉬운 정의·이름의 비밀·시각 만남. Page 2 (5~8번) = 내 것으로 만들기: 단짝 친구·일상 적용·잘못된 예·친구에게 알려주기. 메타에 개념어·정의를 채우면 1·8번 일부가 자동으로 채워집니다.',
+  recommendedTemplateId: 'math-festive',
 };

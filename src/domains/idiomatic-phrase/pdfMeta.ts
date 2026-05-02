@@ -14,7 +14,40 @@ function esc(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
+/* 관용어 본문에서 신체 부위 키워드를 감지해 적절한 이모지 반환 */
+function pickBodyEmoji(phrase: string): string {
+  if (/입|혀|입술/.test(phrase)) return '👄';
+  if (/눈|시선|눈빛/.test(phrase)) return '👁';
+  if (/귀/.test(phrase)) return '👂';
+  if (/코/.test(phrase)) return '👃';
+  if (/손|손가락/.test(phrase)) return '✋';
+  if (/발|걸음/.test(phrase)) return '🦶';
+  if (/머리|이마/.test(phrase)) return '🧠';
+  if (/어깨/.test(phrase)) return '💪';
+  if (/배|뱃속/.test(phrase)) return '🫃';
+  if (/마음|가슴/.test(phrase)) return '💗';
+  return '✨';
+}
+
 export function renderIdiomaticMetaBlock(meta: IdiomaticPhraseMeta, t: SetTemplate): string {
+  if (t.metaStyle === 'festive') {
+    /* 우리 몸으로 배우는 관용어 — 앰버 + 핑크 + 신체 이모지 캐릭터 + 말풍선 */
+    /* 관용어 본문에서 신체 부위 키워드를 자동 감지해 이모지 매칭 */
+    const bodyEmoji = pickBodyEmoji(meta.phrase);
+    return `<div class="meta-block meta-festive phrase-festive">
+      <div class="festive-ribbon">${bodyEmoji} 우리 몸으로 배우는 관용어 ✨</div>
+      <div class="festive-headline ipf-headline">
+        <span class="ipf-emoji">${bodyEmoji}</span>
+        <span class="festive-title ipf-title">${esc(meta.phrase)}</span>
+      </div>
+      <div class="festive-meaning">
+        <span class="fm-label">뜻</span>
+        <span class="fm-text">${esc(meta.meaning)}</span>
+      </div>
+      ${meta.example ? `<div class="ipf-example">💬 <strong>예문</strong> · ${esc(meta.example)}</div>` : ''}
+    </div>`;
+  }
+
   if (t.metaStyle === 'hanja-emphasis') {
     return `<div class="meta-block meta-classic">
       <div class="phrase-quote-block">

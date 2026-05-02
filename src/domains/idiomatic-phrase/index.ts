@@ -113,4 +113,5 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
   defaultSets: IDIOMATIC_DEFAULT_SETS,
   editorHint:
     '💡 1번 빈칸 채우기 → 2~7번 객관식 → 8번 문장 만들기 순서로 작성하세요. 메타에 관용어 정보를 채우면 1·8번이 자동으로 일부 채워집니다.',
+  recommendedTemplateId: 'phrase-festive',
 };

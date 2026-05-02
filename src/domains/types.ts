@@ -119,6 +119,13 @@ export interface DomainConfig<TMeta extends SetMeta = SetMeta> {
   /* ─── 옵션: 작성 안내 / 도움말 ─── */
   /** SetEditor 상단의 작성 가이드 한 줄 */
   editorHint?: ReactNode;
+
+  /**
+   * 도메인 기본 추천 PDF 템플릿 id.
+   * 사용자가 selectedTemplateId를 명시하지 않은 경우 미리보기·PDF에서 자동 사용.
+   * 보통 도메인별 'festive' 템플릿(컨셉 캐릭터·이모지)을 가리킴.
+   */
+  recommendedTemplateId?: string;
 }
 
 /* MetaEditor 컴포넌트가 받는 props */

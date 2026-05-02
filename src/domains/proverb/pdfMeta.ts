@@ -16,6 +16,23 @@ function esc(text: string): string {
 }
 
 export function renderProverbMetaBlock(meta: ProverbMeta, t: SetTemplate): string {
+  if (t.metaStyle === 'festive') {
+    /* 우리말 보따리 — 청록 + 황금벼 + 큰 따옴표 + 옛 정자 분위기 */
+    return `<div class="meta-block meta-festive proverb-festive">
+      <div class="festive-ribbon">🌾 우리말 보따리 — 속담 한 알 🌙</div>
+      <div class="festive-headline pf-headline">
+        <span class="pf-quote">&ldquo;</span>
+        <span class="festive-title pf-title">${esc(meta.proverb)}</span>
+        <span class="pf-quote">&rdquo;</span>
+      </div>
+      <div class="festive-meaning">
+        <span class="fm-label">뜻</span>
+        <span class="fm-text">${esc(meta.meaning)}</span>
+      </div>
+      ${meta.lesson ? `<div class="pf-lesson">⭐ <strong>교훈</strong> · ${esc(meta.lesson)}</div>` : ''}
+    </div>`;
+  }
+
   if (t.metaStyle === 'hanja-emphasis') {
     /* 한자 강조 템플릿 — 속담은 한자가 없으니 큰 따옴표 + 본문으로 대체 */
     return `<div class="meta-block meta-classic">

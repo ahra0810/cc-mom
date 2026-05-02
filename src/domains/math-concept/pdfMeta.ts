@@ -23,6 +23,29 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
     ? `<div class="mc-visual">${esc(meta.visualExample)}</div>`
     : '';
 
+  if (t.metaStyle === 'festive') {
+    /* 수학 마법사 노트 — 블루 + 라임 + 별 + 마법사 캐릭터 + 시각 예시 박스 강조 */
+    return `<div class="meta-block meta-festive math-festive">
+      <div class="festive-ribbon">🧙 수학 마법사의 친근한 노트 🧮 ✨</div>
+      <div class="festive-headline mf-headline">
+        <span class="mf-stars">✨</span>
+        <span class="festive-title mf-title">${esc(meta.term)}</span>
+        ${meta.hanja ? `<span class="mf-hanja">${esc(meta.hanja)}</span>` : ''}
+        <span class="mf-stars">✨</span>
+      </div>
+      <div class="festive-meaning">
+        <span class="fm-label">뜻</span>
+        <span class="fm-text">${esc(meta.definition)}</span>
+      </div>
+      ${meta.visualExample ? `<div class="mf-visual">🎯 <strong>이렇게 써요</strong> · ${esc(meta.visualExample)}</div>` : ''}
+      ${
+        meta.relatedTerms && meta.relatedTerms.length
+          ? `<div class="mf-related">👯 <strong>단짝 친구</strong> · ${meta.relatedTerms.map(esc).join(' · ')}</div>`
+          : ''
+      }
+    </div>`;
+  }
+
   if (t.metaStyle === 'hanja-emphasis') {
     return `<div class="meta-block meta-classic">
       <div class="mc-term-block">

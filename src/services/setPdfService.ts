@@ -479,6 +479,162 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .qb-meaning-text { color: ${t.textColor}; font-weight: 600; }
 .qb-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
 
+/* ─── Festive 공통 (도메인별 컨셉을 발랄·이모지·리본으로 표현) ─── */
+.meta-festive {
+  border: 2px solid ${t.accentColor};
+  border-radius: 4mm;
+  padding: 4mm 5mm 3mm 5mm;
+  background: linear-gradient(135deg, ${t.bgAccent} 0%, white 100%);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.festive-ribbon {
+  display: inline-block;
+  background: ${t.accentColor};
+  color: ${t.primaryColor};
+  font-weight: 800;
+  font-size: ${baseFs - 1}pt;
+  padding: 1mm 5mm;
+  border-radius: 6mm;
+  margin-bottom: 2mm;
+  letter-spacing: 0.3mm;
+  box-shadow: 0 1mm 2mm ${t.accentColor}40;
+}
+.festive-headline {
+  margin: 1mm 0 2mm 0;
+  display: flex; align-items: baseline; justify-content: center; gap: 3mm;
+  flex-wrap: wrap;
+}
+.festive-title {
+  font-size: ${baseFs + 9}pt;
+  font-weight: 900;
+  color: ${t.primaryColor};
+  letter-spacing: 1.5mm;
+  line-height: 1.1;
+}
+.festive-meaning {
+  display: inline-block;
+  font-size: ${baseFs - 0.5}pt;
+  background: white;
+  border: 1px dashed ${t.accentColor};
+  border-radius: 2mm;
+  padding: 1.2mm 4mm;
+  margin: 1mm 0 0 0;
+  text-align: left;
+  max-width: 100%;
+}
+.fm-label {
+  display: inline-block;
+  background: ${t.primaryColor};
+  color: white;
+  font-weight: 800;
+  border-radius: 1mm;
+  padding: 0.2mm 1.8mm;
+  margin-right: 2mm;
+  font-size: ${baseFs - 1.5}pt;
+  letter-spacing: 0.3mm;
+}
+.fm-text { color: ${t.textColor}; font-weight: 600; }
+.fm-origin { color: ${t.textColor}99; font-style: italic; font-size: ${baseFs - 1.5}pt; }
+
+/* ─── 사자성어 festive — 한자 4박스 골드 톤 ─── */
+.idiom-festive .if-hanja-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 2.5mm; max-width: 80mm; margin: 1mm auto 2mm auto;
+}
+.idiom-festive .if-hanja-cell {
+  font-family: 'Noto Serif KR', serif;
+  font-size: ${baseFs + 6}pt;
+  font-weight: 700;
+  color: ${t.primaryColor};
+  background: white;
+  border: 1.5px solid ${t.accentColor};
+  border-radius: 1.5mm;
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+
+/* ─── 속담 festive — 큰 따옴표 강조 ─── */
+.proverb-festive .pf-headline { line-height: 1.2; }
+.proverb-festive .pf-quote {
+  font-size: ${baseFs + 12}pt; font-weight: 900;
+  color: ${t.accentColor}; line-height: 1;
+  font-family: 'Noto Serif KR', serif;
+}
+.proverb-festive .pf-title {
+  font-family: 'Noto Serif KR', serif;
+  letter-spacing: 0.5mm;
+  font-size: ${baseFs + 5}pt;
+}
+.proverb-festive .pf-lesson {
+  margin-top: 1.5mm;
+  font-size: ${baseFs - 1.5}pt;
+  color: ${t.primaryColor};
+  font-weight: 600;
+}
+.proverb-festive .pf-lesson strong { color: ${t.primaryColor}; }
+
+/* ─── 관용어 festive — 신체 이모지 캐릭터 + 말풍선 ─── */
+.phrase-festive .ipf-headline { gap: 4mm; }
+.phrase-festive .ipf-emoji {
+  font-size: ${baseFs + 14}pt;
+  line-height: 1;
+}
+.phrase-festive .ipf-title {
+  font-size: ${baseFs + 6}pt;
+}
+.phrase-festive .ipf-example {
+  margin-top: 1.5mm;
+  font-size: ${baseFs - 1.5}pt;
+  color: ${t.textColor}cc;
+  background: white;
+  border: 1px solid ${t.accentColor};
+  border-radius: 2mm 2mm 2mm 0; /* 말풍선 모양 */
+  padding: 1mm 3mm;
+  display: inline-block;
+}
+.phrase-festive .ipf-example strong { color: ${t.primaryColor}; }
+
+/* ─── 수학 festive — 마법 별 + 시각 예시 박스 ─── */
+.math-festive .mf-headline { gap: 4mm; }
+.math-festive .mf-stars {
+  font-size: ${baseFs + 8}pt;
+  color: ${t.accentColor};
+  line-height: 1;
+}
+.math-festive .mf-title {
+  font-size: ${baseFs + 7}pt;
+}
+.math-festive .mf-hanja {
+  font-family: 'Noto Serif KR', serif;
+  font-size: ${baseFs + 1}pt;
+  font-weight: 700;
+  color: ${t.primaryColor}cc;
+  border: 1px solid ${t.accentColor};
+  border-radius: 1mm;
+  padding: 0.3mm 1.5mm;
+}
+.math-festive .mf-visual {
+  margin-top: 1.5mm;
+  font-size: ${baseFs - 1}pt;
+  color: ${t.textColor};
+  background: ${t.accentColor}1F;
+  border-left: 3px solid ${t.accentColor};
+  border-radius: 1mm;
+  padding: 1mm 3mm;
+  text-align: left;
+  display: inline-block;
+}
+.math-festive .mf-visual strong { color: ${t.primaryColor}; font-weight: 800; }
+.math-festive .mf-related {
+  margin-top: 1mm;
+  font-size: ${baseFs - 1.5}pt;
+  color: ${t.textColor}cc;
+}
+.math-festive .mf-related strong { color: ${t.primaryColor}; font-weight: 800; }
+
 /* ─── 수학 개념어 도메인 메타 — term + 한자 태그 + 정의 박스 + 시각 예시 + 관련 용어 ─── */
 .mc-term-block {
   text-align: center;

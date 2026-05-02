@@ -18,6 +18,24 @@ export function renderIdiomMetaBlock(meta: IdiomMeta, t: SetTemplate): string {
   const hanjaChars = [...(meta.hanja || '')].slice(0, 4);
   while (hanjaChars.length < 4) hanjaChars.push('');
 
+  if (t.metaStyle === 'festive') {
+    /* 한자 두루마리 — 보라 + 골드 + 한자 4박스 강조 + 두루마리 리본 */
+    return `<div class="meta-block meta-festive idiom-festive">
+      <div class="festive-ribbon">📜 사자성어 학습 두루마리 ✨</div>
+      <div class="festive-headline">
+        <span class="festive-title">${esc(meta.idiom)}</span>
+      </div>
+      <div class="if-hanja-row">
+        ${hanjaChars.map((c) => `<div class="if-hanja-cell">${esc(c)}</div>`).join('')}
+      </div>
+      <div class="festive-meaning">
+        <span class="fm-label">뜻</span>
+        <span class="fm-text">${esc(meta.meaning)}</span>
+        ${meta.origin ? ` <span class="fm-origin">· ${esc(meta.origin)}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
   if (t.metaStyle === 'hanja-emphasis') {
     return `<div class="meta-block meta-hanja-emphasis">
       <div class="meta-hanja-row">

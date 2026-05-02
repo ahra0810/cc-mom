@@ -13,6 +13,7 @@ import { useSetStore } from '../stores/setStore';
 import EmptySetHero from './EmptySetHero';
 import { getSlotCompletionCount } from '../services/setValidator';
 import { generateSetHTML } from '../services/setPdfService';
+import { getDomain } from '../domains/registry';
 
 interface Props {
   onCreateNew: () => void;
@@ -45,7 +46,9 @@ export default function SetCenterPanel({ onCreateNew, onEditSet }: Props) {
 
   const html = useMemo(() => {
     if (!selectedSet) return '';
-    return generateSetHTML(selectedSet, selectedTemplateId ?? undefined, showAnswer);
+    /* 사용자가 명시 선택한 템플릿이 없으면 도메인 추천 사용 */
+    const effectiveTemplateId = selectedTemplateId ?? getDomain(selectedSet.domain).recommendedTemplateId;
+    return generateSetHTML(selectedSet, effectiveTemplateId, showAnswer);
   }, [selectedSet, selectedTemplateId, showAnswer]);
 
   /* iframe 내용 갱신 */

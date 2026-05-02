@@ -44,8 +44,6 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
 
   const { toast } = useToast();
 
-  /* 현재 적용된 템플릿 id — store가 null이면 첫 번째(idiom-classic) 기본값 */
-  const templateId = selectedTemplateId ?? SET_TEMPLATES[0].id;
   const setTemplateId = (id: string) => setSelectedTemplateId(id);
 
   /* 빠른 편집 로컬 상태 — selectedSet 변경 시 동기화 */
@@ -89,6 +87,9 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
   /* 도메인별 카드 요약 — idiom의 한자 단일 글자 / 속담의 첫 글자 등 */
   const domain = getDomain(selectedSet.domain);
   const summary = domain.getCardSummary(selectedSet.meta);
+  /* 사용자 명시 선택이 없으면 도메인 추천 템플릿 자동 사용 */
+  const templateId =
+    selectedTemplateId ?? domain.recommendedTemplateId ?? SET_TEMPLATES[0].id;
 
   const commitQuickField = (field: 'title' | 'difficulty', value: string) => {
     if (field === 'title') {
