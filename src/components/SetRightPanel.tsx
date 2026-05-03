@@ -234,53 +234,64 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
           </div>
         </section>
 
-        {/* 템플릿 선택 */}
+        {/* 템플릿 선택 — 활성 도메인이 사용 가능한 템플릿만 표시 */}
         <section>
           <h3 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-            템플릿
+            템플릿 <span className="font-normal text-gray-400">— {domain.labels.subjectName} 전용</span>
           </h3>
           <div className="space-y-1.5">
-            {SET_TEMPLATES.map((t) => {
-              const checked = templateId === t.id;
-              return (
-                <label
-                  key={t.id}
-                  className={`flex items-center gap-2 px-2 py-2 rounded border cursor-pointer transition-colors ${
-                    checked
-                      ? 'border-purple-400 bg-purple-50'
-                      : 'border-gray-200 bg-white hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="template"
-                    className="accent-purple-600"
-                    checked={checked}
-                    onChange={() => setTemplateId(t.id)}
-                  />
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[11px] font-bold text-gray-800">{t.name}</span>
-                    <span className="text-[9.5px] text-gray-500 truncate">
-                      {t.description}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-0.5 flex-shrink-0">
-                    {t.swatch.map((c, i) => (
-                      <span
-                        key={i}
-                        className="w-2.5 h-2.5 rounded-full border border-gray-200"
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </div>
-                </label>
-              );
-            })}
-            {SET_TEMPLATES.length === 1 && (
-              <p className="text-[9.5px] text-gray-400 italic px-1">
-                Phase 7에서 한자 강조형·저학년 친화형 추가 예정
-              </p>
-            )}
+            {(() => {
+              /* 도메인 availableTemplateIds 우선, 미지정이면 모든 템플릿 */
+              const templateList = domain.availableTemplateIds
+                ? domain.availableTemplateIds
+                    .map((id) => SET_TEMPLATES.find((t) => t.id === id))
+                    .filter((t): t is NonNullable<typeof t> => Boolean(t))
+                : SET_TEMPLATES;
+              return templateList.map((t, idx) => {
+                const checked = templateId === t.id;
+                const isDefault = idx === 0;
+                return (
+                  <label
+                    key={t.id}
+                    className={`flex items-center gap-2 px-2 py-2 rounded border cursor-pointer transition-colors ${
+                      checked
+                        ? 'border-purple-400 bg-purple-50'
+                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="template"
+                      className="accent-purple-600"
+                      checked={checked}
+                      onChange={() => setTemplateId(t.id)}
+                    />
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="text-[11px] font-bold text-gray-800 flex items-center gap-1">
+                        {t.name}
+                        {isDefault && (
+                          <span className="text-[8.5px] font-semibold px-1 py-0 rounded bg-purple-100 text-purple-700">
+                            기본
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[9.5px] text-gray-500 truncate">
+                        {t.description}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      {t.swatch.map((c, i) => (
+                        <span
+                          key={i}
+                          className="w-2.5 h-2.5 rounded-full border border-gray-200"
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
+                    </div>
+                  </label>
+                );
+              });
+            })()}
           </div>
         </section>
 

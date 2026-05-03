@@ -497,15 +497,18 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   overflow: hidden;
 }
 .festive-ribbon {
+  /* 모든 도메인에서 가독성 보장 — primary 진한 색 위에 흰 글자 */
   display: inline-block;
-  background: ${t.accentColor};
-  color: ${t.primaryColor};
+  background: ${t.primaryColor};
+  color: white;
   font-weight: 800;
   font-size: ${baseFs - 1.5}pt;
-  padding: 0.6mm 4mm;
+  padding: 0.8mm 4.5mm;
   border-radius: 4mm;
   margin-bottom: 1.5mm;
   letter-spacing: 0.2mm;
+  /* 강조 보더 (액센트 색) */
+  box-shadow: 0 0 0 1px ${t.accentColor};
 }
 .festive-headline {
   margin: 0.5mm 0 1.5mm 0;

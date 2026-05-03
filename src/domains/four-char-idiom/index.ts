@@ -127,4 +127,6 @@ export const idiomDomainConfig: DomainConfig<IdiomMeta> = {
   editorHint:
     '💡 1번 한자 따라쓰기 → 2~7번 객관식 → 8번 문장 만들기 순서로 작성하세요. 메타에 사자성어 정보를 채우면 1·8번이 자동으로 일부 채워집니다.',
   recommendedTemplateId: 'idiom-festive',
+  /* 사자성어 어울리는 템플릿 — festive(기본) + 한자 강조(서예) + 클래식 */
+  availableTemplateIds: ['idiom-festive', 'idiom-hanja-emphasis', 'idiom-classic'],
 };

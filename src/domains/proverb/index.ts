@@ -116,4 +116,6 @@ export const proverbDomainConfig: DomainConfig<ProverbMeta> = {
   editorHint:
     '💡 1번 빈칸 채우기 → 2~7번 객관식 → 8번 문장 만들기 순서로 작성하세요. 메타에 속담 정보를 채우면 1·8번이 자동으로 일부 채워집니다.',
   recommendedTemplateId: 'proverb-festive',
+  /* 속담 어울리는 템플릿 — festive(기본) + 저학년 친화 + 클래식 */
+  availableTemplateIds: ['proverb-festive', 'idiom-low-grade', 'idiom-classic'],
 };

@@ -126,6 +126,14 @@ export interface DomainConfig<TMeta extends SetMeta = SetMeta> {
    * 보통 도메인별 'festive' 템플릿(컨셉 캐릭터·이모지)을 가리킴.
    */
   recommendedTemplateId?: string;
+
+  /**
+   * 이 도메인에서 사용 가능한 템플릿 id 목록.
+   * 우측 패널의 템플릿 라디오는 이 목록의 템플릿만 표시함.
+   * 첫 번째 항목이 기본 추천이며, recommendedTemplateId와 일치해야 함.
+   * 미지정 시 모든 템플릿이 표시됨 (legacy fallback).
+   */
+  availableTemplateIds?: readonly string[];
 }
 
 /* MetaEditor 컴포넌트가 받는 props */
