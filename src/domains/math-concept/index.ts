@@ -80,7 +80,9 @@ function getMathConceptSearchHaystack(meta: MathConceptMeta): string {
     meta.hanja || '',
     meta.englishTerm || '',
     meta.englishOrigin || '',
+    meta.textbookDefinition || '',
     meta.definition,
+    meta.visualEmoji || '',
     meta.visualExample || '',
     (meta.relatedTerms || []).join(' '),
     meta.textbookExample || '',
@@ -129,7 +131,7 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
   },
   defaultSets: MATH_CONCEPT_DEFAULT_SETS,
   editorHint:
-    '💡 발문 독해력 + 한·영·한자 통합 학습지 (초1~3, A4 1페이지). 풀폭 \'개념 학습 카드\' 4섹션(정의·그림·단짝·발문에서 만나기) + 미니 퀴즈 2문항(정의 객관식·발문 속 단어 찾기). 메타의 영어 단어·영어 어원·시각 예시·관련 용어·교과서 발문 예를 모두 채워야 풍부한 학습 카드가 만들어집니다.',
+    '💡 발문 독해력 + 한·영·한자 통합 학습지 (초1~3, A4 1페이지). 헤더(용어·영어·이름칸) + \'정의\' 박스(교과서 정의 + 친근한 정의 두 줄) + 좌·우 2단(그림으로 보기·단짝 친구) + 발문에서 만나기 + 미니 퀴즈 2문항. **그림 필드(visualEmoji)에 이모지·도형 문자(△□⬠🟡)로 미니 그림을 그려 주세요** — 카드 시각 섹션의 핵심.',
   recommendedTemplateId: 'math-festive',
   /* 수학 어울리는 템플릿 — festive(기본) + 퀴즈 배너 + 클래식 */
   availableTemplateIds: ['math-festive', 'idiom-quiz-banner', 'idiom-classic'],

@@ -717,41 +717,46 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   width: 100%;
   box-sizing: border-box;
 }
-.math-concept-card .mcc-headline {
+/* 헤더 — 좌측: term+영어+한자 / 우측: 이름 빈칸 (2단) */
+.math-concept-card .mcc-header-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 3mm;
+  align-items: stretch;
+  margin-bottom: 2.5mm;
+}
+.math-concept-card .mcc-header-left,
+.math-concept-card .mcc-header-right {
+  background: ${t.bgAccent};
+  border: 1.2px solid ${t.accentColor}66;
+  border-radius: 2mm;
+  padding: 2.5mm 3.5mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.math-concept-card .mcc-header-main {
   display: flex;
   align-items: baseline;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 2.2mm;
-  margin: 1mm 0 3mm 0;
-  padding: 2mm 3mm;
-  border-bottom: 2px dashed ${t.accentColor}66;
-}
-.math-concept-card .mcc-h-stars {
-  font-size: ${baseFs}pt;
-  color: ${t.accentColor};
+  gap: 2.5mm;
 }
 .math-concept-card .mcc-h-term {
-  font-size: ${baseFs + 9}pt;
+  font-size: ${baseFs + 10}pt;
   font-weight: 900;
   color: ${t.primaryColor};
-  letter-spacing: 1mm;
-}
-.math-concept-card .mcc-h-sep {
-  font-size: ${baseFs + 1}pt;
-  color: ${t.accentColor}aa;
-  font-weight: 400;
+  letter-spacing: 1.2mm;
 }
 .math-concept-card .mc-english-tag {
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  font-size: ${baseFs + 1}pt;
+  font-size: ${baseFs + 1.5}pt;
   font-weight: 700;
   font-style: italic;
   color: ${t.accentColor};
   background: ${t.accentColor}1F;
   border: 1px solid ${t.accentColor};
   border-radius: 1mm;
-  padding: 0.4mm 2mm;
+  padding: 0.6mm 2.2mm;
   letter-spacing: 0.2mm;
 }
 .math-concept-card .mc-hanja-tag {
@@ -761,74 +766,182 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.primaryColor}cc;
   border: 1px solid ${t.accentColor};
   border-radius: 1mm;
-  padding: 0.4mm 2mm;
+  padding: 0.5mm 2mm;
   letter-spacing: 0.3mm;
 }
-.math-concept-card .mc-eng-origin-inline {
+.math-concept-card .mcc-h-origin {
+  margin-top: 1.2mm;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  font-size: ${baseFs - 0.5}pt;
-  color: ${t.textColor}cc;
+  font-size: ${baseFs - 1}pt;
+  color: ${t.textColor}aa;
   font-style: italic;
   letter-spacing: 0.1mm;
+  border-top: 1px dashed ${t.accentColor}55;
+  padding-top: 1.2mm;
 }
+.math-concept-card .mcc-header-right {
+  flex-direction: row;
+  align-items: center;
+  gap: 3mm;
+}
+.math-concept-card .mcc-name-label {
+  font-size: ${baseFs + 1}pt;
+  font-weight: 800;
+  color: ${t.primaryColor};
+  flex-shrink: 0;
+}
+.math-concept-card .mcc-name-line {
+  flex: 1;
+  height: 0;
+  border-bottom: 1.5px solid ${t.textColor}88;
+  margin-bottom: 1mm;
+}
+
+/* 본문 섹션들 */
 .math-concept-card .mcc-body {
   display: flex;
   flex-direction: column;
   gap: 2.5mm;
 }
 .math-concept-card .mcc-section {
-  background: ${t.bgAccent};
-  border-left: 3px solid ${t.accentColor};
-  border-radius: 1.5mm;
-  padding: 2mm 3mm 2.2mm 3mm;
-  position: relative;
+  background: #ffffff;
+  border: 1.2px solid ${t.textColor}33;
+  border-radius: 2mm;
+  padding: 2.5mm 3mm 2.8mm 3mm;
 }
-.math-concept-card .mcc-section-num {
-  display: inline-block;
-  font-size: ${baseFs}pt;
-  margin-right: 1.5mm;
-  vertical-align: middle;
+.math-concept-card .mcc-section-head {
+  display: flex;
+  align-items: center;
+  gap: 1.5mm;
+  margin-bottom: 1.5mm;
+  padding-bottom: 1.2mm;
+  border-bottom: 1px dashed ${t.accentColor}55;
+}
+.math-concept-card .mcc-section-icon {
+  font-size: ${baseFs + 1}pt;
 }
 .math-concept-card .mcc-section-title {
-  display: inline-block;
   font-size: ${baseFs - 0.5}pt;
   font-weight: 800;
   color: ${t.primaryColor};
   letter-spacing: 0.2mm;
-  vertical-align: middle;
 }
 .math-concept-card .mcc-section-body {
-  margin-top: 1.2mm;
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor};
   line-height: 1.55;
   word-break: keep-all;
 }
+
+/* 정의 섹션 — 교과서 정의 + 친근한 정의 두 줄 */
 .math-concept-card .mcc-definition .mcc-section-body {
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
 }
+.math-concept-card .mcc-def-row {
+  display: flex;
+  align-items: baseline;
+  gap: 2.5mm;
+}
+.math-concept-card .mcc-def-tag {
+  flex-shrink: 0;
+  font-size: ${baseFs - 1.5}pt;
+  font-weight: 800;
+  padding: 0.5mm 2mm;
+  border-radius: 1mm;
+  letter-spacing: 0.2mm;
+  white-space: nowrap;
+}
+.math-concept-card .mcc-def-tag-book {
+  background: ${t.textColor}15;
+  color: ${t.textColor}cc;
+  border: 1px solid ${t.textColor}33;
+}
+.math-concept-card .mcc-def-tag-friend {
+  background: ${t.accentColor}22;
+  color: ${t.primaryColor};
+  border: 1px solid ${t.accentColor};
+}
+.math-concept-card .mcc-def-text {
+  flex: 1;
+  font-size: ${baseFs - 0.5}pt;
+  color: ${t.textColor};
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+/* 좌·우 2단: 그림 + 단짝 */
 .math-concept-card .mcc-row-2col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.6fr 1fr;
   gap: 2.5mm;
 }
 .math-concept-card .mcc-row-2col .mcc-section {
   margin: 0;
 }
+
+/* 그림으로 보기 — 이모지 큰 글씨 + 부연 설명 */
+.math-concept-card .mcc-visual .mcc-section-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5mm;
+  text-align: center;
+}
+.math-concept-card .mcc-visual-emoji {
+  font-size: ${baseFs + 6}pt;
+  line-height: 1.5;
+  letter-spacing: 1mm;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Noto Sans KR', monospace;
+  color: ${t.textColor};
+}
+.math-concept-card .mcc-visual-caption {
+  font-size: ${baseFs - 1.5}pt;
+  color: ${t.textColor}cc;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* 단짝 친구 — chip 가로 배치 */
+.math-concept-card .mcc-related .mcc-section-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+.math-concept-card .mcc-related-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5mm;
+  justify-content: center;
+}
+.math-concept-card .mcc-related-chip {
+  display: inline-block;
+  background: ${t.accentColor}1F;
+  border: 1px solid ${t.accentColor};
+  border-radius: 1mm;
+  padding: 0.8mm 2.5mm;
+  font-size: ${baseFs - 0.5}pt;
+  font-weight: 700;
+  color: ${t.primaryColor};
+}
+
+/* 수학 발문에서 만나기 */
 .math-concept-card .mcc-textbook .mcc-section-body {
   display: flex;
   flex-direction: column;
   gap: 1.5mm;
 }
 .math-concept-card .mcc-textbook-quote {
-  background: #fff;
-  border: 1px dashed ${t.accentColor}99;
+  background: ${t.bgAccent};
+  border-left: 3px solid ${t.accentColor};
   border-radius: 1mm;
-  padding: 1.5mm 2.5mm;
+  padding: 1.8mm 3mm;
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor};
   font-style: italic;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .math-concept-card .mcc-textbook-meaning {
   font-size: ${baseFs - 0.5}pt;
@@ -839,24 +952,17 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.primaryColor};
   font-weight: 800;
 }
-/* festive 변형 — 리본 강조 + 부드러운 배경 */
+
+/* festive 변형 — 부드러운 배경 + 둥근 모서리 강조 */
 .math-concept-card.meta-festive {
-  background: ${t.bgAccent};
+  background: ${t.bgAccent}cc;
   border: 1.5px solid ${t.accentColor}88;
   border-radius: 3mm;
-  padding: 3mm 4mm 4mm 4mm;
+  padding: 3mm 3.5mm 3.5mm 3.5mm;
 }
-.math-concept-card.meta-festive .festive-ribbon {
-  text-align: center;
-  font-size: ${baseFs + 0.5}pt;
-  font-weight: 800;
-  color: ${t.primaryColor};
-  margin-bottom: 1mm;
-  letter-spacing: 0.3mm;
-}
-.math-concept-card.meta-festive .mcc-section {
+.math-concept-card.meta-festive .mcc-header-left,
+.math-concept-card.meta-festive .mcc-header-right {
   background: #ffffff;
-  border-left-width: 4px;
 }
 
 /* ─── 속담 도메인 메타 — 큰 따옴표로 본문 강조 ─── */

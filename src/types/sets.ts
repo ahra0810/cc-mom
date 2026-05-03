@@ -112,9 +112,13 @@ export interface MathConceptMeta {
   englishTerm: string;
   /** 영어 어원 한 줄 — 선택 (예: "peri-(주변) + meter(재다)") */
   englishOrigin?: string;
+  /** 교과서 속 정의 — 사전·교과서 톤 (선택) */
+  textbookDefinition?: string;
   /** 친근하게 풀어쓴 정의 (예: "도형 바깥쪽을 한 바퀴 도는 길의 길이") */
   definition: string;
-  /** 시각/구체 예시 — 일상 비유 + 수치 (선택) */
+  /** 시각 보조 — 이모지·도형 문자로 그린 미니 그림 (선택) */
+  visualEmoji?: string;
+  /** 시각/구체 예시 — 일상 비유 + 수치 (선택, visualEmoji 옆에 함께 표시) */
   visualExample?: string;
   /** 관련 용어 짝 — 선택 (예: "둘레"의 짝은 ["넓이"]) */
   relatedTerms?: string[];
