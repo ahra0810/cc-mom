@@ -965,6 +965,77 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   background: #ffffff;
 }
 
+/* ─── math-concept 페이지: 풀폭 메타 카드 + 컴팩트 문항 + 상·하 여백 균형 ───
+ * 이름 칸이 메타 헤더에 내장됨 — 별도 .name-card 없이 풀폭으로 메타 박스가
+ * 페이지 가용 공간을 채우고, 그 아래 문항이 자연 크기로 컴팩트하게 배치된다.
+ * .page 의 padding(14mm) 이 상·하 동일하므로 카드가 flex:1 로 늘어나면
+ * 자연스럽게 페이지 하단 여백이 상단과 같아진다.
+ */
+.page.math-concept-page .math-concept-card {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 5mm;
+}
+.page.math-concept-page .math-concept-card .mcc-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+  justify-content: space-between;
+}
+.page.math-concept-page .math-concept-card .mcc-section {
+  flex: 0 0 auto;
+}
+/* 그림+단짝 2단 구역은 flex-grow 로 빈 공간 일부 흡수 */
+.page.math-concept-page .math-concept-card .mcc-row-2col {
+  flex: 1 1 auto;
+  align-items: stretch;
+}
+.page.math-concept-page .math-concept-card .mcc-row-2col .mcc-section {
+  display: flex;
+  flex-direction: column;
+}
+.page.math-concept-page .math-concept-card .mcc-row-2col .mcc-section-body {
+  flex: 1 1 auto;
+}
+/* 문항 영역 — 컴팩트 (space-between 분배 비활성, 자연 크기) */
+.page.math-concept-page .set {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  gap: 4mm;
+}
+
+/* 해설지 배너 (math-concept 전용) — 풀폭 메타 위 한 줄 컴팩트 표시 */
+.answer-banner-pill {
+  display: flex; align-items: center; gap: 2.5mm;
+  border: 1.5px solid #DC2626;
+  background: #FEF2F2;
+  border-radius: 2mm;
+  padding: 2mm 4mm;
+  margin-bottom: 3mm;
+  flex-shrink: 0;
+}
+.answer-banner-pill .abp-mark {
+  font-size: ${baseFs + 2}pt;
+  font-weight: 900;
+  color: #DC2626;
+  line-height: 1;
+}
+.answer-banner-pill .abp-label {
+  font-size: ${baseFs}pt;
+  font-weight: 900;
+  color: #B91C1C;
+  letter-spacing: 3px;
+}
+.answer-banner-pill .abp-meta {
+  margin-left: auto;
+  font-size: ${baseFs - 2}pt;
+  color: #7F1D1D;
+  font-weight: 600;
+  letter-spacing: 0.3mm;
+}
+
 /* ─── 속담 도메인 메타 — 큰 따옴표로 본문 강조 ─── */
 .proverb-quote-block,
 .phrase-quote-block {
@@ -1237,11 +1308,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
     }
   };
 
+  const isMathConcept = set.domain === 'math-concept';
+
   /* 페이지별 HTML 생성 */
   slotGroups.forEach((group, pageIdx) => {
     const isFirstPage = pageIdx === 0;
     const isLastPage = pageIdx === totalPages - 1;
-    html += `<div class="page${showAnswer ? ' answer-mode' : ''}${isMultiPage ? ' multi-page' : ''}">`;
+    html += `<div class="page${showAnswer ? ' answer-mode' : ''}${isMultiPage ? ' multi-page' : ''}${isMathConcept ? ' math-concept-page' : ''}">`;
 
     /* 페이지 격려 헤더 (multi-page일 때만) */
     if (isMultiPage && pageHeaders[pageIdx]) {
@@ -1253,22 +1326,34 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 
     /* 상단 — 첫 페이지에만 (또는 repeatMeta=true면 모든 페이지) */
     if (isFirstPage || repeatMeta) {
-      html += `<div class="top-row">`;
-      html += cfg.renderMetaBlock(meta, t, baseFs);
-      if (showAnswer) {
-        html += `<div class="answer-key-card">
-          <div class="ak-label">답안 및 해설</div>
-          <div class="ak-meta">${set.slots.length}문항 · ${esc(set.title)}</div>
-        </div>`;
+      if (isMathConcept) {
+        /* 수학 개념어: 이름 칸이 메타 헤더에 내장 → 풀폭 메타 카드 + 해설지 배너 */
+        if (showAnswer) {
+          html += `<div class="answer-banner-pill">
+            <span class="abp-mark">✓</span>
+            <span class="abp-label">답안 및 해설</span>
+            <span class="abp-meta">${set.slots.length}문항 · ${esc(set.title)}</span>
+          </div>`;
+        }
+        html += cfg.renderMetaBlock(meta, t, baseFs);
       } else {
-        html += `<div class="name-card">
-          <div class="name-card-row">
-            <span class="label">이름</span>
-            <span class="blank"></span>
-          </div>
-        </div>`;
+        html += `<div class="top-row">`;
+        html += cfg.renderMetaBlock(meta, t, baseFs);
+        if (showAnswer) {
+          html += `<div class="answer-key-card">
+            <div class="ak-label">답안 및 해설</div>
+            <div class="ak-meta">${set.slots.length}문항 · ${esc(set.title)}</div>
+          </div>`;
+        } else {
+          html += `<div class="name-card">
+            <div class="name-card-row">
+              <span class="label">이름</span>
+              <span class="blank"></span>
+            </div>
+          </div>`;
+        }
+        html += `</div>`;
       }
-      html += `</div>`;
     }
 
     /* 슬롯 영역 */
