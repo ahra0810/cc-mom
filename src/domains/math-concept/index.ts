@@ -103,25 +103,12 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
   id: 'math-concept',
   labels: MATH_CONCEPT_LABELS,
   slotConfig: {
-    count: 8,
-    requiredTypes: [
-      'short-answer',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'sentence-making',
-    ],
-    autoSyncedSlots: [0, 7],
-    /* 슬롯 0~3 = 페이지 1 (한·영·한자로 만나기), 슬롯 4~7 = 페이지 2 (적용·발문 독해) */
-    pageBreaks: [3],
-    pageHeaders: [
-      '🌱 한·영·한자로 만나기 — 이미 매일 쓰는 단어야!',
-      '💪 이제 수학 발문에서 척척 찾아 내 것으로!',
-    ],
-    repeatMetaOnEachPage: false,
+    /* 1페이지 구성: 풀폭 "개념 학습 카드" (4섹션, 메타 박스에 통합)
+     *   + 미니 퀴즈 2문항 (객관식 정의 / 발문 속 단어 찾기) */
+    count: 2,
+    requiredTypes: ['multiple-choice', 'multiple-choice'],
+    /* 자동 동기화 X — 시드/AI가 직접 작성, 메타 변경에 따라 슬롯이 바뀌면 안 됨 */
+    autoSyncedSlots: [],
   },
   createEmptyMeta: () => ({
     domain: 'math-concept',
@@ -142,7 +129,7 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
   },
   defaultSets: MATH_CONCEPT_DEFAULT_SETS,
   editorHint:
-    '💡 발문 독해력 + 한·영·한자 통합 학습지 (초1~3, A4 2페이지). Page 1 (1~4번) = 한·영·한자로 만나기: 흥미 도입·정의·영어 짝꿍·이름의 비밀. Page 2 (5~8번) = 적용·발문 독해: 시각·단짝 친구·**수학 발문 속 단어 찾기**·친구에게 알려주기. 메타의 \'영어 단어\'와 \'교과서 발문 예\'를 함께 채워주세요.',
+    '💡 발문 독해력 + 한·영·한자 통합 학습지 (초1~3, A4 1페이지). 풀폭 \'개념 학습 카드\' 4섹션(정의·그림·단짝·발문에서 만나기) + 미니 퀴즈 2문항(정의 객관식·발문 속 단어 찾기). 메타의 영어 단어·영어 어원·시각 예시·관련 용어·교과서 발문 예를 모두 채워야 풍부한 학습 카드가 만들어집니다.',
   recommendedTemplateId: 'math-festive',
   /* 수학 어울리는 템플릿 — festive(기본) + 퀴즈 배너 + 클래식 */
   availableTemplateIds: ['math-festive', 'idiom-quiz-banner', 'idiom-classic'],
