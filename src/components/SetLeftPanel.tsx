@@ -402,8 +402,32 @@ export default function SetLeftPanel({ onCreateNew, onEditSet, onOpenSettings }:
 function DomainFilterPills() {
   const filters = useSetStore((s) => s.filters);
   const setFilters = useSetStore((s) => s.setFilters);
+  const allSets = useSetStore((s) => s.sets);
+  const selectSet = useSetStore((s) => s.selectSet);
+  const selectedSetId = useSetStore((s) => s.selectedSetId);
   const domains = listDomains();
   if (domains.length < 2) return null;
+
+  /* 도메인 pill 클릭 시 — 필터 변경 + 해당 도메인의 첫 set 자동 선택 (가운데 미리보기·우측 템플릿이 함께 전환) */
+  const handlePickDomain = (domainId: SetDomain | null) => {
+    setFilters({ domain: domainId });
+    if (!domainId) {
+      /* "전체" 선택 시: 현재 선택이 유효하면 유지, 없으면 가장 최근 set으로 */
+      if (!selectedSetId) {
+        const recent = [...allSets].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+        if (recent) selectSet(recent.id);
+      }
+      return;
+    }
+    /* 현재 선택된 set이 이미 그 도메인이면 유지 */
+    const currentSet = allSets.find((s) => s.id === selectedSetId);
+    if (currentSet && currentSet.domain === domainId) return;
+    /* 그 외엔 그 도메인의 가장 최근 set 자동 선택 */
+    const firstOfDomain = [...allSets]
+      .filter((s) => s.domain === domainId)
+      .sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    if (firstOfDomain) selectSet(firstOfDomain.id);
+  };
 
   return (
     <div className="px-3 pt-2 flex items-center gap-1 overflow-x-auto flex-shrink-0">
@@ -413,7 +437,7 @@ function DomainFilterPills() {
             ? 'border-purple-500 bg-purple-500 text-white'
             : 'border-gray-200 text-gray-600 hover:border-gray-400'
         }`}
-        onClick={() => setFilters({ domain: null })}
+        onClick={() => handlePickDomain(null)}
       >
         전체
       </button>
@@ -432,7 +456,7 @@ function DomainFilterPills() {
                 ? { backgroundColor: d.labels.accentColor, borderColor: d.labels.accentColor }
                 : undefined
             }
-            onClick={() => setFilters({ domain: d.id as SetDomain })}
+            onClick={() => handlePickDomain(d.id as SetDomain)}
           >
             {d.labels.subjectName}
           </button>
