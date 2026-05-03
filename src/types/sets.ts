@@ -99,21 +99,31 @@ export interface IdiomaticPhraseMeta {
   origin?: string;
 }
 
-/** 수학 개념어 메타 — 국어 학원에서 배우는 수학 용어 (예: "분모", "몫", "평균") */
+/** 수학 개념어 메타 — 발문 독해력 + 한·영·한자 통합 어휘 학습.
+ *  국어 학원 특강에서 사고력 수학 발문(예: "둘레를 구하시오")을 해석 못해 틀리는
+ *  초1~3 학생의 어휘 학습 콘텐츠. 한국어 + 영어 + (가능하면) 한자를 함께 익힘. */
 export interface MathConceptMeta {
   domain: 'math-concept';
-  /** 개념어 본문 (예: "분모") */
+  /** 한국어 용어 (예: "둘레", "변", "짝수") */
   term: string;
-  /** 한자 표기 (선택, 한자어인 경우만) — 순한국어("몫")는 빈 값 */
+  /** 한자 표기 (한자어인 경우만) — 순한국어("둘레", "몫")는 빈 값 */
   hanja?: string;
-  /** 정의 (예: "분수에서 아래에 쓰는 수") */
+  /** 영어 단어 — 한↔영 짝짓기 학습용 (예: "perimeter", "side", "even number") */
+  englishTerm: string;
+  /** 영어 어원 한 줄 — 선택 (예: "peri-(주변) + meter(재다)") */
+  englishOrigin?: string;
+  /** 친근하게 풀어쓴 정의 (예: "도형 바깥쪽을 한 바퀴 도는 길의 길이") */
   definition: string;
-  /** 시각/구체 예시 (선택) — 분수 표기, 예시 수치 등. 텍스트로 표현. */
+  /** 시각/구체 예시 — 일상 비유 + 수치 (선택) */
   visualExample?: string;
-  /** 관련 용어 (선택) — 짝/대비 학습 ("분모"의 경우 ["분자", "분수"]) */
+  /** 관련 용어 짝 — 선택 (예: "둘레"의 짝은 ["넓이"]) */
   relatedTerms?: string[];
-  /** 어원 / 한자 풀이 보조 (선택) */
+  /** 실제 교과서·사고력 수학 발문 한 줄 — 7번 슬롯에서 사용. 선택 */
+  textbookExample?: string;
+  /** 어원·우리말 이야기 — 선택 */
   origin?: string;
+  /** 교과서 출현 학년 (1~6) — 선택 */
+  grade?: number;
 }
 
 /** 도메인별 메타 union (discriminated by `domain`) */

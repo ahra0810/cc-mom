@@ -666,6 +666,27 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   padding: 0.3mm 1.5mm;
   letter-spacing: 0.3mm;
 }
+/* 영어 단어 태그 — 한↔영 짝짓기 학습 시각 표시 */
+.mc-english-tag {
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  font-size: ${baseFs + 0.5}pt;
+  font-weight: 700;
+  font-style: italic;
+  color: ${t.accentColor};
+  background: ${t.accentColor}1F;
+  border: 1px solid ${t.accentColor};
+  border-radius: 1mm;
+  padding: 0.3mm 1.8mm;
+  letter-spacing: 0.2mm;
+}
+.mc-eng-origin {
+  font-size: ${baseFs - 1.5}pt;
+  color: ${t.textColor}cc;
+  text-align: center;
+  margin-top: 1mm;
+  font-style: italic;
+}
+.mc-eng-origin strong { color: ${t.primaryColor}; font-weight: 800; }
 .mc-definition {
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor};

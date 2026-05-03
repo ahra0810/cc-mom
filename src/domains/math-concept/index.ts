@@ -37,24 +37,24 @@ function syncSlotFromMathConceptMeta(
   slot: Question,
   meta: MathConceptMeta,
 ): Question {
-  /* 1번 슬롯: short-answer — 시드/사용자가 직접 학습 활동을 정함.
-   * 사용자가 빈 슬롯에서 시작할 때 정의 빈칸 패턴을 hint로 자동 채움. */
+  /* 1번 슬롯: short-answer — 흥미 도입. 사용자가 직접 작성 권장이지만
+   * 빈 슬롯이면 정의 빈칸 hint 자동 채움 */
   if (slotIdx === 0) {
     if (slot.question) return slot;
     if (!meta.term || !meta.definition) return slot;
     return {
       ...slot,
-      question: `다음 빈칸을 채우세요: ${meta.definition}을(를) ___라고 한다.`,
+      question: `🌱 다음 빈칸을 채우세요: ${meta.definition}을(를) ___라고 해요.`,
       answer: slot.answer || meta.term,
     };
   }
-  /* 8번 슬롯: sentence-making — 개념 한 문장 설명 */
+  /* 8번 슬롯: sentence-making — 친구에게 알려주기 */
   if (slotIdx === 7) {
     if (slot.question) return slot;
     if (!meta.term) return slot;
     return {
       ...slot,
-      question: `'${meta.term}'이(가) 무엇인지 한 문장으로 설명하세요.`,
+      question: `🤝 친구가 "${meta.term}이(가) 뭐야?" 물어봐요. 한 문장으로 친근하게 알려주세요.`,
     };
   }
   return slot;
@@ -73,23 +73,27 @@ function deriveMathConceptTitle(meta: MathConceptMeta, currentTitle: string): st
   return currentTitle;
 }
 
-/* ─── 좌측 패널 검색 haystack ─── */
+/* ─── 좌측 패널 검색 haystack — 영어·발문도 포함 ─── */
 function getMathConceptSearchHaystack(meta: MathConceptMeta): string {
   return [
     meta.term,
     meta.hanja || '',
+    meta.englishTerm || '',
+    meta.englishOrigin || '',
     meta.definition,
     meta.visualExample || '',
     (meta.relatedTerms || []).join(' '),
+    meta.textbookExample || '',
     meta.origin || '',
   ].join(' ');
 }
 
-/* ─── 카드 요약 ─── */
+/* ─── 카드 요약 — subhead에 영어 단어 (있으면) 또는 한자 ─── */
 function getMathConceptCardSummary(meta: MathConceptMeta): DomainCardSummary {
+  const sub = meta.englishTerm || meta.hanja || '·';
   return {
     headline: meta.term || '수학 개념어 미입력',
-    subhead: meta.hanja || '·',
+    subhead: sub,
     body: meta.definition || '',
   };
 }
@@ -111,17 +115,18 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
       'sentence-making',
     ],
     autoSyncedSlots: [0, 7],
-    /* 슬롯 0~3 = 페이지 1 (친근한 만남), 슬롯 4~7 = 페이지 2 (내 것으로 만들기) */
+    /* 슬롯 0~3 = 페이지 1 (한·영·한자로 만나기), 슬롯 4~7 = 페이지 2 (적용·발문 독해) */
     pageBreaks: [3],
     pageHeaders: [
-      '🌱 친근한 만남 — 너도 이미 매일 쓰고 있어!',
-      '💪 잘 따라왔어! 이제 진짜 내 것으로 만들어 보자',
+      '🌱 한·영·한자로 만나기 — 이미 매일 쓰는 단어야!',
+      '💪 이제 수학 발문에서 척척 찾아 내 것으로!',
     ],
     repeatMetaOnEachPage: false,
   },
   createEmptyMeta: () => ({
     domain: 'math-concept',
     term: '',
+    englishTerm: '',
     definition: '',
   }),
   validateMeta: validateMathConceptMeta,
@@ -137,7 +142,7 @@ export const mathConceptDomainConfig: DomainConfig<MathConceptMeta> = {
   },
   defaultSets: MATH_CONCEPT_DEFAULT_SETS,
   editorHint:
-    '💡 수학 용어를 친근하게 알려주는 2페이지 학습지입니다. Page 1 (1~4번) = 친근한 만남: 흥미 도입·쉬운 정의·이름의 비밀·시각 만남. Page 2 (5~8번) = 내 것으로 만들기: 단짝 친구·일상 적용·잘못된 예·친구에게 알려주기. 메타에 개념어·정의를 채우면 1·8번 일부가 자동으로 채워집니다.',
+    '💡 발문 독해력 + 한·영·한자 통합 학습지 (초1~3, A4 2페이지). Page 1 (1~4번) = 한·영·한자로 만나기: 흥미 도입·정의·영어 짝꿍·이름의 비밀. Page 2 (5~8번) = 적용·발문 독해: 시각·단짝 친구·**수학 발문 속 단어 찾기**·친구에게 알려주기. 메타의 \'영어 단어\'와 \'교과서 발문 예\'를 함께 채워주세요.',
   recommendedTemplateId: 'math-festive',
   /* 수학 어울리는 템플릿 — festive(기본) + 퀴즈 배너 + 클래식 */
   availableTemplateIds: ['math-festive', 'idiom-quiz-banner', 'idiom-classic'],
