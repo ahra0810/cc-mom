@@ -310,11 +310,25 @@ export const useSetStore = create<SetStore>()(
       },
 
       importData: (jsonStr) => {
+        /* 입력 정제 — AI 응답 전체를 그대로 붙여넣어도 동작하도록 JSON 추출:
+         *  1) ```json ... ``` 또는 ``` ... ``` 코드 블록 안 내용 추출
+         *  2) 그래도 첫 글자가 '{'가 아니면 첫 { ... 마지막 } 사이만 추출 */
+        let cleaned = jsonStr.trim();
+        const fence = cleaned.match(/```(?:json|JSON)?\s*([\s\S]+?)\s*```/);
+        if (fence) cleaned = fence[1].trim();
+        if (cleaned[0] !== '{' && cleaned[0] !== '[') {
+          const firstBrace = cleaned.indexOf('{');
+          const lastBrace = cleaned.lastIndexOf('}');
+          if (firstBrace >= 0 && lastBrace > firstBrace) {
+            cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+          }
+        }
+
         let data: { version?: number; sets?: unknown[] };
         try {
-          data = JSON.parse(jsonStr);
+          data = JSON.parse(cleaned);
         } catch {
-          throw new Error('JSON 파싱 실패');
+          throw new Error('JSON 파싱 실패 — JSON 형식이 올바른지 확인해 주세요');
         }
         if (!data.sets || !Array.isArray(data.sets)) {
           throw new Error('"sets" 배열이 없습니다');
