@@ -23,51 +23,7 @@
  */
 import type { MathConceptMeta } from '../../types/sets';
 import type { SetTemplate } from '../../services/setPdfTemplates';
-
-function esc(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/\n/g, '<br>');
-}
-
-/* visualEmoji 전용: <br> 변환 X — `white-space: pre-line` CSS 가 \n 을 직접 처리.
- *  + **xxx** 마크업을 primary 컬러 강조로 변환 (기본은 검정, 중요한 단어만 색상). */
-function escPre(text: string): string {
-  const escaped = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-  /* **xxx** → <strong class="mcc-em">xxx</strong>
-   * 같은 줄 안에서만 매칭 (줄바꿈은 매칭 안 함) — 마크업 누락 방지 */
-  return escaped.replace(/\*\*([^*\n]+)\*\*/g, '<strong class="mcc-em">$1</strong>');
-}
-
-/* ─── 한글 조사 자동 선택 (받침 유무 기반) ───
- * 변(받침 ㄴ) → '은' / '을',  둘레(받침 X) → '는' / '를'
- * 문장 끝의 구두점·이모지·따옴표 등은 무시하고 마지막 한글 음절 기준으로 판단. */
-function lastHangul(text: string): string {
-  for (let i = text.length - 1; i >= 0; i--) {
-    const code = text.charCodeAt(i);
-    if (code >= 0xAC00 && code <= 0xD7A3) return text[i];
-  }
-  return '';
-}
-function hasJongseong(syllable: string): boolean {
-  if (!syllable) return false;
-  const code = syllable.charCodeAt(0);
-  if (code < 0xAC00 || code > 0xD7A3) return false;
-  return ((code - 0xAC00) % 28) !== 0;
-}
-function eunNeun(word: string): string {
-  return hasJongseong(lastHangul(word)) ? '은' : '는';
-}
-function eulReul(word: string): string {
-  return hasJongseong(lastHangul(word)) ? '을' : '를';
-}
+import { esc, escPre, eunNeun, eulReul } from '../../services/koreanParticle';
 
 export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate): string {
   const englishTag = meta.englishTerm
@@ -189,7 +145,7 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
 
   /* festive 템플릿 — 풀폭 카드 + 둥근 박스 + 라임 액센트 */
   if (t.metaStyle === 'festive') {
-    return `<div class="meta-block meta-festive math-festive math-concept-card">
+    return `<div class="meta-block meta-festive math-festive rich-meta-card">
       <div class="mcc-header-row">
         ${headerLeft}
         ${headerRight}
@@ -205,7 +161,7 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
   }
 
   /* 다른 metaStyle은 동일 구조의 클래식 fallback */
-  return `<div class="meta-block meta-classic math-concept-card">
+  return `<div class="meta-block meta-classic rich-meta-card">
     <div class="mcc-header-row">
       ${headerLeft}
       ${headerRight}

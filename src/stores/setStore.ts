@@ -116,10 +116,13 @@ interface SetStore {
   resetToSeed: () => void;
 }
 
-/* ─── Helper: tuple로 변환 ─── */
-function toSetSlots(slots: Question[]): SetSlots {
-  if (slots.length !== SLOT_COUNT) {
-    throw new Error(`SetSlots requires exactly ${SLOT_COUNT} slots, got ${slots.length}`);
+/* ─── Helper: tuple로 변환 ───
+ * 도메인별 slotConfig.count 와 일치해야 함 (math-concept=2, proverb/phrase=3, idiom=8 등). */
+function toSetSlots(slots: Question[], domain?: SetDomain): SetSlots {
+  /* 도메인이 명시되지 않으면 기존 SLOT_COUNT(8) 호환 모드 */
+  const expected = domain ? getDomain(domain).slotConfig.count : SLOT_COUNT;
+  if (slots.length !== expected) {
+    throw new Error(`SetSlots for ${domain || 'default'} requires ${expected} slots, got ${slots.length}`);
   }
   return slots as unknown as SetSlots;
 }
@@ -183,7 +186,7 @@ export const useSetStore = create<SetStore>()(
         const dupSlots = (dup.slots as unknown as Question[]).map((q) => ({
           ...q, id: nanoid(),
         }));
-        dup.slots = toSetSlots(dupSlots);
+        dup.slots = toSetSlots(dupSlots, dup.domain);
         set((state) => ({ sets: [dup, ...state.sets] }));
         return dup.id;
       },
@@ -221,7 +224,10 @@ export const useSetStore = create<SetStore>()(
           const slots = [...state.editingSetDraft.slots] as Question[];
           slots[idx] = { ...slots[idx], ...updates };
           return {
-            editingSetDraft: { ...state.editingSetDraft, slots: toSetSlots(slots) },
+            editingSetDraft: {
+              ...state.editingSetDraft,
+              slots: toSetSlots(slots, state.editingSetDraft.domain),
+            },
           };
         }),
 
@@ -421,10 +427,19 @@ export const useSetStore = create<SetStore>()(
         } | undefined;
         const persistedSets = Array.isArray(p?.sets) ? p!.sets! : [];
 
-        /* 슬롯 수 검사 — 8슬롯 구조가 아니면 전부 시드로 리셋 */
+        /* 슬롯 수 검사 — 도메인별 slotConfig.count 와 일치해야 함.
+         * (math-concept=2, proverb/phrase=3, idiom=8) 도메인 누락 시 8 fallback. */
         const allValid =
           persistedSets.length > 0 &&
-          persistedSets.every((s) => Array.isArray(s.slots) && s.slots.length === SLOT_COUNT);
+          persistedSets.every((s) => {
+            if (!Array.isArray(s.slots)) return false;
+            try {
+              const expected = getDomain(s.domain).slotConfig.count;
+              return s.slots.length === expected;
+            } catch {
+              return s.slots.length === SLOT_COUNT;
+            }
+          });
 
         if (!allValid) {
           return {

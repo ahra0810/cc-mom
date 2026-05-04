@@ -5,6 +5,7 @@
  */
 import type { MathConceptMeta, SetMeta } from '../../types/sets';
 import type { MetaEditorProps } from '../types';
+import RelatedDetailedEditor from '../../components/RelatedDetailedEditor';
 
 export default function MathConceptMetaEditor({ meta, onUpdate }: MetaEditorProps) {
   const m = meta as MathConceptMeta;
@@ -210,88 +211,4 @@ export default function MathConceptMetaEditor({ meta, onUpdate }: MetaEditorProp
   );
 }
 
-/* ─── 단짝 친구 상세 에디터 — emoji + term + desc 한 줄씩 ─── */
-type FriendItem = { term: string; emoji: string; desc: string };
-
-function RelatedDetailedEditor({
-  items,
-  fallbackTerms,
-  onChange,
-}: {
-  items: FriendItem[];
-  fallbackTerms: string[];
-  onChange: (next: FriendItem[]) => void;
-}) {
-  /* 처음 진입 시 items 가 비어있고 fallbackTerms 만 있다면 그대로 노출 (단순 chip 모드) */
-  const isEmpty = items.length === 0;
-
-  const addRow = () => {
-    /* 단순 chip 으로 입력된 게 있으면 첫 진입 시 그것을 상세 row 로 변환 */
-    if (isEmpty && fallbackTerms.length) {
-      onChange(fallbackTerms.map((t) => ({ term: t, emoji: '🔗', desc: '' })));
-      return;
-    }
-    onChange([...items, { term: '', emoji: '🔗', desc: '' }]);
-  };
-  const removeRow = (idx: number) => {
-    onChange(items.filter((_, i) => i !== idx));
-  };
-  const patchRow = (idx: number, patch: Partial<FriendItem>) => {
-    onChange(items.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
-  };
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <label className="text-[11px] font-semibold text-gray-700">
-          단짝 친구 — 상세 (이모지 · 용어 · 설명)
-        </label>
-        <button
-          type="button"
-          className="text-[10px] text-blue-600 hover:underline"
-          onClick={addRow}
-        >
-          + 추가
-        </button>
-      </div>
-      {isEmpty ? (
-        <p className="text-[10px] text-gray-400">
-          비워두면 아래 "관련 용어"의 단순 chip 으로 표시됩니다. 추가 버튼을 누르면 이모지·짧은 설명이 들어간 카드 형태로 바뀌어요.
-        </p>
-      ) : (
-        <div className="space-y-1.5">
-          {items.map((it, idx) => (
-            <div key={idx} className="flex items-center gap-1">
-              <input
-                className="input-field !text-xs !w-10 text-center"
-                placeholder="🔺"
-                value={it.emoji}
-                onChange={(e) => patchRow(idx, { emoji: e.target.value })}
-              />
-              <input
-                className="input-field !text-xs !w-20"
-                placeholder="용어"
-                value={it.term}
-                onChange={(e) => patchRow(idx, { term: e.target.value })}
-              />
-              <input
-                className="input-field !text-xs flex-1"
-                placeholder="짧은 설명 (한 줄, 30자 내외)"
-                value={it.desc}
-                onChange={(e) => patchRow(idx, { desc: e.target.value })}
-              />
-              <button
-                type="button"
-                className="text-[10px] text-red-500 hover:underline px-1"
-                onClick={() => removeRow(idx)}
-                title="삭제"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+/* RelatedDetailedEditor 는 src/components/RelatedDetailedEditor.tsx 에서 import */

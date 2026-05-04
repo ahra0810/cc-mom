@@ -1,100 +1,158 @@
 /**
- * 관용어 도메인의 PDF 메타 박스 렌더러.
- * 한자 박스 대신 큰 따옴표로 관용어 본문 강조 + 예문이 있으면 작은 글씨로 함께 표시.
+ * 관용어 도메인의 PDF 메타 박스 = "관용어 학습 카드"
+ *
+ * 1페이지 학습지 구성 (시각 카드 + 일상 응용 + 미니 퀴즈 3문항):
+ *
+ *   ┌─────────────────────────┬───────────┐
+ *   │  ✨ "<관용어>" ✨           │  이름 ___ │
+ *   ├─────────────────────────┴───────────┤
+ *   │  📚 뜻 — 교과서 + 친근한                  │
+ *   ├──────────────────────┬──────────────────┤
+ *   │  🎨 그림으로 보기      │  💡 비슷한 관용어   │
+ *   ├──────────────────────┴──────────────────┤
+ *   │  🌟 일상에서 만나기                        │
+ *   └─────────────────────────────────────────┘
  */
 import type { IdiomaticPhraseMeta } from '../../types/sets';
 import type { SetTemplate } from '../../services/setPdfTemplates';
-
-function esc(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/\n/g, '<br>');
-}
-
-/* 관용어 본문에서 신체 부위 키워드를 감지해 적절한 이모지 반환 */
-function pickBodyEmoji(phrase: string): string {
-  if (/입|혀|입술/.test(phrase)) return '👄';
-  if (/눈|시선|눈빛/.test(phrase)) return '👁';
-  if (/귀/.test(phrase)) return '👂';
-  if (/코/.test(phrase)) return '👃';
-  if (/손|손가락/.test(phrase)) return '✋';
-  if (/발|걸음/.test(phrase)) return '🦶';
-  if (/머리|이마/.test(phrase)) return '🧠';
-  if (/어깨/.test(phrase)) return '💪';
-  if (/배|뱃속/.test(phrase)) return '🫃';
-  if (/마음|가슴/.test(phrase)) return '💗';
-  return '✨';
-}
+import { esc, escPre, eulReul } from '../../services/koreanParticle';
 
 export function renderIdiomaticMetaBlock(meta: IdiomaticPhraseMeta, t: SetTemplate): string {
-  if (t.metaStyle === 'festive') {
-    /* 우리 몸으로 배우는 관용어 — 앰버 + 핑크 + 신체 이모지 캐릭터 + 말풍선 */
-    /* 관용어 본문에서 신체 부위 키워드를 자동 감지해 이모지 매칭 */
-    const bodyEmoji = pickBodyEmoji(meta.phrase);
-    return `<div class="meta-block meta-festive phrase-festive">
-      <div class="festive-ribbon">${bodyEmoji} 우리 몸으로 배우는 관용어 ✨</div>
-      <div class="festive-headline ipf-headline">
-        <span class="ipf-emoji">${bodyEmoji}</span>
-        <span class="festive-title ipf-title">${esc(meta.phrase)}</span>
-      </div>
-      <div class="festive-meaning">
-        <span class="fm-label">뜻</span>
-        <span class="fm-text">${esc(meta.meaning)}</span>
-      </div>
-      ${meta.example ? `<div class="ipf-example">💬 <strong>예문</strong> · ${esc(meta.example)}</div>` : ''}
-    </div>`;
-  }
-
-  if (t.metaStyle === 'hanja-emphasis') {
-    return `<div class="meta-block meta-classic">
-      <div class="phrase-quote-block">
-        <span class="phrase-quote-mark">&ldquo;</span>
-        <span class="phrase-body">${esc(meta.phrase)}</span>
-        <span class="phrase-quote-mark">&rdquo;</span>
-      </div>
-      <div class="meta-meaning">${esc(meta.meaning)}</div>
-      ${meta.example ? `<div class="meta-meaning"><strong>예문</strong> · ${esc(meta.example)}</div>` : ''}
-      ${meta.origin ? `<div class="meta-origin">유래: ${esc(meta.origin)}</div>` : ''}
-    </div>`;
-  }
-
-  if (t.metaStyle === 'big-friendly') {
-    return `<div class="meta-block meta-big-friendly">
-      <div class="meta-friendly-star">★</div>
-      <div class="phrase-quote-block">
-        <span class="phrase-body">"${esc(meta.phrase)}"</span>
-      </div>
-      <div class="meta-meaning">${esc(meta.meaning)}</div>
-      ${meta.example ? `<div class="meta-origin">예) ${esc(meta.example)}</div>` : ''}
-    </div>`;
-  }
-
-  if (t.metaStyle === 'quiz-banner') {
-    return `<div class="meta-block meta-quiz-banner">
-      <div class="qb-ribbon">퀴즈로 배워나가는 관용어</div>
-      <div class="qb-title-row">
-        <span class="qb-title">"${esc(meta.phrase)}"</span>
-      </div>
-      <div class="qb-meaning-row">
-        <span class="qb-meaning-label">뜻풀이</span>
-        <span class="qb-meaning-text">${esc(meta.meaning)}</span>
-        ${meta.example ? ` <span class="qb-origin">· 예) ${esc(meta.example)}</span>` : ''}
-      </div>
-    </div>`;
-  }
-
-  /* classic (기본) */
-  return `<div class="meta-block meta-classic">
-    <div class="phrase-quote-block">
-      <span class="phrase-quote-mark">&ldquo;</span>
-      <span class="phrase-body">${esc(meta.phrase)}</span>
-      <span class="phrase-quote-mark">&rdquo;</span>
+  /* ─ 헤더 좌측: 관용어 큰 글씨 (가운데 정렬) ─ */
+  const headerLeft = `<div class="mcc-header-left">
+    <div class="mcc-header-main">
+      <span class="mcc-h-stars">✨</span>
+      <span class="mcc-h-term mcc-h-phrase">${esc(meta.phrase)}</span>
+      <span class="mcc-h-stars">✨</span>
     </div>
-    <div class="meta-meaning">${esc(meta.meaning)}</div>
-    ${meta.example ? `<div class="meta-meaning"><strong>예문</strong> · ${esc(meta.example)}</div>` : ''}
-    ${meta.origin ? `<div class="meta-origin">유래: ${esc(meta.origin)}</div>` : ''}
+  </div>`;
+
+  /* ─ 헤더 우측: 이름 빈칸 ─ */
+  const headerRight = `<div class="mcc-header-right">
+    <div class="mcc-name-group">
+      <span class="mcc-name-label">이름</span>
+      <span class="mcc-name-line"></span>
+    </div>
+  </div>`;
+
+  /* ─ 정의 (뜻) 섹션 ─ */
+  const textbookDefLine = meta.textbookMeaning
+    ? `<div class="mcc-def-row">
+        <span class="mcc-def-tag mcc-def-tag-book">교과서 속 뜻</span>
+        <span class="mcc-def-text">${esc(meta.textbookMeaning)}</span>
+      </div>`
+    : '';
+  const friendlyDefLine = `<div class="mcc-def-row">
+    <span class="mcc-def-tag mcc-def-tag-friend">친근한 뜻</span>
+    <span class="mcc-def-text">${esc(meta.meaning)}</span>
+  </div>`;
+
+  const definitionSection = `<div class="mcc-section mcc-definition">
+    <div class="mcc-section-head">
+      <span class="mcc-section-icon">📚</span>
+      <span class="mcc-section-title">뜻</span>
+    </div>
+    <div class="mcc-section-body">
+      ${textbookDefLine}
+      ${friendlyDefLine}
+    </div>
+  </div>`;
+
+  /* ─ 그림으로 보기 ─ */
+  const visualSection = (meta.visualEmoji || meta.visualExample)
+    ? `<div class="mcc-section mcc-visual">
+        <div class="mcc-section-head">
+          <span class="mcc-section-icon">🎨</span>
+          <span class="mcc-section-title">그림으로 보기</span>
+        </div>
+        <div class="mcc-section-body">
+          ${meta.visualEmoji
+            ? `<div class="mcc-visual-emoji">${escPre(meta.visualEmoji)}</div>`
+            : ''}
+          ${meta.visualExample
+            ? `<div class="mcc-visual-caption">${esc(meta.visualExample)}</div>`
+            : ''}
+        </div>
+      </div>`
+    : '';
+
+  /* ─ 비슷한 관용어 (단짝) ─ */
+  const detailedFriends = meta.relatedPhrasesDetailed && meta.relatedPhrasesDetailed.length;
+  let relatedBody = '';
+  if (detailedFriends && meta.relatedPhrasesDetailed) {
+    relatedBody = `<div class="mcc-friend-list">${meta.relatedPhrasesDetailed
+      .map(
+        (f) => `<div class="mcc-friend-card">
+          <div class="mcc-friend-emoji">${esc(f.emoji || '🔗')}</div>
+          <div class="mcc-friend-text">
+            <div class="mcc-friend-term">${esc(f.term)}</div>
+            ${f.desc ? `<div class="mcc-friend-desc">${esc(f.desc)}</div>` : ''}
+          </div>
+        </div>`,
+      )
+      .join('')}</div>`;
+  } else if (meta.relatedPhrases && meta.relatedPhrases.length) {
+    relatedBody = `<div class="mcc-related-list">${meta.relatedPhrases
+      .map((r) => `<span class="mcc-related-chip">${esc(r)}</span>`)
+      .join('')}</div>`;
+  }
+
+  const relatedSection = relatedBody
+    ? `<div class="mcc-section mcc-related">
+        <div class="mcc-section-head">
+          <span class="mcc-section-icon">💡</span>
+          <span class="mcc-section-title">비슷한 관용어</span>
+        </div>
+        <div class="mcc-section-body">
+          ${relatedBody}
+        </div>
+      </div>`
+    : '';
+
+  /* ─ 일상에서 만나기 ─ */
+  const phraseParticle = eulReul(meta.phrase);
+  const usageSection = meta.usageExample
+    ? `<div class="mcc-section mcc-textbook">
+        <div class="mcc-section-head">
+          <span class="mcc-section-icon">🌟</span>
+          <span class="mcc-section-title">일상에서 만나기</span>
+        </div>
+        <div class="mcc-section-body">
+          <div class="mcc-textbook-quote">${esc(meta.usageExample)}</div>
+          <div class="mcc-textbook-meaning">👉 이럴 때 <strong>"${esc(meta.phrase)}"</strong>${phraseParticle} 써요!</div>
+        </div>
+      </div>`
+    : '';
+
+  /* festive 템플릿 */
+  if (t.metaStyle === 'festive') {
+    return `<div class="meta-block meta-festive phrase-festive phrase-card rich-meta-card">
+      <div class="mcc-header-row">
+        ${headerLeft}
+        ${headerRight}
+      </div>
+      <div class="mcc-body">
+        ${definitionSection}
+        ${(visualSection || relatedSection)
+          ? `<div class="mcc-row-2col">${visualSection}${relatedSection}</div>`
+          : ''}
+        ${usageSection}
+      </div>
+    </div>`;
+  }
+
+  /* fallback */
+  return `<div class="meta-block meta-classic phrase-card rich-meta-card">
+    <div class="mcc-header-row">
+      ${headerLeft}
+      ${headerRight}
+    </div>
+    <div class="mcc-body">
+      ${definitionSection}
+      ${(visualSection || relatedSection)
+        ? `<div class="mcc-row-2col">${visualSection}${relatedSection}</div>`
+        : ''}
+      ${usageSection}
+    </div>
   </div>`;
 }

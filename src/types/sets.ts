@@ -73,30 +73,58 @@ export interface IdiomMeta {
   origin?: string;
 }
 
-/** 속담 메타 */
+/** 속담 메타 — 시각 카드 + 일상 응용 학습지 (초3~중1) */
 export interface ProverbMeta {
   domain: 'proverb';
   /** 속담 본문 (예: "가는 말이 고와야 오는 말이 곱다") */
   proverb: string;
-  /** 뜻풀이 */
+  /** 교과서·사전 톤 뜻 (선택) */
+  textbookMeaning?: string;
+  /** 친근한 뜻 — 어린이 눈높이 풀이 (필수) */
   meaning: string;
+  /** 시각 보조 — 이모지 만화/미니 그림 (선택) */
+  visualEmoji?: string;
+  /** 그림 부연 설명 — 일상 비유 (선택, visualEmoji 옆) */
+  visualExample?: string;
+  /** 비슷한 속담 단순 목록 (선택) */
+  relatedProverbs?: string[];
+  /** 비슷한 속담 상세 — emoji+속담+desc (선택, PDF 단짝 카드용) */
+  relatedProverbsDetailed?: Array<{ term: string; emoji: string; desc: string }>;
+  /** 일상 사용 예 — 실제 상황 한 줄 인용 (선택) */
+  usageExample?: string;
   /** 교훈 (선택) */
   lesson?: string;
   /** 유래·출전 (선택) */
   origin?: string;
+  /** 학년 (선택) — 3·4·5·6 (초) / 7 (중1) */
+  grade?: number;
 }
 
-/** 관용어 메타 — 한국어 관용 표현 (예: "발이 넓다", "손이 크다") */
+/** 관용어 메타 — 시각 카드 + 일상 응용 학습지 (초3~중1) */
 export interface IdiomaticPhraseMeta {
   domain: 'idiomatic-phrase';
   /** 관용어 본문 (예: "발이 넓다") */
   phrase: string;
-  /** 뜻풀이 (예: "아는 사람이 많다") */
+  /** 교과서·사전 톤 뜻 (선택) */
+  textbookMeaning?: string;
+  /** 친근한 뜻 (필수) */
   meaning: string;
-  /** 예문 (선택) — 표현이 실제로 쓰이는 한 문장 */
+  /** 시각 보조 — 이모지 만화/미니 그림 (선택) */
+  visualEmoji?: string;
+  /** 그림 부연 설명 (선택) */
+  visualExample?: string;
+  /** 비슷한 관용어 단순 목록 (선택) */
+  relatedPhrases?: string[];
+  /** 비슷한 관용어 상세 (선택) */
+  relatedPhrasesDetailed?: Array<{ term: string; emoji: string; desc: string }>;
+  /** 일상 사용 예 — 실제 상황 한 줄 인용 (선택) */
+  usageExample?: string;
+  /** 예문 (선택) — 표현이 실제로 쓰이는 한 문장 (구버전 호환) */
   example?: string;
   /** 유래 / 어원 (선택) */
   origin?: string;
+  /** 학년 (선택) */
+  grade?: number;
 }
 
 /** 수학 개념어 메타 — 발문 독해력 + 한·영·한자 통합 어휘 학습.

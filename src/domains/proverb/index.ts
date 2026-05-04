@@ -1,5 +1,6 @@
 /**
  * 속담 도메인 — DomainConfig 등록.
+ * v2: 시각 카드 + 일상 응용 + 미니 퀴즈 3문항 (math-concept 패턴).
  */
 import type { Question } from '../../types';
 import type { ProverbMeta, SetValidationError } from '../../types/sets';
@@ -18,30 +19,22 @@ function validateProverbMeta(meta: ProverbMeta): SetValidationError[] {
     errors.push({ scope: 'meta', field: 'proverb', message: '속담 본문을 입력해 주세요 (4자 이상)' });
   }
   if (!meta.meaning || !meta.meaning.trim()) {
-    errors.push({ scope: 'meta', field: 'meaning', message: '뜻풀이를 입력해 주세요' });
+    errors.push({ scope: 'meta', field: 'meaning', message: '친근한 뜻을 입력해 주세요' });
   }
   return errors;
 }
 
-/* ─── 메타 → 슬롯 자동 동기화 ─── */
+/* ─── 메타 → 슬롯 자동 동기화 ───
+ * 슬롯 구성: [0] 객관식(뜻) [1] 객관식(상황) [2] 서술형(직접 응용)
+ * 메타 변경에 따라 슬롯 question 이 깨지지 않도록 빈 슬롯에만 hint 채움. */
 function syncSlotFromProverbMeta(slotIdx: number, slot: Question, meta: ProverbMeta): Question {
-  /* 1번 슬롯: short-answer (속담 빈칸 채우기). 사용자가 빈칸을 직접 정하므로 question 자동 채움은 hint 수준. */
-  if (slotIdx === 0) {
-    if (slot.question) return slot;
-    if (!meta.proverb) return slot;
-    /* 가장 인상적인 어절을 빈칸으로 만들 수 없어서, 단순 hint만 — 사용자가 편집해야 함 */
-    return {
-      ...slot,
-      question: `다음 빈칸을 채우세요: ${meta.proverb}`,
-    };
-  }
-  /* 8번 슬롯: sentence-making */
-  if (slotIdx === 7) {
+  /* 슬롯 2 (서술형 응용): 빈 슬롯에 hint 자동 채움 */
+  if (slotIdx === 2) {
     if (slot.question) return slot;
     if (!meta.proverb) return slot;
     return {
       ...slot,
-      question: `'${meta.proverb}'이(가) 어울리는 상황을 한 문장으로 쓰세요.`,
+      question: `🤝 "${meta.proverb}"을(를) 사용해서 짧은 문장을 만들어 보세요.`,
     };
   }
   return slot;
@@ -55,7 +48,6 @@ function deriveProverbTitle(meta: ProverbMeta, currentTitle: string): string {
       currentTitle === '새 학습지' ||
       currentTitle.endsWith(' 학습지'))
   ) {
-    /* 속담이 길면 자르고 ... 붙임 */
     const head = meta.proverb.length > 14 ? `${meta.proverb.slice(0, 14)}…` : meta.proverb;
     return `${head} 학습지`;
   }
@@ -64,16 +56,25 @@ function deriveProverbTitle(meta: ProverbMeta, currentTitle: string): string {
 
 /* ─── 좌측 패널 검색 haystack ─── */
 function getProverbSearchHaystack(meta: ProverbMeta): string {
-  return `${meta.proverb} ${meta.meaning} ${meta.lesson || ''} ${meta.origin || ''}`;
+  return [
+    meta.proverb,
+    meta.textbookMeaning || '',
+    meta.meaning,
+    meta.visualEmoji || '',
+    meta.visualExample || '',
+    (meta.relatedProverbs || []).join(' '),
+    (meta.relatedProverbsDetailed || []).map((f) => `${f.term} ${f.desc}`).join(' '),
+    meta.usageExample || '',
+    meta.lesson || '',
+    meta.origin || '',
+  ].join(' ');
 }
 
-/* ─── 카드 요약 (좌측 카드 / 우측 출력 카드) ─── */
+/* ─── 카드 요약 ─── */
 function getProverbCardSummary(meta: ProverbMeta): DomainCardSummary {
   return {
-    /* 카드 헤드라인은 속담 본문 (긴 경우 잘림은 UI에서 truncate) */
     headline: meta.proverb || '속담 미입력',
-    /* 카드 subhead는 짧은 인용 마크 */
-    subhead: meta.proverb ? '”' : '—',
+    subhead: meta.lesson || (meta.proverb ? '”' : '—'),
     body: meta.meaning || '',
   };
 }
@@ -83,18 +84,11 @@ export const proverbDomainConfig: DomainConfig<ProverbMeta> = {
   id: 'proverb',
   labels: PROVERB_LABELS,
   slotConfig: {
-    count: 8,
-    requiredTypes: [
-      'short-answer',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'sentence-making',
-    ],
-    autoSyncedSlots: [0, 7],
+    /* 1페이지 구성: 풀폭 "속담 학습 카드" (시각·단짝·일상)
+     *   + 미니 퀴즈 3문항 (객관식 뜻 / 객관식 상황 / 서술형 응용) */
+    count: 3,
+    requiredTypes: ['multiple-choice', 'multiple-choice', 'sentence-making'],
+    autoSyncedSlots: [2],
   },
   createEmptyMeta: () => ({
     domain: 'proverb',
@@ -114,8 +108,7 @@ export const proverbDomainConfig: DomainConfig<ProverbMeta> = {
   },
   defaultSets: PROVERB_DEFAULT_SETS,
   editorHint:
-    '💡 1번 빈칸 채우기 → 2~7번 객관식 → 8번 문장 만들기 순서로 작성하세요. 메타에 속담 정보를 채우면 1·8번이 자동으로 일부 채워집니다.',
+    '💡 시각 카드 + 일상 응용 학습지 (초3~중1, A4 1페이지). 헤더(속담·이름칸) + \'뜻\' 박스(교과서 + 친근한) + 좌·우 2단(그림으로 보기·비슷한 속담) + 일상에서 만나기 + 미니 퀴즈 3문항(객관식 2 + 서술형 1). **그림 필드(visualEmoji)에 이모지 만화로 미니 시나리오를** 그려 주세요.',
   recommendedTemplateId: 'proverb-festive',
-  /* 속담 어울리는 템플릿 — festive(기본) + 저학년 친화 + 클래식 */
   availableTemplateIds: ['proverb-festive', 'idiom-low-grade', 'idiom-classic'],
 };

@@ -1,5 +1,6 @@
 /**
  * 관용어 도메인 — DomainConfig 등록.
+ * v2: 시각 카드 + 일상 응용 + 미니 퀴즈 3문항 (math-concept 패턴).
  */
 import type { Question } from '../../types';
 import type { IdiomaticPhraseMeta, SetValidationError } from '../../types/sets';
@@ -18,31 +19,20 @@ function validatePhraseMeta(meta: IdiomaticPhraseMeta): SetValidationError[] {
     errors.push({ scope: 'meta', field: 'phrase', message: '관용어 본문을 입력해 주세요 (2자 이상)' });
   }
   if (!meta.meaning || !meta.meaning.trim()) {
-    errors.push({ scope: 'meta', field: 'meaning', message: '뜻풀이를 입력해 주세요' });
+    errors.push({ scope: 'meta', field: 'meaning', message: '친근한 뜻을 입력해 주세요' });
   }
   return errors;
 }
 
 /* ─── 메타 → 슬롯 자동 동기화 ─── */
 function syncSlotFromPhraseMeta(slotIdx: number, slot: Question, meta: IdiomaticPhraseMeta): Question {
-  /* 1번 슬롯: short-answer (관용어 빈칸 채우기) */
-  if (slotIdx === 0) {
-    if (slot.question) return slot;
-    if (!meta.phrase) return slot;
-    /* 사용자가 어절을 정해야 하므로 hint만 — 실제 빈칸은 편집에서 ___ 표시 */
-    const hintMeaning = meta.meaning ? ` (${meta.meaning})` : '';
-    return {
-      ...slot,
-      question: `다음 빈칸을 채우세요: ${meta.phrase}${hintMeaning}`,
-    };
-  }
-  /* 8번 슬롯: sentence-making */
-  if (slotIdx === 7) {
+  /* 슬롯 2 (서술형 응용): 빈 슬롯에만 hint 채움 */
+  if (slotIdx === 2) {
     if (slot.question) return slot;
     if (!meta.phrase) return slot;
     return {
       ...slot,
-      question: `'${meta.phrase}'을(를) 사용해 한 문장을 만드세요.`,
+      question: `🤝 "${meta.phrase}"을(를) 사용해서 짧은 문장을 만들어 보세요.`,
     };
   }
   return slot;
@@ -64,10 +54,21 @@ function derivePhraseTitle(meta: IdiomaticPhraseMeta, currentTitle: string): str
 
 /* ─── 좌측 패널 검색 haystack ─── */
 function getPhraseSearchHaystack(meta: IdiomaticPhraseMeta): string {
-  return `${meta.phrase} ${meta.meaning} ${meta.example || ''} ${meta.origin || ''}`;
+  return [
+    meta.phrase,
+    meta.textbookMeaning || '',
+    meta.meaning,
+    meta.visualEmoji || '',
+    meta.visualExample || '',
+    (meta.relatedPhrases || []).join(' '),
+    (meta.relatedPhrasesDetailed || []).map((f) => `${f.term} ${f.desc}`).join(' '),
+    meta.usageExample || '',
+    meta.example || '',
+    meta.origin || '',
+  ].join(' ');
 }
 
-/* ─── 카드 요약 (좌측 카드 / 우측 출력 카드) ─── */
+/* ─── 카드 요약 ─── */
 function getPhraseCardSummary(meta: IdiomaticPhraseMeta): DomainCardSummary {
   return {
     headline: meta.phrase || '관용어 미입력',
@@ -81,18 +82,11 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
   id: 'idiomatic-phrase',
   labels: IDIOMATIC_LABELS,
   slotConfig: {
-    count: 8,
-    requiredTypes: [
-      'short-answer',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'multiple-choice',
-      'sentence-making',
-    ],
-    autoSyncedSlots: [0, 7],
+    /* 1페이지 구성: 풀폭 "관용어 학습 카드" (시각·단짝·일상)
+     *   + 미니 퀴즈 3문항 (객관식 뜻 / 객관식 상황 / 서술형 응용) */
+    count: 3,
+    requiredTypes: ['multiple-choice', 'multiple-choice', 'sentence-making'],
+    autoSyncedSlots: [2],
   },
   createEmptyMeta: () => ({
     domain: 'idiomatic-phrase',
@@ -112,8 +106,7 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
   },
   defaultSets: IDIOMATIC_DEFAULT_SETS,
   editorHint:
-    '💡 1번 빈칸 채우기 → 2~7번 객관식 → 8번 문장 만들기 순서로 작성하세요. 메타에 관용어 정보를 채우면 1·8번이 자동으로 일부 채워집니다.',
+    '💡 시각 카드 + 일상 응용 학습지 (초3~중1, A4 1페이지). 헤더(관용어·이름칸) + \'뜻\' 박스 + 좌·우 2단(그림으로 보기·비슷한 관용어) + 일상에서 만나기 + 미니 퀴즈 3문항(객관식 2 + 서술형 1). **그림 필드(visualEmoji)에 이모지 만화로 미니 시나리오를** 그려 주세요.',
   recommendedTemplateId: 'phrase-festive',
-  /* 관용어 어울리는 템플릿 — festive(기본) + 저학년 친화 + 클래식 */
   availableTemplateIds: ['phrase-festive', 'idiom-low-grade', 'idiom-classic'],
 };

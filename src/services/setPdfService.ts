@@ -714,20 +714,20 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .mc-related strong { color: ${t.primaryColor}; font-weight: 800; margin-right: 1mm; }
 
 /* ─── 수학 개념 학습 카드 — 풀폭 메타 박스 (1페이지 메인 콘텐츠) ─── */
-.math-concept-card {
+.rich-meta-card {
   width: 100%;
   box-sizing: border-box;
 }
 /* 헤더 — 좌측: term+영어+한자 / 우측: 이름 빈칸 (2단) */
-.math-concept-card .mcc-header-row {
+.rich-meta-card .mcc-header-row {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 3mm;
   align-items: stretch;
   margin-bottom: 2.5mm;
 }
-.math-concept-card .mcc-header-left,
-.math-concept-card .mcc-header-right {
+.rich-meta-card .mcc-header-left,
+.rich-meta-card .mcc-header-right {
   background: ${t.bgAccent};
   border: 1.2px solid ${t.accentColor}66;
   border-radius: 2mm;
@@ -736,25 +736,25 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   flex-direction: column;
   justify-content: center;
 }
-.math-concept-card .mcc-header-left {
+.rich-meta-card .mcc-header-left {
   align-items: center;
   text-align: center;
 }
-.math-concept-card .mcc-header-main {
+.rich-meta-card .mcc-header-main {
   display: flex;
   align-items: baseline;
   justify-content: center;
   flex-wrap: wrap;
   gap: 2.5mm;
 }
-.math-concept-card .mcc-h-term {
+.rich-meta-card .mcc-h-term {
   font-family: 'Jua', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs + 12}pt;
   font-weight: 400;
   color: ${t.primaryColor};
   letter-spacing: 1.2mm;
 }
-.math-concept-card .mc-english-tag {
+.rich-meta-card .mc-english-tag {
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs + 1.5}pt;
   font-weight: 700;
@@ -766,7 +766,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   padding: 0.6mm 2.2mm;
   letter-spacing: 0.2mm;
 }
-.math-concept-card .mc-hanja-tag {
+.rich-meta-card .mc-hanja-tag {
   font-family: 'Noto Serif KR', serif;
   font-size: ${baseFs + 1}pt;
   font-weight: 700;
@@ -776,7 +776,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   padding: 0.5mm 2mm;
   letter-spacing: 0.3mm;
 }
-.math-concept-card .mcc-h-origin {
+.rich-meta-card .mcc-h-origin {
   margin-top: 1.2mm;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs - 1}pt;
@@ -788,12 +788,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   text-align: center;
 }
 /* 우측 헤더 — 이름 칸을 카드의 정중앙(가로·세로 모두)에 배치 */
-.math-concept-card .mcc-header-right {
+.rich-meta-card .mcc-header-right {
   align-items: center;        /* 가로 중앙 */
   justify-content: center;    /* 세로 중앙 */
   padding: 0;
 }
-.math-concept-card .mcc-name-group {
+.rich-meta-card .mcc-name-group {
   display: flex;
   align-items: flex-end;      /* 라벨이 선 위로 살짝 올라가 보이도록 baseline 정렬 */
   gap: 3mm;
@@ -801,7 +801,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   width: 60%;
   min-width: 50mm;
 }
-.math-concept-card .mcc-name-label {
+.rich-meta-card .mcc-name-label {
   font-family: 'Jua', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs + 1.5}pt;
   font-weight: 400;
@@ -810,25 +810,25 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   line-height: 1;
   padding-bottom: 0.6mm;
 }
-.math-concept-card .mcc-name-line {
+.rich-meta-card .mcc-name-line {
   flex: 1;
   height: 0;
   border-bottom: 1.5px solid ${t.textColor}88;
 }
 
 /* 본문 섹션들 */
-.math-concept-card .mcc-body {
+.rich-meta-card .mcc-body {
   display: flex;
   flex-direction: column;
   gap: 2.5mm;
 }
-.math-concept-card .mcc-section {
+.rich-meta-card .mcc-section {
   background: #ffffff;
   border: 1.2px solid ${t.textColor}33;
   border-radius: 2mm;
   padding: 2.5mm 3mm 2.8mm 3mm;
 }
-.math-concept-card .mcc-section-head {
+.rich-meta-card .mcc-section-head {
   display: flex;
   align-items: center;
   gap: 1.5mm;
@@ -836,16 +836,16 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   padding-bottom: 1.2mm;
   border-bottom: 1px dashed ${t.accentColor}55;
 }
-.math-concept-card .mcc-section-icon {
+.rich-meta-card .mcc-section-icon {
   font-size: ${baseFs + 1}pt;
 }
-.math-concept-card .mcc-section-title {
+.rich-meta-card .mcc-section-title {
   font-size: ${baseFs - 0.5}pt;
   font-weight: 800;
   color: ${t.primaryColor};
   letter-spacing: 0.2mm;
 }
-.math-concept-card .mcc-section-body {
+.rich-meta-card .mcc-section-body {
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor};
   line-height: 1.55;
@@ -855,18 +855,18 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 /* 정의 섹션 — 교과서 정의 + 친근한 정의 두 줄
  * 좌측: 고정폭 태그 칸 (태그를 가로 가운데 정렬, 두 행 태그가 세로로 정렬됨)
  * 우측: 정의 텍스트 좌측 정렬 (.meta-block 의 text-align:center 를 명시적으로 덮어씀) */
-.math-concept-card .mcc-definition .mcc-section-body {
+.rich-meta-card .mcc-definition .mcc-section-body {
   display: flex;
   flex-direction: column;
   gap: 1.5mm;
 }
-.math-concept-card .mcc-def-row {
+.rich-meta-card .mcc-def-row {
   display: grid;
   grid-template-columns: 28mm 1fr;
   gap: 3.5mm;
   align-items: center;
 }
-.math-concept-card .mcc-def-tag {
+.rich-meta-card .mcc-def-tag {
   /* grid 셀 내에서 태그 pill 을 가로 가운데 정렬 */
   justify-self: center;
   text-align: center;
@@ -877,17 +877,17 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   letter-spacing: 0.2mm;
   white-space: nowrap;
 }
-.math-concept-card .mcc-def-tag-book {
+.rich-meta-card .mcc-def-tag-book {
   background: ${t.textColor}15;
   color: ${t.textColor}cc;
   border: 1px solid ${t.textColor}33;
 }
-.math-concept-card .mcc-def-tag-friend {
+.rich-meta-card .mcc-def-tag-friend {
   background: ${t.accentColor}22;
   color: ${t.primaryColor};
   border: 1px solid ${t.accentColor};
 }
-.math-concept-card .mcc-def-text {
+.rich-meta-card .mcc-def-text {
   /* 좌측 정렬 — 태그 칸 바로 우측부터 텍스트가 시작 */
   text-align: left;
   font-size: ${baseFs - 0.5}pt;
@@ -897,18 +897,18 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 
 /* 좌·우 2단: 그림 + 단짝 — auto 가 콘텐츠 분량에 맞게 폭 분배 */
-.math-concept-card .mcc-row-2col {
+.rich-meta-card .mcc-row-2col {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   gap: 2.5mm;
   align-items: stretch;
 }
-.math-concept-card .mcc-row-2col .mcc-section {
+.rich-meta-card .mcc-row-2col .mcc-section {
   margin: 0;
 }
 
 /* 그림으로 보기 — 큰 그림 + 친근한 손글씨 폰트 부연 설명. 위에서부터 시작. */
-.math-concept-card .mcc-visual .mcc-section-body {
+.rich-meta-card .mcc-visual .mcc-section-body {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -916,7 +916,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   text-align: center;
   justify-content: flex-start;
 }
-.math-concept-card .mcc-visual-emoji {
+.rich-meta-card .mcc-visual-emoji {
   /* 반듯한 Gowun Dodum — 깨끗하고 둥근 한글 폰트.
    * 상단 헤드라인(Jua, 굵은 굴림체)과 톤 차별화하면서도 손글씨 흔들림 없음. */
   font-family: 'Gowun Dodum', 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
@@ -930,12 +930,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   word-break: keep-all;
 }
 /* 그림으로 보기 내 강조 — **xxx** 마크업이 이 클래스로 변환됨 */
-.math-concept-card .mcc-visual-emoji .mcc-em {
+.rich-meta-card .mcc-visual-emoji .mcc-em {
   color: ${t.primaryColor};
   font-weight: 700;
 }
 /* 부연 설명 — 그림(visualEmoji)과 동일한 Gowun Dodum 폰트 (반듯·깨끗) */
-.math-concept-card .mcc-visual-caption {
+.rich-meta-card .mcc-visual-caption {
   font-family: 'Gowun Dodum', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs}pt;
   font-weight: 400;
@@ -953,17 +953,17 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 
 /* 단짝 친구 — emoji + term + desc 카드 리스트 (상세 모드). 위에서부터 시작. */
-.math-concept-card .mcc-related .mcc-section-body {
+.rich-meta-card .mcc-related .mcc-section-body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
-.math-concept-card .mcc-friend-list {
+.rich-meta-card .mcc-friend-list {
   display: flex;
   flex-direction: column;
   gap: 1.8mm;
 }
-.math-concept-card .mcc-friend-card {
+.rich-meta-card .mcc-friend-card {
   display: flex;
   align-items: center;
   gap: 2.5mm;
@@ -972,17 +972,18 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   border-radius: 1.5mm;
   padding: 1.8mm 2.5mm;
 }
-.math-concept-card .mcc-friend-emoji {
-  font-size: ${baseFs + 4}pt;
+.rich-meta-card .mcc-friend-emoji {
+  /* 그림으로 보기 영역의 이모지(visualEmoji)와 시각 무게 통일 — baseFs+6 */
+  font-size: ${baseFs + 6}pt;
   line-height: 1.1;
   flex-shrink: 0;
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Noto Sans KR', sans-serif;
 }
-.math-concept-card .mcc-friend-text {
+.rich-meta-card .mcc-friend-text {
   flex: 1;
   min-width: 0;
 }
-.math-concept-card .mcc-friend-term {
+.rich-meta-card .mcc-friend-term {
   /* 그림으로 보기와 동일한 Gowun Dodum 폰트로 통일 */
   font-family: 'Gowun Dodum', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs + 0.5}pt;
@@ -992,7 +993,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   margin-bottom: 0.5mm;
   text-align: center;
 }
-.math-concept-card .mcc-friend-desc {
+.rich-meta-card .mcc-friend-desc {
   font-family: 'Gaegu', 'Jua', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor}dd;
@@ -1002,7 +1003,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 
 /* 단짝 친구 — fallback 단순 chip (relatedTermsDetailed 없을 때) */
-.math-concept-card .mcc-related-list {
+.rich-meta-card .mcc-related-list {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5mm;
@@ -1010,7 +1011,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   align-content: center;
   flex: 1;
 }
-.math-concept-card .mcc-related-chip {
+.rich-meta-card .mcc-related-chip {
   display: inline-block;
   background: ${t.accentColor}1F;
   border: 1px solid ${t.accentColor};
@@ -1022,12 +1023,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 
 /* 수학 발문에서 만나기 */
-.math-concept-card .mcc-textbook .mcc-section-body {
+.rich-meta-card .mcc-textbook .mcc-section-body {
   display: flex;
   flex-direction: column;
   gap: 1.5mm;
 }
-.math-concept-card .mcc-textbook-quote {
+.rich-meta-card .mcc-textbook-quote {
   background: ${t.bgAccent};
   border-left: 3px solid ${t.accentColor};
   border-radius: 1mm;
@@ -1037,57 +1038,69 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   font-style: italic;
   line-height: 1.55;
 }
-.math-concept-card .mcc-textbook-meaning {
+.rich-meta-card .mcc-textbook-meaning {
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor}dd;
   line-height: 1.5;
 }
-.math-concept-card .mcc-textbook-meaning strong {
+.rich-meta-card .mcc-textbook-meaning strong {
   color: ${t.primaryColor};
   font-weight: 800;
 }
 
 /* festive 변형 — 부드러운 배경 + 둥근 모서리 강조 */
-.math-concept-card.meta-festive {
+.rich-meta-card.meta-festive {
   background: ${t.bgAccent}cc;
   border: 1.5px solid ${t.accentColor}88;
   border-radius: 3mm;
   padding: 3mm 3.5mm 3.5mm 3.5mm;
 }
-.math-concept-card.meta-festive .mcc-header-left,
-.math-concept-card.meta-festive .mcc-header-right {
+.rich-meta-card.meta-festive .mcc-header-left,
+.rich-meta-card.meta-festive .mcc-header-right {
   background: #ffffff;
 }
 
-/* ─── math-concept 페이지: 풀폭 메타 카드 + 컴팩트 문항 ───
+/* ─── 풀폭 시각 카드 페이지 (math-concept / proverb / idiomatic-phrase) ───
  * 이름 칸이 메타 헤더에 내장됨 — 별도 .name-card 없이 풀폭으로 메타 박스 배치.
  * 카드는 자연 크기로 콘텐츠에 딱 맞게 줄어들고, 남는 공간은 페이지 하단으로 자연스럽게.
  * 그림·단짝 섹션 내부는 위에서부터 시작하고 아래쪽에 적당한 여백이 남도록.
  */
-.page.math-concept-page .math-concept-card {
+.page.math-concept-page .rich-meta-card,
+.page.proverb-page .rich-meta-card,
+.page.phrase-page .rich-meta-card {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   margin-bottom: 5mm;
 }
-.page.math-concept-page .math-concept-card .mcc-body {
+.page.math-concept-page .rich-meta-card .mcc-body,
+.page.proverb-page .rich-meta-card .mcc-body,
+.page.phrase-page .rich-meta-card .mcc-body {
   display: flex;
   flex-direction: column;
   gap: 3mm;
 }
-.page.math-concept-page .math-concept-card .mcc-section {
+.page.math-concept-page .rich-meta-card .mcc-section,
+.page.proverb-page .rich-meta-card .mcc-section,
+.page.phrase-page .rich-meta-card .mcc-section {
   flex: 0 0 auto;
 }
 /* 그림+단짝 2단 — 두 섹션 높이만 동일 (시각 균형), 콘텐츠는 위에서 시작 */
-.page.math-concept-page .math-concept-card .mcc-row-2col {
+.page.math-concept-page .rich-meta-card .mcc-row-2col,
+.page.proverb-page .rich-meta-card .mcc-row-2col,
+.page.phrase-page .rich-meta-card .mcc-row-2col {
   align-items: stretch;
 }
-.page.math-concept-page .math-concept-card .mcc-row-2col .mcc-section {
+.page.math-concept-page .rich-meta-card .mcc-row-2col .mcc-section,
+.page.proverb-page .rich-meta-card .mcc-row-2col .mcc-section,
+.page.phrase-page .rich-meta-card .mcc-row-2col .mcc-section {
   display: flex;
   flex-direction: column;
 }
 /* 문항 영역 — 컴팩트 (space-between 분배 비활성, 자연 크기) */
-.page.math-concept-page .set {
+.page.math-concept-page .set,
+.page.proverb-page .set,
+.page.phrase-page .set {
   flex: 0 0 auto;
   justify-content: flex-start;
   gap: 4mm;
@@ -1400,12 +1413,25 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   };
 
   const isMathConcept = set.domain === 'math-concept';
+  const isProverb = set.domain === 'proverb';
+  const isPhrase = set.domain === 'idiomatic-phrase';
+  /* 풀폭 메타 카드 + 이름 칸 헤더 내장 도메인 — math-concept 와 동일 레이아웃 */
+  const isRichCard = isMathConcept || isProverb || isPhrase;
+
+  /* 도메인별 페이지 클래스 (CSS 의 페이지 레벨 override 트리거) */
+  const richPageClass = isMathConcept
+    ? ' math-concept-page'
+    : isProverb
+      ? ' proverb-page'
+      : isPhrase
+        ? ' phrase-page'
+        : '';
 
   /* 페이지별 HTML 생성 */
   slotGroups.forEach((group, pageIdx) => {
     const isFirstPage = pageIdx === 0;
     const isLastPage = pageIdx === totalPages - 1;
-    html += `<div class="page${showAnswer ? ' answer-mode' : ''}${isMultiPage ? ' multi-page' : ''}${isMathConcept ? ' math-concept-page' : ''}">`;
+    html += `<div class="page${showAnswer ? ' answer-mode' : ''}${isMultiPage ? ' multi-page' : ''}${richPageClass}">`;
 
     /* 페이지 격려 헤더 (multi-page일 때만) */
     if (isMultiPage && pageHeaders[pageIdx]) {
@@ -1417,8 +1443,8 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 
     /* 상단 — 첫 페이지에만 (또는 repeatMeta=true면 모든 페이지) */
     if (isFirstPage || repeatMeta) {
-      if (isMathConcept) {
-        /* 수학 개념어: 이름 칸이 메타 헤더에 내장 → 풀폭 메타 카드 + 해설지 배너 */
+      if (isRichCard) {
+        /* 이름 칸이 메타 헤더에 내장 → 풀폭 메타 카드 + 해설지 배너 */
         if (showAnswer) {
           html += `<div class="answer-banner-pill">
             <span class="abp-mark">✓</span>
