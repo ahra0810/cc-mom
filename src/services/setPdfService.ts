@@ -787,15 +787,15 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   padding-top: 1.2mm;
   text-align: center;
 }
-/* 우측 헤더 — 이름 칸을 카드 가운데에 배치 (좌측 term 카드와 시각 균형) */
+/* 우측 헤더 — 이름 칸을 카드의 정중앙(가로·세로 모두)에 배치 */
 .math-concept-card .mcc-header-right {
   align-items: center;        /* 가로 중앙 */
-  justify-content: flex-end;  /* 세로 하단 — 학생 기록 공간 확보 */
-  padding-bottom: 2mm;
+  justify-content: center;    /* 세로 중앙 */
+  padding: 0;
 }
 .math-concept-card .mcc-name-group {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-end;      /* 라벨이 선 위로 살짝 올라가 보이도록 baseline 정렬 */
   gap: 3mm;
   /* 좌측 term 카드보다 좁아 보이지 않도록 60% 폭 사용 */
   width: 60%;
@@ -983,9 +983,10 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   min-width: 0;
 }
 .math-concept-card .mcc-friend-term {
-  font-family: 'Jua', 'Noto Sans KR', sans-serif;
+  /* 그림으로 보기와 동일한 Gowun Dodum 폰트로 통일 */
+  font-family: 'Gowun Dodum', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs + 0.5}pt;
-  font-weight: 400;
+  font-weight: 700;
   color: ${t.primaryColor};
   line-height: 1.2;
   margin-bottom: 0.5mm;

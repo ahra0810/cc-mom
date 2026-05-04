@@ -46,6 +46,29 @@ function escPre(text: string): string {
   return escaped.replace(/\*\*([^*\n]+)\*\*/g, '<strong class="mcc-em">$1</strong>');
 }
 
+/* ─── 한글 조사 자동 선택 (받침 유무 기반) ───
+ * 변(받침 ㄴ) → '은' / '을',  둘레(받침 X) → '는' / '를'
+ * 문장 끝의 구두점·이모지·따옴표 등은 무시하고 마지막 한글 음절 기준으로 판단. */
+function lastHangul(text: string): string {
+  for (let i = text.length - 1; i >= 0; i--) {
+    const code = text.charCodeAt(i);
+    if (code >= 0xAC00 && code <= 0xD7A3) return text[i];
+  }
+  return '';
+}
+function hasJongseong(syllable: string): boolean {
+  if (!syllable) return false;
+  const code = syllable.charCodeAt(0);
+  if (code < 0xAC00 || code > 0xD7A3) return false;
+  return ((code - 0xAC00) % 28) !== 0;
+}
+function eunNeun(word: string): string {
+  return hasJongseong(lastHangul(word)) ? '은' : '는';
+}
+function eulReul(word: string): string {
+  return hasJongseong(lastHangul(word)) ? '을' : '를';
+}
+
 export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate): string {
   const englishTag = meta.englishTerm
     ? `<span class="mc-english-tag">${esc(meta.englishTerm)}</span>`
@@ -149,6 +172,8 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
     : '';
 
   /* ─ 수학 발문에서 만나기 ─ */
+  const termParticle = eunNeun(meta.term);          // 변 → 은,  둘레/짝수 → 는
+  const defParticle = eulReul(meta.definition);     // 정의 끝 받침에 따라 을/를
   const textbookSection = meta.textbookExample
     ? `<div class="mcc-section mcc-textbook">
         <div class="mcc-section-head">
@@ -157,7 +182,7 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
         </div>
         <div class="mcc-section-body">
           <div class="mcc-textbook-quote">${esc(meta.textbookExample)}</div>
-          <div class="mcc-textbook-meaning">👉 여기서 <strong>'${esc(meta.term)}'</strong>은(는) "${esc(meta.definition)}"을 의미해요.</div>
+          <div class="mcc-textbook-meaning">👉 여기서 <strong>'${esc(meta.term)}'</strong>${termParticle} "${esc(meta.definition)}"${defParticle} 의미해요.</div>
         </div>
       </div>`
     : '';
