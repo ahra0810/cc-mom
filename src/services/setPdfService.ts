@@ -852,19 +852,24 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   word-break: keep-all;
 }
 
-/* 정의 섹션 — 교과서 정의 + 친근한 정의 두 줄 */
+/* 정의 섹션 — 교과서 정의 + 친근한 정의 두 줄
+ * 좌측: 고정폭 태그 칸 (태그를 가로 가운데 정렬, 두 행 태그가 세로로 정렬됨)
+ * 우측: 정의 텍스트 좌측 정렬 (.meta-block 의 text-align:center 를 명시적으로 덮어씀) */
 .math-concept-card .mcc-definition .mcc-section-body {
   display: flex;
   flex-direction: column;
   gap: 1.5mm;
 }
 .math-concept-card .mcc-def-row {
-  display: flex;
-  align-items: baseline;
-  gap: 2.5mm;
+  display: grid;
+  grid-template-columns: 28mm 1fr;
+  gap: 3.5mm;
+  align-items: center;
 }
 .math-concept-card .mcc-def-tag {
-  flex-shrink: 0;
+  /* grid 셀 내에서 태그 pill 을 가로 가운데 정렬 */
+  justify-self: center;
+  text-align: center;
   font-size: ${baseFs - 1.5}pt;
   font-weight: 800;
   padding: 0.5mm 2mm;
@@ -883,7 +888,8 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   border: 1px solid ${t.accentColor};
 }
 .math-concept-card .mcc-def-text {
-  flex: 1;
+  /* 좌측 정렬 — 태그 칸 바로 우측부터 텍스트가 시작 */
+  text-align: left;
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor};
   line-height: 1.55;
