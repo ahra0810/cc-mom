@@ -33,14 +33,17 @@ function esc(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
-/* visualEmoji 전용: <br> 변환 X — `white-space: pre` CSS 가 \n 을 직접 처리.
- * 박스 그림(┌─│└┘) 정렬 유지를 위해 공백·줄바꿈 원본 보존. */
+/* visualEmoji 전용: <br> 변환 X — `white-space: pre-line` CSS 가 \n 을 직접 처리.
+ *  + **xxx** 마크업을 primary 컬러 강조로 변환 (기본은 검정, 중요한 단어만 색상). */
 function escPre(text: string): string {
-  return text
+  const escaped = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+  /* **xxx** → <strong class="mcc-em">xxx</strong>
+   * 같은 줄 안에서만 매칭 (줄바꿈은 매칭 안 함) — 마크업 누락 방지 */
+  return escaped.replace(/\*\*([^*\n]+)\*\*/g, '<strong class="mcc-em">$1</strong>');
 }
 
 export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate): string {

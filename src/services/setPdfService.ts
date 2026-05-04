@@ -917,23 +917,28 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   justify-content: flex-start;
 }
 .math-concept-card .mcc-visual-emoji {
-  font-family: 'Jua', 'Gaegu', 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
-  font-size: ${baseFs + 8}pt;
-  line-height: 1.5;
-  letter-spacing: 0.3mm;
-  color: ${t.primaryColor};
-  font-weight: 400;
-  /* pre-line: 줄바꿈은 보존하되 연속 공백은 1칸으로 — 친근한 폰트가 정렬 강제 X */
+  /* 손글씨 느낌 Gaegu — 상단 헤드라인(Jua, 둥근 굴림체)과 시각 차별화 */
+  font-family: 'Gaegu', 'Gamja Flower', 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: ${baseFs + 7}pt;
+  line-height: 1.25;
+  letter-spacing: 0.2mm;
+  color: ${t.textColor};        /* 기본 검정 — 중요한 부분만 .mcc-em 으로 강조 */
+  font-weight: 700;
   white-space: pre-line;
   text-align: center;
   word-break: keep-all;
 }
+/* 그림으로 보기 내 강조 — **xxx** 마크업이 이 클래스로 변환됨 */
+.math-concept-card .mcc-visual-emoji .mcc-em {
+  color: ${t.primaryColor};
+  font-weight: 700;
+}
 /* 부연 설명 — 초등학생이 좋아하는 둥글둥글한 'Jua' 폰트로 */
 .math-concept-card .mcc-visual-caption {
-  font-family: 'Jua', 'Gaegu', 'Noto Sans KR', sans-serif;
+  font-family: 'Jua', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs}pt;
   color: ${t.textColor};
-  line-height: 1.6;
+  line-height: 1.45;
   letter-spacing: 0.1mm;
   font-style: normal;
   word-break: keep-all;
