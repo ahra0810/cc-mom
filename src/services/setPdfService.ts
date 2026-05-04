@@ -907,28 +907,26 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   margin: 0;
 }
 
-/* 그림으로 보기 — 큰 그림 + 친근한 손글씨 폰트 부연 설명 */
+/* 그림으로 보기 — 큰 그림 + 친근한 손글씨 폰트 부연 설명. 위에서부터 시작. */
 .math-concept-card .mcc-visual .mcc-section-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2mm;
+  gap: 2.5mm;
   text-align: center;
-  height: 100%;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .math-concept-card .mcc-visual-emoji {
-  font-size: ${baseFs + 7}pt;
-  line-height: 1.45;
-  letter-spacing: 0;
-  /* 박스 문자(┌─│└┘)의 정렬을 보장하려면 monospace 가 1순위.
-   * 이모지(🟡△□)는 OS 이모지 폰트가 자동으로 fallback. */
-  font-family: 'Consolas', 'Menlo', 'Courier New', 'D2Coding', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', monospace;
-  color: ${t.textColor};
-  /* 줄바꿈/공백 보존 — 박스 그림 정렬 유지 */
-  white-space: pre;
-  text-align: left;
-  display: inline-block;
+  font-family: 'Jua', 'Gaegu', 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: ${baseFs + 8}pt;
+  line-height: 1.5;
+  letter-spacing: 0.3mm;
+  color: ${t.primaryColor};
+  font-weight: 400;
+  /* pre-line: 줄바꿈은 보존하되 연속 공백은 1칸으로 — 친근한 폰트가 정렬 강제 X */
+  white-space: pre-line;
+  text-align: center;
+  word-break: keep-all;
 }
 /* 부연 설명 — 초등학생이 좋아하는 둥글둥글한 'Jua' 폰트로 */
 .math-concept-card .mcc-visual-caption {
@@ -947,27 +945,25 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   box-sizing: border-box;
 }
 
-/* 단짝 친구 — emoji + term + desc 카드 리스트 (상세 모드) */
+/* 단짝 친구 — emoji + term + desc 카드 리스트 (상세 모드). 위에서부터 시작. */
 .math-concept-card .mcc-related .mcc-section-body {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  justify-content: flex-start;
 }
 .math-concept-card .mcc-friend-list {
   display: flex;
   flex-direction: column;
   gap: 1.8mm;
-  flex: 1;
-  justify-content: flex-start;
 }
 .math-concept-card .mcc-friend-card {
   display: flex;
-  align-items: flex-start;
-  gap: 2mm;
+  align-items: center;
+  gap: 2.5mm;
   background: ${t.accentColor}10;
   border-left: 2.5px solid ${t.accentColor};
   border-radius: 1.5mm;
-  padding: 1.8mm 2.2mm;
+  padding: 1.8mm 2.5mm;
 }
 .math-concept-card .mcc-friend-emoji {
   font-size: ${baseFs + 4}pt;
@@ -986,13 +982,15 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.primaryColor};
   line-height: 1.2;
   margin-bottom: 0.5mm;
+  text-align: center;
 }
 .math-concept-card .mcc-friend-desc {
   font-family: 'Gaegu', 'Jua', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor}dd;
-  line-height: 1.4;
+  line-height: 1.45;
   word-break: keep-all;
+  text-align: center;
 }
 
 /* 단짝 친구 — fallback 단순 chip (relatedTermsDetailed 없을 때) */
@@ -1053,39 +1051,32 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   background: #ffffff;
 }
 
-/* ─── math-concept 페이지: 풀폭 메타 카드 + 컴팩트 문항 + 상·하 여백 균형 ───
- * 이름 칸이 메타 헤더에 내장됨 — 별도 .name-card 없이 풀폭으로 메타 박스가
- * 페이지 가용 공간을 채우고, 그 아래 문항이 자연 크기로 컴팩트하게 배치된다.
- * .page 의 padding(14mm) 이 상·하 동일하므로 카드가 flex:1 로 늘어나면
- * 자연스럽게 페이지 하단 여백이 상단과 같아진다.
+/* ─── math-concept 페이지: 풀폭 메타 카드 + 컴팩트 문항 ───
+ * 이름 칸이 메타 헤더에 내장됨 — 별도 .name-card 없이 풀폭으로 메타 박스 배치.
+ * 카드는 자연 크기로 콘텐츠에 딱 맞게 줄어들고, 남는 공간은 페이지 하단으로 자연스럽게.
+ * 그림·단짝 섹션 내부는 위에서부터 시작하고 아래쪽에 적당한 여백이 남도록.
  */
 .page.math-concept-page .math-concept-card {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   margin-bottom: 5mm;
 }
 .page.math-concept-page .math-concept-card .mcc-body {
-  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 3mm;
-  justify-content: space-between;
 }
 .page.math-concept-page .math-concept-card .mcc-section {
   flex: 0 0 auto;
 }
-/* 그림+단짝 2단 구역은 flex-grow 로 빈 공간 일부 흡수 */
+/* 그림+단짝 2단 — 두 섹션 높이만 동일 (시각 균형), 콘텐츠는 위에서 시작 */
 .page.math-concept-page .math-concept-card .mcc-row-2col {
-  flex: 1 1 auto;
   align-items: stretch;
 }
 .page.math-concept-page .math-concept-card .mcc-row-2col .mcc-section {
   display: flex;
   flex-direction: column;
-}
-.page.math-concept-page .math-concept-card .mcc-row-2col .mcc-section-body {
-  flex: 1 1 auto;
 }
 /* 문항 영역 — 컴팩트 (space-between 분배 비활성, 자연 크기) */
 .page.math-concept-page .set {
