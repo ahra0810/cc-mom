@@ -781,20 +781,24 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 .math-concept-card .mcc-header-right {
   flex-direction: row;
-  align-items: center;
+  /* 이름 라벨·선을 카드 하단 쪽으로 — 위에 학생이 이름 쓸 공간 확보 */
+  align-items: flex-end;
   gap: 3mm;
+  padding-bottom: 2mm;
 }
 .math-concept-card .mcc-name-label {
   font-size: ${baseFs + 1}pt;
   font-weight: 800;
   color: ${t.primaryColor};
   flex-shrink: 0;
+  /* 라벨 baseline 을 선과 맞춤 */
+  line-height: 1;
+  padding-bottom: 0.6mm;
 }
 .math-concept-card .mcc-name-line {
   flex: 1;
   height: 0;
   border-bottom: 1.5px solid ${t.textColor}88;
-  margin-bottom: 1mm;
 }
 
 /* 본문 섹션들 */
