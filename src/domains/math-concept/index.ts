@@ -85,6 +85,7 @@ function getMathConceptSearchHaystack(meta: MathConceptMeta): string {
     meta.visualEmoji || '',
     meta.visualExample || '',
     (meta.relatedTerms || []).join(' '),
+    (meta.relatedTermsDetailed || []).map((f) => `${f.term} ${f.desc}`).join(' '),
     meta.textbookExample || '',
     meta.origin || '',
   ].join(' ');

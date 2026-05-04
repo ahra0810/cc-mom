@@ -1,26 +1,25 @@
 /**
  * 수학 개념어 도메인의 PDF 메타 박스 = "개념 학습 카드"
  *
- * 1페이지 학습지 구성 (개념 설명 중심, 문항은 최소화):
+ * 1페이지 학습지 구성 (개념 설명 중심):
  *
  *   ┌─────────────────────────┬───────────────┐
- *   │  짝수  [even number]      │  이름 _______  │   ← 헤더 행 (2단)
- *   │  └ 영어 어원 (있으면)      │                │
+ *   │   짝수  [even number]    │   이름 _____  │   ← 헤더 (둘 다 가운데 정렬)
+ *   │   └ 영어 어원 (있으면)    │                │
  *   ├─────────────────────────┴───────────────┤
- *   │  📚 정의                                  │   ← 풀폭 정의 박스
- *   │   교과서 속 정의 : ~~~                    │     (교과서 + 친근한 두 줄)
- *   │   친근한 정의   : ~~~                     │
+ *   │  📚 정의 — 교과서 정의 + 친근한 정의        │
  *   ├──────────────────────┬──────────────────┤
- *   │  🎨 그림으로 보기      │  👯 단짝 친구       │   ← 좌·우 2단
- *   │   <visualEmoji 큰글씨> │   ~~ · ~~ · ~~    │
- *   │   <visualExample 부연> │                   │
+ *   │  🎨 그림으로 보기      │  👯 단짝 친구       │
+ *   │   <visualEmoji>       │  ┌ 🔺 꼭짓점       │
+ *   │   <visualExample>     │  │  두 변이 만나… │
+ *   │                       │  ├ ⬜ 도형         │
+ *   │                       │  │  점·선·면…    │
  *   ├──────────────────────┴──────────────────┤
- *   │  🔍 수학 발문에서 만나기                    │   ← 풀폭 발문 박스
- *   │   "<textbookExample>"                    │
- *   │   👉 여기서 '<term>'은(는) "~~"를 의미해요   │
+ *   │  🔍 수학 발문에서 만나기                    │
  *   └─────────────────────────────────────────┘
  *
- * 슬롯 2문항(객관식)은 카드 아래에 컴팩트하게 배치 (slot 렌더러가 처리).
+ * 단짝 친구는 relatedTermsDetailed 가 있으면 [emoji + term + desc] 카드 리스트,
+ * 없으면 단순 chip 으로 fallback. 콘텐츠 분량에 따라 카드 영역이 자동 흡수.
  */
 import type { MathConceptMeta } from '../../types/sets';
 import type { SetTemplate } from '../../services/setPdfTemplates';
@@ -52,7 +51,7 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
     ? `<span class="mc-hanja-tag">${esc(meta.hanja)}</span>`
     : '';
 
-  /* ─ 헤더 좌측: 용어 + 영어 + 한자 (있으면) + 영어 어원 (sub) ─ */
+  /* ─ 헤더 좌측: 용어 + 영어 + 한자 + 영어 어원 (모두 가운데 정렬) ─ */
   const headerLeft = `<div class="mcc-header-left">
     <div class="mcc-header-main">
       <span class="mcc-h-term">${esc(meta.term)}</span>
@@ -64,10 +63,12 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
       : ''}
   </div>`;
 
-  /* ─ 헤더 우측: 이름 빈칸 ─ */
+  /* ─ 헤더 우측: 이름 빈칸 (가운데 정렬) ─ */
   const headerRight = `<div class="mcc-header-right">
-    <span class="mcc-name-label">이름</span>
-    <span class="mcc-name-line"></span>
+    <div class="mcc-name-group">
+      <span class="mcc-name-label">이름</span>
+      <span class="mcc-name-line"></span>
+    </div>
   </div>`;
 
   /* ─ 정의 섹션 (교과서 정의 + 친근한 정의) ─ */
@@ -93,7 +94,7 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
     </div>
   </div>`;
 
-  /* ─ 그림으로 보기 (이모지 큰 글씨 + 부연 설명) ─ */
+  /* ─ 그림으로 보기 (이모지 큰 그림 + 친근한 폰트 부연 설명) ─ */
   const visualSection = (meta.visualEmoji || meta.visualExample)
     ? `<div class="mcc-section mcc-visual">
         <div class="mcc-section-head">
@@ -111,15 +112,35 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
       </div>`
     : '';
 
-  /* ─ 단짝 친구 ─ */
-  const relatedSection = meta.relatedTerms && meta.relatedTerms.length
+  /* ─ 단짝 친구 — 상세(emoji+desc) 우선, 없으면 단순 chip fallback ─ */
+  const detailedFriends = meta.relatedTermsDetailed && meta.relatedTermsDetailed.length;
+  let relatedBody = '';
+  if (detailedFriends && meta.relatedTermsDetailed) {
+    relatedBody = `<div class="mcc-friend-list">${meta.relatedTermsDetailed
+      .map(
+        (f) => `<div class="mcc-friend-card">
+          <div class="mcc-friend-emoji">${esc(f.emoji || '🔗')}</div>
+          <div class="mcc-friend-text">
+            <div class="mcc-friend-term">${esc(f.term)}</div>
+            ${f.desc ? `<div class="mcc-friend-desc">${esc(f.desc)}</div>` : ''}
+          </div>
+        </div>`,
+      )
+      .join('')}</div>`;
+  } else if (meta.relatedTerms && meta.relatedTerms.length) {
+    relatedBody = `<div class="mcc-related-list">${meta.relatedTerms
+      .map((r) => `<span class="mcc-related-chip">${esc(r)}</span>`)
+      .join('')}</div>`;
+  }
+
+  const relatedSection = relatedBody
     ? `<div class="mcc-section mcc-related">
         <div class="mcc-section-head">
           <span class="mcc-section-icon">👯</span>
           <span class="mcc-section-title">단짝 친구</span>
         </div>
         <div class="mcc-section-body">
-          <div class="mcc-related-list">${meta.relatedTerms.map((r) => `<span class="mcc-related-chip">${esc(r)}</span>`).join('')}</div>
+          ${relatedBody}
         </div>
       </div>`
     : '';

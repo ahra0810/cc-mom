@@ -122,6 +122,9 @@ export interface MathConceptMeta {
   visualExample?: string;
   /** 관련 용어 짝 — 선택 (예: "둘레"의 짝은 ["넓이"]) */
   relatedTerms?: string[];
+  /** 관련 용어 상세 — 이모지·짧은 설명 포함 (PDF 단짝 친구 카드에 사용).
+   *  비어 있으면 relatedTerms 단순 chip 으로 fallback. */
+  relatedTermsDetailed?: Array<{ term: string; emoji: string; desc: string }>;
   /** 실제 교과서·사고력 수학 발문 한 줄 — 7번 슬롯에서 사용. 선택 */
   textbookExample?: string;
   /** 어원·우리말 이야기 — 선택 */

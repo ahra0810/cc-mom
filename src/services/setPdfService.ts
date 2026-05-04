@@ -16,6 +16,7 @@ import { getDomain } from '../domains/registry';
 const FONT_IMPORTS = `
 @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=Gamja+Flower&display=swap');
 `;
 
 /* ─── HTML escape ─── */
@@ -735,15 +736,21 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   flex-direction: column;
   justify-content: center;
 }
+.math-concept-card .mcc-header-left {
+  align-items: center;
+  text-align: center;
+}
 .math-concept-card .mcc-header-main {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 2.5mm;
 }
 .math-concept-card .mcc-h-term {
-  font-size: ${baseFs + 10}pt;
-  font-weight: 900;
+  font-family: 'Jua', 'Noto Sans KR', sans-serif;
+  font-size: ${baseFs + 12}pt;
+  font-weight: 400;
   color: ${t.primaryColor};
   letter-spacing: 1.2mm;
 }
@@ -778,20 +785,28 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   letter-spacing: 0.1mm;
   border-top: 1px dashed ${t.accentColor}55;
   padding-top: 1.2mm;
+  text-align: center;
 }
+/* 우측 헤더 — 이름 칸을 카드 가운데에 배치 (좌측 term 카드와 시각 균형) */
 .math-concept-card .mcc-header-right {
-  flex-direction: row;
-  /* 이름 라벨·선을 카드 하단 쪽으로 — 위에 학생이 이름 쓸 공간 확보 */
-  align-items: flex-end;
-  gap: 3mm;
+  align-items: center;        /* 가로 중앙 */
+  justify-content: flex-end;  /* 세로 하단 — 학생 기록 공간 확보 */
   padding-bottom: 2mm;
 }
+.math-concept-card .mcc-name-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 3mm;
+  /* 좌측 term 카드보다 좁아 보이지 않도록 60% 폭 사용 */
+  width: 60%;
+  min-width: 50mm;
+}
 .math-concept-card .mcc-name-label {
-  font-size: ${baseFs + 1}pt;
-  font-weight: 800;
+  font-family: 'Jua', 'Noto Sans KR', sans-serif;
+  font-size: ${baseFs + 1.5}pt;
+  font-weight: 400;
   color: ${t.primaryColor};
   flex-shrink: 0;
-  /* 라벨 baseline 을 선과 맞춤 */
   line-height: 1;
   padding-bottom: 0.6mm;
 }
@@ -875,27 +890,30 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   font-weight: 500;
 }
 
-/* 좌·우 2단: 그림 + 단짝 */
+/* 좌·우 2단: 그림 + 단짝 — auto 가 콘텐츠 분량에 맞게 폭 분배 */
 .math-concept-card .mcc-row-2col {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   gap: 2.5mm;
+  align-items: stretch;
 }
 .math-concept-card .mcc-row-2col .mcc-section {
   margin: 0;
 }
 
-/* 그림으로 보기 — 이모지 큰 글씨 + 부연 설명 */
+/* 그림으로 보기 — 큰 그림 + 친근한 손글씨 폰트 부연 설명 */
 .math-concept-card .mcc-visual .mcc-section-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5mm;
+  gap: 2mm;
   text-align: center;
+  height: 100%;
+  justify-content: center;
 }
 .math-concept-card .mcc-visual-emoji {
-  font-size: ${baseFs + 5}pt;
-  line-height: 1.4;
+  font-size: ${baseFs + 7}pt;
+  line-height: 1.45;
   letter-spacing: 0;
   /* 박스 문자(┌─│└┘)의 정렬을 보장하려면 monospace 가 1순위.
    * 이모지(🟡△□)는 OS 이모지 폰트가 자동으로 fallback. */
@@ -906,25 +924,79 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   text-align: left;
   display: inline-block;
 }
+/* 부연 설명 — 초등학생이 좋아하는 둥글둥글한 'Jua' 폰트로 */
 .math-concept-card .mcc-visual-caption {
-  font-size: ${baseFs - 1.5}pt;
-  color: ${t.textColor}cc;
-  font-style: italic;
-  line-height: 1.4;
+  font-family: 'Jua', 'Gaegu', 'Noto Sans KR', sans-serif;
+  font-size: ${baseFs}pt;
+  color: ${t.textColor};
+  line-height: 1.6;
+  letter-spacing: 0.1mm;
+  font-style: normal;
+  word-break: keep-all;
+  /* 박스 가운데 자연스럽게 정렬되도록 살짝 강조 배경 */
+  background: ${t.bgAccent}99;
+  border-radius: 1.5mm;
+  padding: 1.5mm 3mm;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* 단짝 친구 — chip 가로 배치 */
+/* 단짝 친구 — emoji + term + desc 카드 리스트 (상세 모드) */
 .math-concept-card .mcc-related .mcc-section-body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   height: 100%;
 }
+.math-concept-card .mcc-friend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8mm;
+  flex: 1;
+  justify-content: flex-start;
+}
+.math-concept-card .mcc-friend-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 2mm;
+  background: ${t.accentColor}10;
+  border-left: 2.5px solid ${t.accentColor};
+  border-radius: 1.5mm;
+  padding: 1.8mm 2.2mm;
+}
+.math-concept-card .mcc-friend-emoji {
+  font-size: ${baseFs + 4}pt;
+  line-height: 1.1;
+  flex-shrink: 0;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Noto Sans KR', sans-serif;
+}
+.math-concept-card .mcc-friend-text {
+  flex: 1;
+  min-width: 0;
+}
+.math-concept-card .mcc-friend-term {
+  font-family: 'Jua', 'Noto Sans KR', sans-serif;
+  font-size: ${baseFs + 0.5}pt;
+  font-weight: 400;
+  color: ${t.primaryColor};
+  line-height: 1.2;
+  margin-bottom: 0.5mm;
+}
+.math-concept-card .mcc-friend-desc {
+  font-family: 'Gaegu', 'Jua', 'Noto Sans KR', sans-serif;
+  font-size: ${baseFs - 0.5}pt;
+  color: ${t.textColor}dd;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+
+/* 단짝 친구 — fallback 단순 chip (relatedTermsDetailed 없을 때) */
 .math-concept-card .mcc-related-list {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5mm;
   justify-content: center;
+  align-content: center;
+  flex: 1;
 }
 .math-concept-card .mcc-related-chip {
   display: inline-block;
