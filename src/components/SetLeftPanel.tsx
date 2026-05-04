@@ -405,12 +405,20 @@ function DomainFilterPills() {
   const allSets = useSetStore((s) => s.sets);
   const selectSet = useSetStore((s) => s.selectSet);
   const selectedSetId = useSetStore((s) => s.selectedSetId);
+  const setSelectedTemplateId = useSetStore((s) => s.setSelectedTemplateId);
   const domains = listDomains();
   if (domains.length < 2) return null;
 
-  /* 도메인 pill 클릭 시 — 필터 변경 + 해당 도메인의 첫 set 자동 선택 (가운데 미리보기·우측 템플릿이 함께 전환) */
+  /* 도메인 pill 클릭 시 — 필터 변경 + 해당 도메인의 첫 set 자동 선택
+   * + 사용자가 이전 도메인에서 골랐던 템플릿 선택을 초기화 (null) 해서
+   *   미리보기가 새 도메인의 recommendedTemplateId 로 자동 전환되도록 함. */
   const handlePickDomain = (domainId: SetDomain | null) => {
+    const prevDomain = filters.domain;
     setFilters({ domain: domainId });
+    /* 다른 도메인으로 이동하면 템플릿 선택 초기화 */
+    if (domainId !== prevDomain) {
+      setSelectedTemplateId(null);
+    }
     if (!domainId) {
       /* "전체" 선택 시: 현재 선택이 유효하면 유지, 없으면 가장 최근 set으로 */
       if (!selectedSetId) {

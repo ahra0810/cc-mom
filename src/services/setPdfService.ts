@@ -390,7 +390,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 
 /* ─── Meta block (좌측 / 답안지에서는 풀폭) ─── */
 .meta-block { border: 1.5px solid ${t.accentColor}; border-radius: 4px; padding: 4mm 6mm; background: ${t.bgAccent}66; flex-shrink: 0; text-align: center; margin-bottom: 5mm; }
-.meta-hanja { font-family: 'Noto Serif KR', serif; font-size: ${baseFs + 8}pt; font-weight: 700; letter-spacing: 3mm; padding-left: 3mm; color: ${t.primaryColor}; line-height: 1.2; }
+.meta-hanja { font-family: 'Noto Serif KR', serif; font-size: ${baseFs + 12}pt; font-weight: 700; letter-spacing: 4mm; padding-left: 4mm; color: ${t.primaryColor}; line-height: 1.15; }
 .meta-idiom { font-size: ${baseFs + 1}pt; font-weight: 700; color: ${t.textColor}; margin-top: 2mm; }
 .meta-meaning { font-size: ${baseFs - 0.5}pt; color: ${t.textColor}cc; margin-top: 1mm; }
 .meta-origin { font-size: ${baseFs - 1.5}pt; color: ${t.textColor}99; margin-top: 1mm; font-style: italic; }
@@ -400,12 +400,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .meta-hanja-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
 .meta-hanja-cell {
   font-family: 'Noto Serif KR', serif;
-  font-size: ${baseFs + 16}pt;
+  font-size: ${baseFs + 22}pt;
   font-weight: 700;
   color: ${t.primaryColor};
   background: white;
   border: 1.5px solid ${t.primaryColor}55;
-  aspect-ratio: 1.2;
+  aspect-ratio: 1.15;
   display: flex; align-items: center; justify-content: center;
   line-height: 1;
 }
@@ -417,7 +417,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 /* ─── Meta: big-friendly ─── */
 .meta-big-friendly { background: ${t.bgAccent}; border: 2.5px solid ${t.accentColor}; border-radius: 14px; padding: 5mm 6mm; position: relative; }
 .meta-friendly-star { position: absolute; top: 2mm; right: 4mm; font-size: ${baseFs + 4}pt; color: ${t.primaryColor}; }
-.meta-big-friendly .meta-hanja { font-size: ${baseFs + 10}pt; }
+.meta-big-friendly .meta-hanja { font-size: ${baseFs + 14}pt; }
 .meta-big-friendly .meta-idiom { font-size: ${baseFs + 2}pt; }
 .meta-big-friendly .meta-meaning { font-size: ${baseFs}pt; }
 
@@ -1120,7 +1120,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   margin: 1mm 0 0 0;
 }
 .page.answer-mode .hanja-tracing-row { max-width: 78mm; gap: 3mm; }
-.page.answer-mode .hanja-tracing-box { font-size: ${baseFs + 9}pt; }
+.page.answer-mode .hanja-tracing-box { font-size: ${baseFs + 20}pt; }
 .page.answer-mode .slot1-grid .answer-line { height: 10mm; }
 .q { display: flex; gap: 3mm; page-break-inside: avoid; flex: 0 0 auto; }
 .q-num { flex-shrink: 0; width: 7mm; font-size: ${baseFs}pt; font-weight: 800; color: ${t.primaryColor}; padding-top: 0.5mm; }
@@ -1154,9 +1154,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   border: 1.5px solid ${t.textColor}66;
   aspect-ratio: 1;
   display: flex; align-items: center; justify-content: center;
-  font-size: ${baseFs + 12}pt;
+  /* 학생이 한자를 따라 쓰기 좋게 박스 안 글자를 최대한 크게.
+   * 박스 한 변 ≈ 19~22mm 일 때 ~75% 비율로 보이도록 24pt 추가.
+   * 더 키우면 굵은 부수가 박스 모서리에 닿아 답답해 보임 — 적정선. */
+  font-size: ${baseFs + 24}pt;
   color: ${t.textColor}33;
   font-family: 'Noto Serif KR', serif;
+  line-height: 1;
 }
 /* 한글음 답란 — 1번 그리드 우측 칸. 라벨 위, 줄 아래로 세로 정렬 */
 .slot1-grid .answer-row {
