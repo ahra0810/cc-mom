@@ -155,7 +155,7 @@ export const MATH_CONCEPT_DEFAULT_SETS: QuestionSet[] = [
       englishOrigin: 'peri-(주변) + meter(재다) — "주변을 잰 길이"',
       textbookDefinition: '평면도형의 가장자리를 따라 한 바퀴 돈 길이. 모든 변의 길이의 합.',
       definition: '도형 바깥쪽을 한 바퀴 도는 길의 길이 — 모든 변을 다 더하면 돼요!',
-      visualEmoji: '┌──5──┐\n3        3\n└──5──┘\n=5+3+5+3=16',
+      visualEmoji: '      5cm\n   ┌──────┐\n3cm│      │3cm\n   └──────┘\n      5cm\n둘레 = 5+3+5+3 = 16cm',
       visualExample: '가로 5cm, 세로 3cm 직사각형의 둘레는 16cm. 운동장 한 바퀴를 떠올려요!',
       relatedTerms: ['넓이', '변', '도형'],
       textbookExample: '정원의 둘레를 구하시오. 정원은 가로 5m, 세로 3m인 직사각형입니다.',

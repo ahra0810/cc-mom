@@ -34,6 +34,16 @@ function esc(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
+/* visualEmoji 전용: <br> 변환 X — `white-space: pre` CSS 가 \n 을 직접 처리.
+ * 박스 그림(┌─│└┘) 정렬 유지를 위해 공백·줄바꿈 원본 보존. */
+function escPre(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate): string {
   const englishTag = meta.englishTerm
     ? `<span class="mc-english-tag">${esc(meta.englishTerm)}</span>`
@@ -92,7 +102,7 @@ export function renderMathConceptMetaBlock(meta: MathConceptMeta, t: SetTemplate
         </div>
         <div class="mcc-section-body">
           ${meta.visualEmoji
-            ? `<div class="mcc-visual-emoji">${esc(meta.visualEmoji)}</div>`
+            ? `<div class="mcc-visual-emoji">${escPre(meta.visualEmoji)}</div>`
             : ''}
           ${meta.visualExample
             ? `<div class="mcc-visual-caption">${esc(meta.visualExample)}</div>`

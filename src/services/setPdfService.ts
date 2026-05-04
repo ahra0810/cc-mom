@@ -890,11 +890,17 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   text-align: center;
 }
 .math-concept-card .mcc-visual-emoji {
-  font-size: ${baseFs + 6}pt;
-  line-height: 1.5;
-  letter-spacing: 1mm;
-  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Noto Sans KR', monospace;
+  font-size: ${baseFs + 5}pt;
+  line-height: 1.4;
+  letter-spacing: 0;
+  /* 박스 문자(┌─│└┘)의 정렬을 보장하려면 monospace 가 1순위.
+   * 이모지(🟡△□)는 OS 이모지 폰트가 자동으로 fallback. */
+  font-family: 'Consolas', 'Menlo', 'Courier New', 'D2Coding', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', monospace;
   color: ${t.textColor};
+  /* 줄바꿈/공백 보존 — 박스 그림 정렬 유지 */
+  white-space: pre;
+  text-align: left;
+  display: inline-block;
 }
 .math-concept-card .mcc-visual-caption {
   font-size: ${baseFs - 1.5}pt;
