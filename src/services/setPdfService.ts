@@ -933,10 +933,11 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.primaryColor};
   font-weight: 700;
 }
-/* 부연 설명 — 초등학생이 좋아하는 둥글둥글한 'Jua' 폰트로 */
+/* 부연 설명 — 그림(visualEmoji)과 동일한 손글씨 Gaegu 폰트로 통일 */
 .math-concept-card .mcc-visual-caption {
-  font-family: 'Jua', 'Noto Sans KR', sans-serif;
+  font-family: 'Gaegu', 'Gamja Flower', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs}pt;
+  font-weight: 700;
   color: ${t.textColor};
   line-height: 1.45;
   letter-spacing: 0.1mm;
