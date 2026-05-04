@@ -160,7 +160,7 @@ export const MATH_CONCEPT_DEFAULT_SETS: QuestionSet[] = [
       englishOrigin: 'peri-(주변) + meter(재다) — "주변을 잰 길이"',
       textbookDefinition: '평면도형의 가장자리를 따라 한 바퀴 돈 길이. 모든 변의 길이의 합.',
       definition: '도형 바깥쪽을 한 바퀴 도는 길의 길이 — 모든 변을 다 더하면 돼요!',
-      visualEmoji: '🔲 직사각형 (가로 5cm, 세로 3cm)\n\n5cm + 3cm + 5cm + 3cm\n\n= **둘레 16cm** !',
+      visualEmoji: '🔲 직사각형 (가로 5cm, 세로 3cm)\n5cm + 3cm + 5cm + 3cm\n= **둘레 16cm** !',
       visualExample: '직사각형 운동장을 한 바퀴 돈다고 생각해 보세요!\n가로 5cm, 세로 3cm 인 직사각형이라면\n네 변(5+3+5+3)을 모두 더한 16cm 가 둘레예요.\n넓이는 "안쪽 공간"이고, 둘레는 "바깥쪽 길이"랍니다.',
       relatedTerms: ['넓이', '변', '꼭짓점'],
       relatedTermsDetailed: [
@@ -185,7 +185,7 @@ export const MATH_CONCEPT_DEFAULT_SETS: QuestionSet[] = [
       englishTerm: 'even number',
       textbookDefinition: '2로 나누어 떨어지는 자연수. 즉 2의 배수.',
       definition: '둘로 똑같이 나눌 수 있는 수 — 짝지어 보면 남는 게 없어요!',
-      visualEmoji: '2  →  🟡🟡\n4  →  🟡🟡 🟡🟡\n6  →  🟡🟡 🟡🟡 🟡🟡\n\n모두 둘씩 짝! **짝수**예요.',
+      visualEmoji: '2  →  🟡🟡\n4  →  🟡🟡 🟡🟡\n6  →  🟡🟡 🟡🟡 🟡🟡\n모두 둘씩 짝! **짝수**예요.',
       visualExample: '사탕 6개를 친구 두 명이 똑같이 나누면 3개씩!\n어느 쪽도 모자라거나 남지 않으니까 "짝수"예요.\n2, 4, 6, 8, 10 … 둘로 나누어 떨어지는 수가 짝수랍니다.\n반대로 1, 3, 5, 7, 9 처럼 하나가 홀로 남는 수는 "홀수"!',
       relatedTerms: ['홀수', '배수', '자연수'],
       relatedTermsDetailed: [

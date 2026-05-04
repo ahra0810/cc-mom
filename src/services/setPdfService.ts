@@ -16,7 +16,7 @@ import { getDomain } from '../domains/registry';
 const FONT_IMPORTS = `
 @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=Gamja+Flower&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=Gamja+Flower&family=Gowun+Dodum&family=Gowun+Batang:wght@400;700&display=swap');
 `;
 
 /* ─── HTML escape ─── */
@@ -832,7 +832,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   display: flex;
   align-items: center;
   gap: 1.5mm;
-  margin-bottom: 1.5mm;
+  margin-bottom: 3mm;       /* 헤더 — 본문 사이 여백 (이전 1.5 → 3mm) */
   padding-bottom: 1.2mm;
   border-bottom: 1px dashed ${t.accentColor}55;
 }
@@ -917,13 +917,14 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   justify-content: flex-start;
 }
 .math-concept-card .mcc-visual-emoji {
-  /* 손글씨 느낌 Gaegu — 상단 헤드라인(Jua, 둥근 굴림체)과 시각 차별화 */
-  font-family: 'Gaegu', 'Gamja Flower', 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  /* 반듯한 Gowun Dodum — 깨끗하고 둥근 한글 폰트.
+   * 상단 헤드라인(Jua, 굵은 굴림체)과 톤 차별화하면서도 손글씨 흔들림 없음. */
+  font-family: 'Gowun Dodum', 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
   font-size: ${baseFs + 7}pt;
-  line-height: 1.25;
-  letter-spacing: 0.2mm;
+  line-height: 1.4;
+  letter-spacing: 0.1mm;
   color: ${t.textColor};        /* 기본 검정 — 중요한 부분만 .mcc-em 으로 강조 */
-  font-weight: 700;
+  font-weight: 400;
   white-space: pre-line;
   text-align: center;
   word-break: keep-all;
@@ -933,13 +934,13 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.primaryColor};
   font-weight: 700;
 }
-/* 부연 설명 — 그림(visualEmoji)과 동일한 손글씨 Gaegu 폰트로 통일 */
+/* 부연 설명 — 그림(visualEmoji)과 동일한 Gowun Dodum 폰트 (반듯·깨끗) */
 .math-concept-card .mcc-visual-caption {
-  font-family: 'Gaegu', 'Gamja Flower', 'Noto Sans KR', sans-serif;
+  font-family: 'Gowun Dodum', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs}pt;
-  font-weight: 700;
+  font-weight: 400;
   color: ${t.textColor};
-  line-height: 1.45;
+  line-height: 1.55;
   letter-spacing: 0.1mm;
   font-style: normal;
   word-break: keep-all;
