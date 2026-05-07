@@ -528,13 +528,17 @@ function SetCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-1.5">
             <span className="text-sm font-extrabold text-gray-800 truncate">{headline}</span>
-            <span className="text-xs text-gray-500 font-normal" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-              {subhead}
-            </span>
+            {subhead && (
+              <span className="text-xs text-gray-500 font-normal" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                {subhead}
+              </span>
+            )}
           </div>
-          <p className="text-[11px] text-gray-500 leading-snug line-clamp-1 break-keep mt-0.5">
-            {body}
-          </p>
+          {body && (
+            <p className="text-[11px] text-gray-500 leading-snug line-clamp-1 break-keep mt-0.5">
+              {body}
+            </p>
+          )}
           <div className="flex items-center gap-1.5 mt-1.5">
             <span className={`badge !text-[9px] !px-1.5 !py-0 ${DIFF_BADGE[s.difficulty]}`}>
               {DIFF_SHORT[s.difficulty]}

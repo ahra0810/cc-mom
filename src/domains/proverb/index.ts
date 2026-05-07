@@ -70,12 +70,12 @@ function getProverbSearchHaystack(meta: ProverbMeta): string {
   ].join(' ');
 }
 
-/* ─── 카드 요약 ─── */
+/* ─── 카드 요약 — 속담은 본문이 길어 본문만 노출 (subhead/body 숨김) ─── */
 function getProverbCardSummary(meta: ProverbMeta): DomainCardSummary {
   return {
     headline: meta.proverb || '속담 미입력',
-    subhead: meta.lesson || (meta.proverb ? '”' : '—'),
-    body: meta.meaning || '',
+    subhead: '',
+    body: '',
   };
 }
 
