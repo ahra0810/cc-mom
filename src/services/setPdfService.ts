@@ -1068,10 +1068,18 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .page.math-concept-page .rich-meta-card,
 .page.proverb-page .rich-meta-card,
 .page.phrase-page .rich-meta-card {
-  flex: 0 0 auto;
+  /* flex: 0 1 auto — 자연 크기지만 페이지 넘침 방지를 위해 shrink 허용 */
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
   margin-bottom: 5mm;
+  /* 페이지 가용 영역(269mm) 의 최대 70% 까지만 — 문항 영역 최소 30% 보장 */
+  max-height: calc(269mm * 0.70);
+  overflow: hidden;
+}
+/* 1페이지 학습지(math-concept) 는 문항이 적으니 메타 카드가 더 자랄 수 있게 */
+.page.math-concept-page:not(.multi-page) .rich-meta-card {
+  max-height: calc(269mm * 0.85);
 }
 .page.math-concept-page .rich-meta-card .mcc-body,
 .page.proverb-page .rich-meta-card .mcc-body,

@@ -100,9 +100,9 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
   id: 'idiomatic-phrase',
   labels: IDIOMATIC_LABELS,
   slotConfig: {
-    /* 2페이지 구성 (Bloom's Taxonomy):
-     *   페이지 1 (인지·이해): short-answer + mc 3개
-     *   페이지 2 (적용·산출): mc 3개 + sentence-making */
+    /* 2페이지 구성 (Bloom's Taxonomy) — 3+5 split:
+     *   페이지 1 (인지·이해): meta card + slots 0~2 (빈칸·친근뜻·교과서뜻)
+     *   페이지 2 (분석·적용·종합·산출): slots 3~7 (5문항, 페이지 가득 분배) */
     count: 8,
     requiredTypes: [
       'short-answer',
@@ -111,10 +111,10 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
       'sentence-making',
     ],
     autoSyncedSlots: [0, 7],
-    pageBreaks: [3],
+    pageBreaks: [2],
     pageHeaders: [
       '📖 페이지 1 / 2 — 관용어 인지·이해',
-      '✏️ 페이지 2 / 2 — 일상 적용·응용',
+      '✏️ 페이지 2 / 2 — 분석·적용·산출',
     ],
   },
   createEmptyMeta: () => ({
@@ -135,7 +135,7 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
   },
   defaultSets: IDIOMATIC_DEFAULT_SETS,
   editorHint:
-    '💡 시각 카드 + 8문항 학습지 (초3~중1, A4 2페이지 — 양면 인쇄 권장). 페이지 1: 시각 카드 + 인지·이해 4문항(빈칸·친근뜻·교과서뜻·비슷한관용어). 페이지 2: 적용·산출 4문항(상황·잘못쓰인예·비유의미·직접 문장). **그림 필드(visualEmoji)에 이모지 만화**로 미니 시나리오를 그려 주세요.',
+    '💡 시각 카드 + 8문항 학습지 (초3~중1, A4 2페이지 — 양면 인쇄 권장). 페이지 1: 시각 카드 + 인지·이해 3문항(빈칸·친근뜻·교과서뜻). 페이지 2: 분석·적용·종합·산출 5문항(비슷한 관용어·상황·잘못 쓰인 예·비유 의미·직접 문장). **그림 필드(visualEmoji)에 이모지 만화**로 미니 시나리오를 그려 주세요. visualEmoji는 5줄 이내 권장.',
   recommendedTemplateId: 'phrase-festive',
   availableTemplateIds: ['phrase-festive', 'idiom-low-grade', 'idiom-classic'],
 };
