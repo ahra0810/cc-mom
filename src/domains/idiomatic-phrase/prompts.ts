@@ -67,6 +67,7 @@ const SHARED_OUTPUT_RULES = `# 출력 형식 (반드시 지킬 것)
 - [ ] slots[1].type === "multiple-choice", question에 일상 상황 인용
 - [ ] slots[2].type === "sentence-making", 모범 답안 1줄 + explanation
 - [ ] 모든 슬롯 \`question\` + \`explanation\`
+- [ ] **정답 위치 분산**: 정답을 항상 첫 번째 보기에 두지 말고 ①②③④ 위치를 고루 사용. 시스템이 자동 순환 보정하지만 AI 단계부터 분산해 두면 더 자연스러움
 `;
 
 const QUALITY_GUIDE = `# 출제 품질 가이드 — "관용어를 친숙하게"

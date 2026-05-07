@@ -13,19 +13,28 @@
  */
 import type { QuestionSet, SetSlots } from '../../types/sets';
 import type { Question } from '../../types';
+import { withMcAnswerAt } from '../../services/mcShuffle';
 
 const now = Date.now();
 
 let qSeq = 0;
+let mcSeq = 0;
 function q(partial: Omit<Question, 'id' | 'createdAt' | 'source' | 'subjectId'>): Question {
   qSeq++;
-  return {
+  const built: Question = {
     id: `seed-pv-q-${qSeq.toString().padStart(3, '0')}`,
     subjectId: 'proverb',
     createdAt: now,
     source: 'preset',
     ...partial,
   };
+  /* 객관식 정답 위치 ①②③④ 자동 순환 분배 — 시드 작성 가독성과 학생 노출 분리 */
+  if (built.type === 'multiple-choice') {
+    const positioned = withMcAnswerAt(built, mcSeq);
+    mcSeq++;
+    return positioned;
+  }
+  return built;
 }
 
 /* ───────────────────────────────────────────────

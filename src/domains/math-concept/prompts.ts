@@ -88,6 +88,7 @@ const SHARED_OUTPUT_RULES = `# 출력 형식 (반드시 지킬 것)
 - [ ] slots[0].type === "multiple-choice", options 4개, answer가 options 중 하나
 - [ ] slots[1].type === "multiple-choice", textbookExample을 question에 인용
 - [ ] 모든 슬롯 \`question\` + \`explanation\`
+- [ ] **정답 위치 분산**: 정답을 항상 첫 번째 보기에 두지 말고 ①②③④ 위치를 고루 사용. 시스템이 자동 순환 보정하지만 AI 단계부터 분산해 두면 더 자연스러움
 `;
 
 const QUALITY_GUIDE = `# 출제 품질 가이드 — "개념 설명 중심" 학습지

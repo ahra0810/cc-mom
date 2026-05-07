@@ -26,6 +26,7 @@ import {
 } from '../services/setValidator';
 import { getDomain, listDomains } from '../domains/registry';
 import { DEFAULT_SETS as IDIOM_DEFAULTS } from '../data/defaultSets';
+import { withMcAnswerAt } from '../services/mcShuffle';
 
 /* 모든 도메인의 시드 합집합 — 사자성어 시드(기존 위치)는 idiomDomainConfig.defaultSets로
  * 이미 노출되지만, 호환을 위해 IDIOM_DEFAULTS도 포함. listDomains()는 도메인 등록 순서를 따른다. */
@@ -371,15 +372,25 @@ export const useSetStore = create<SetStore>()(
             partial.meta = { ...setObj.meta, domain: knownDomain } as typeof setObj.meta;
           }
 
-          /* 슬롯 ID 보장 */
+          /* 슬롯 ID 보장 + 객관식 정답 위치 자동 순환 분배
+           * (AI 생성 결과가 ①번에 몰리는 경향 보정) */
           if (Array.isArray(setObj.slots)) {
-            const slotsWithIds = (setObj.slots as Question[]).map((q) => ({
-              ...q,
-              id: typeof q?.id === 'string' && q.id ? q.id : nanoid(),
-              createdAt: typeof q?.createdAt === 'number' ? q.createdAt : now,
-              source: q?.source || 'ai-imported',
-              subjectId: q?.subjectId || knownDomain,
-            }));
+            let mcIdx = 0;
+            const slotsWithIds = (setObj.slots as Question[]).map((q) => {
+              const withId = {
+                ...q,
+                id: typeof q?.id === 'string' && q.id ? q.id : nanoid(),
+                createdAt: typeof q?.createdAt === 'number' ? q.createdAt : now,
+                source: q?.source || 'ai-imported',
+                subjectId: q?.subjectId || knownDomain,
+              } as Question;
+              if (withId.type === 'multiple-choice') {
+                const positioned = withMcAnswerAt(withId, mcIdx);
+                mcIdx++;
+                return positioned;
+              }
+              return withId;
+            });
             partial.slots = slotsWithIds as unknown as SetSlots;
           }
 

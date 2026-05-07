@@ -8,20 +8,29 @@
  */
 import type { QuestionSet, SetSlots } from '../types/sets';
 import type { Question } from '../types';
+import { withMcAnswerAt } from '../services/mcShuffle';
 
 const now = Date.now();
 
-/* 헬퍼: ID 일관성 + boilerplate 제거 */
+/* 헬퍼: ID 일관성 + boilerplate 제거 + 객관식 정답 위치 자동 분배 */
 let qSeq = 0;
+let mcSeq = 0;
 function q(partial: Omit<Question, 'id' | 'createdAt' | 'source' | 'subjectId'>): Question {
   qSeq++;
-  return {
+  const built: Question = {
     id: `seed-q-${qSeq.toString().padStart(3, '0')}`,
     subjectId: 'four-char-idiom',
     createdAt: now,
     source: 'preset',
     ...partial,
   };
+  /* 객관식 정답 위치 ①②③④ 자동 순환 분배 */
+  if (built.type === 'multiple-choice') {
+    const positioned = withMcAnswerAt(built, mcSeq);
+    mcSeq++;
+    return positioned;
+  }
+  return built;
 }
 
 /* ───────────────────────────────────────────────
