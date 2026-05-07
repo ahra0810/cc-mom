@@ -17,7 +17,7 @@ import { useConfirm } from './ConfirmDialog';
 import { getSlotCompletionCount } from '../services/setValidator';
 import type { Difficulty } from '../types';
 import { DIFFICULTY_LABELS } from '../types';
-import { SLOT_COUNT, type SlotIndex } from '../types/sets';
+import { type SlotIndex } from '../types/sets';
 import { getDomain } from '../domains/registry';
 
 interface Props {
@@ -122,13 +122,13 @@ export default function SetEditor({ onClose }: Props) {
                 : `새 ${domain.labels.setNoun}`}
             </span>
             <span className={`text-[10px] flex-shrink-0 px-1.5 py-0.5 rounded ${
-              completion === 8
+              completion === domain.slotConfig.count
                 ? 'bg-emerald-100 text-emerald-700'
-                : completion >= 5
+                : completion >= Math.ceil(domain.slotConfig.count * 0.6)
                   ? 'bg-amber-100 text-amber-700'
                   : 'bg-gray-100 text-gray-500'
             }`}>
-              {completion}/8
+              {completion}/{domain.slotConfig.count}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -209,12 +209,12 @@ export default function SetEditor({ onClose }: Props) {
             </div>
           </aside>
 
-          {/* Right — 8슬롯 */}
+          {/* Right — 도메인별 슬롯 (math=2, proverb/phrase=8, idiom=8) */}
           <main className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
             {domain.editorHint && (
               <div className="text-xs text-gray-500 mb-2">{domain.editorHint}</div>
             )}
-            {Array.from({ length: SLOT_COUNT }, (_, i) => {
+            {Array.from({ length: domain.slotConfig.count }, (_, i) => {
               const idx = i as SlotIndex;
               const slot = draft.slots[idx];
               return (

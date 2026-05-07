@@ -83,9 +83,10 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
   }
 
   const completion = getSlotCompletionCount(selectedSet);
-  const isReady = completion === 8;
   /* 도메인별 카드 요약 — idiom의 한자 단일 글자 / 속담의 첫 글자 등 */
   const domain = getDomain(selectedSet.domain);
+  const requiredCount = domain.slotConfig.count;
+  const isReady = completion === requiredCount;
   const summary = domain.getCardSummary(selectedSet.meta);
   /* 사용자 명시 선택이 없으면 도메인 추천 템플릿 자동 사용 */
   const templateId =
@@ -114,7 +115,7 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
 
   const handleExport = (withAnswer: boolean) => {
     if (!isReady) {
-      toast('error', `8문항 모두 작성해야 PDF 출력이 가능해요 (현재 ${completion}/8)`);
+      toast('error', `${requiredCount}문항 모두 작성해야 PDF 출력이 가능해요 (현재 ${completion}/${requiredCount})`);
       return;
     }
     try {
@@ -179,11 +180,11 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
               >
                 {isReady ? (
                   <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 size={10} /> 8/8 완료
+                    <CheckCircle2 size={10} /> {requiredCount}/{requiredCount} 완료
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1">
-                    <AlertTriangle size={10} /> {completion}/7 작성중
+                    <AlertTriangle size={10} /> {completion}/{requiredCount} 작성중
                   </span>
                 )}
               </span>
@@ -307,7 +308,7 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
               className={`btn w-full !text-xs ${
                 isReady ? 'btn-primary' : 'btn-secondary opacity-60 cursor-not-allowed'
               }`}
-              title={isReady ? '시험지 PDF 인쇄 창 열기' : '8문항 모두 채워야 출력 가능'}
+              title={isReady ? '시험지 PDF 인쇄 창 열기' : `${requiredCount}문항 모두 채워야 출력 가능`}
             >
               <Printer size={13} /> 시험지 PDF
             </button>
@@ -317,20 +318,35 @@ export default function SetRightPanel({ onOpenSettings }: Props) {
               className={`btn w-full !text-xs ${
                 isReady ? 'btn-success' : 'btn-secondary opacity-60 cursor-not-allowed'
               }`}
-              title={isReady ? '답안+해설 PDF 인쇄 창 열기' : '8문항 모두 채워야 출력 가능'}
+              title={isReady ? '답안+해설 PDF 인쇄 창 열기' : `${requiredCount}문항 모두 채워야 출력 가능`}
             >
               <ListChecks size={13} /> 답안+해설 PDF
             </button>
             {!isReady && (
               <p className="text-[9.5px] text-amber-600 leading-relaxed mt-1 px-0.5">
                 <AlertTriangle size={9} className="inline -mt-0.5 mr-0.5" />
-                {8 - completion}문항 더 작성하면 PDF 출력이 활성화돼요
+                {requiredCount - completion}문항 더 작성하면 PDF 출력이 활성화돼요
               </p>
             )}
-            <p className="text-[9.5px] text-gray-400 leading-relaxed mt-1 px-0.5">
-              버튼을 누르면 새 창에 인쇄 다이얼로그가 열려요. <br />
-              "PDF로 저장"을 선택하면 정확히 A4 1페이지로 저장됩니다.
-            </p>
+            {(() => {
+              const pageBreaks = domain.slotConfig.pageBreaks || [];
+              const totalPages = pageBreaks.length + 1;
+              if (totalPages >= 2) {
+                return (
+                  <p className="text-[9.5px] text-blue-600 leading-relaxed mt-1 px-0.5 bg-blue-50 border border-blue-200 rounded p-1.5">
+                    <Printer size={10} className="inline -mt-0.5 mr-0.5" />
+                    <strong>총 {totalPages}페이지</strong> 학습지예요. 인쇄 시{' '}
+                    <strong>"양면 인쇄"</strong> 옵션을 선택해서 종이 한 장에 앞·뒤로 출력하세요.
+                  </p>
+                );
+              }
+              return (
+                <p className="text-[9.5px] text-gray-400 leading-relaxed mt-1 px-0.5">
+                  버튼을 누르면 새 창에 인쇄 다이얼로그가 열려요. <br />
+                  "PDF로 저장"을 선택하면 정확히 A4 1페이지로 저장됩니다.
+                </p>
+              );
+            })()}
           </div>
         </section>
       </div>

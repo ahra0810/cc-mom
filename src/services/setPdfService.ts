@@ -1105,6 +1105,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   justify-content: flex-start;
   gap: 4mm;
 }
+/* 메타 카드 없는 페이지(2페이지 이후)는 문항을 페이지 가득 분배 */
+.page.no-meta-page .set {
+  flex: 1 1 auto;
+  justify-content: space-between;
+  gap: 4mm;
+}
 
 /* 해설지 배너 (math-concept 전용) — 풀폭 메타 위 한 줄 컴팩트 표시 */
 .answer-banner-pill {
@@ -1431,7 +1437,11 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   slotGroups.forEach((group, pageIdx) => {
     const isFirstPage = pageIdx === 0;
     const isLastPage = pageIdx === totalPages - 1;
-    html += `<div class="page${showAnswer ? ' answer-mode' : ''}${isMultiPage ? ' multi-page' : ''}${richPageClass}">`;
+    const hasMetaThisPage = isFirstPage || repeatMeta;
+    /* rich-card 도메인에서 메타가 없는 페이지(=2페이지 이후)는 문항이
+     * 페이지를 채우도록 .set 분배를 활성화 (.no-meta-page 마커) */
+    const noMetaCls = isRichCard && !hasMetaThisPage ? ' no-meta-page' : '';
+    html += `<div class="page${showAnswer ? ' answer-mode' : ''}${isMultiPage ? ' multi-page' : ''}${richPageClass}${noMetaCls}">`;
 
     /* 페이지 격려 헤더 (multi-page일 때만) */
     if (isMultiPage && pageHeaders[pageIdx]) {

@@ -16,10 +16,15 @@ const SHARED_OUTPUT_RULES = `# 출력 형식 (반드시 지킬 것)
 \`\`\`
 
 3. \`version\`은 반드시 \`1\` (숫자).
-4. 각 set에 정확히 **3개 슬롯**:
-   - slots[0] : "multiple-choice"  (친근한 뜻 묻기)
-   - slots[1] : "multiple-choice"  (🔍 어울리는 상황 찾기)
-   - slots[2] : "sentence-making"  (🤝 직접 응용)
+4. 각 set에 정확히 **8개 슬롯** (Bloom's Taxonomy):
+   - slots[0] : "short-answer"     (🌱 빈칸 채우기 — 신체 부위, 인지)
+   - slots[1] : "multiple-choice"  (친근한 뜻 — 이해)
+   - slots[2] : "multiple-choice"  (📖 교과서 정의 — 이해)
+   - slots[3] : "multiple-choice"  (👯 비슷한 관용어 — 분석)
+   - slots[4] : "multiple-choice"  (🌟 어울리는 일상 상황 — 적용)
+   - slots[5] : "multiple-choice"  (⚠️ 잘못 쓰인 예 — 분석)
+   - slots[6] : "multiple-choice"  (🤔 비유의 의미 — 종합, 왜 이 신체 부위?)
+   - slots[7] : "sentence-making"  (🤝 직접 응용 — 산출)
 
 # Set 한 개의 정확한 구조
 
@@ -45,7 +50,7 @@ const SHARED_OUTPUT_RULES = `# 출력 형식 (반드시 지킬 것)
     "origin": "<유래, 선택>",
     "grade": 3 | 4 | 5 | 6 | 7
   },
-  "slots": [ /* 정확히 3개 */ ]
+  "slots": [ /* 정확히 8개 — 위 type 순서 엄수 */ ]
 }
 \`\`\`
 
@@ -62,10 +67,12 @@ const SHARED_OUTPUT_RULES = `# 출력 형식 (반드시 지킬 것)
 - [ ] \`meta.relatedPhrasesDetailed\` **3개 이상** — 각 항목 emoji+term+desc(25~50자)
 - [ ] **desc 줄바꿈**: 두 문장이면 자연 경계에 \`\\n\`
 - [ ] \`meta.usageExample\` 학생 일상 상황 한 줄 — 슬롯 2번에서 인용
-- [ ] \`slots\` 정확히 **3개**
-- [ ] slots[0].type === "multiple-choice", options 4개, answer 일치
-- [ ] slots[1].type === "multiple-choice", question에 일상 상황 인용
-- [ ] slots[2].type === "sentence-making", 모범 답안 1줄 + explanation
+- [ ] \`slots\` 정확히 **8개** (type 순서 엄수)
+- [ ] slots[0].type === "short-answer" — 빈칸 ___ 포함 + answer 짧은 어절 (예: "발", "손", "입")
+- [ ] slots[1~6].type === "multiple-choice", options 4개, answer 일치
+- [ ] slots[5] 잘못 쓰인 예 찾기 — 보기 4개 중 1개만 잘못된 사용
+- [ ] slots[6] 비유의 의미 — 왜 이 신체 부위를 썼는지 묻기
+- [ ] slots[7].type === "sentence-making" — 모범 답안 1줄 + explanation
 - [ ] 모든 슬롯 \`question\` + \`explanation\`
 - [ ] **정답 위치 분산**: 정답을 항상 첫 번째 보기에 두지 말고 ①②③④ 위치를 고루 사용. 시스템이 자동 순환 보정하지만 AI 단계부터 분산해 두면 더 자연스러움
 `;
@@ -197,29 +204,68 @@ const COMPLETE_EXAMPLE = `# 완성 예제 (발이 넓다)
       },
       "slots": [
         {
-          "type": "multiple-choice",
-          "question": "\\"발이 넓다\\"의 뜻으로 알맞은 것은?",
-          "options": [
-            "아는 사람이 많아 사교 범위가 넓다",
-            "발의 크기가 크다",
-            "멀리까지 갈 수 있다",
-            "신발이 잘 맞지 않는다"
-          ],
-          "answer": "아는 사람이 많아 사교 범위가 넓다",
-          "explanation": "\\"발\\"이 닿는 곳이 넓다 = 사람 만나는 범위가 넓다는 비유예요!"
+          "type": "short-answer",
+          "question": "🌱 다음 빈칸을 채우세요:\\n___이 넓다 (아는 사람이 많다는 뜻)",
+          "answer": "발",
+          "explanation": "\\"발\\"이 가는 곳이 넓다 = 사람 만나는 범위가 넓다는 비유."
         },
         {
           "type": "multiple-choice",
-          "question": "🔍 다음 상황에 가장 어울리는 관용어는?\\n\\n[상황] 새 동아리에 갔는데 거의 모든 학생이 \\"어! 너 알아!\\" 하며 반갑게 인사했어요.",
+          "question": "\\"발이 넓다\\"의 친근한 뜻은?",
+          "options": ["아는 사람이 많아 사교 범위가 넓다", "발의 크기가 크다", "멀리까지 갈 수 있다", "신발이 잘 맞지 않는다"],
+          "answer": "아는 사람이 많아 사교 범위가 넓다",
+          "explanation": "\\"발\\"이 닿는 곳이 넓다 = 사람 만나는 범위가 넓다는 비유."
+        },
+        {
+          "type": "multiple-choice",
+          "question": "📖 교과서·사전 풀이로 알맞은 것은?",
+          "options": ["사귀어 아는 사람이 많다.", "발이 크다.", "걸음이 빠르다.", "신발 사이즈가 크다."],
+          "answer": "사귀어 아는 사람이 많다.",
+          "explanation": "관용어는 비유적 의미를 가짐."
+        },
+        {
+          "type": "multiple-choice",
+          "question": "👯 \\"발이 넓다\\"와 가장 비슷한 뜻의 관용어는?",
+          "options": ["얼굴이 넓다", "입이 무겁다", "귀가 얇다", "코가 높다"],
+          "answer": "얼굴이 넓다",
+          "explanation": "두 표현 모두 \\"아는 사람이 많다\\"는 뜻 — 신체 부위만 다름!"
+        },
+        {
+          "type": "multiple-choice",
+          "question": "🌟 다음 상황에 가장 어울리는 관용어는?\\n\\n[상황] 새 동아리에 갔는데 거의 모든 학생이 \\"어! 너 알아!\\" 하며 반갑게 인사했어요.",
           "options": ["발이 넓다", "입이 무겁다", "손이 크다", "코가 높다"],
           "answer": "발이 넓다",
-          "explanation": "많은 사람과 친해서 어디 가도 아는 사람이 있다 = 사교 범위가 넓다."
+          "explanation": "많은 사람과 친해서 어디 가도 아는 사람이 있다 = 발이 넓다."
+        },
+        {
+          "type": "multiple-choice",
+          "question": "⚠️ 다음 중 \\"발이 넓다\\"가 **잘못 쓰인** 예는?",
+          "options": [
+            "민수는 발이 넓어서 어느 학원에 가도 아는 친구가 있어.",
+            "내 신발이 작아서 발이 넓다.",
+            "형은 발이 넓어서 모임에서 늘 인기가 많아.",
+            "엄마는 발이 넓으셔서 동네 분들과 다 친하셔."
+          ],
+          "answer": "내 신발이 작아서 발이 넓다.",
+          "explanation": "관용어는 비유적 의미만 사용. 글자 그대로 \\"발 크기\\"로 쓰면 안 됨."
+        },
+        {
+          "type": "multiple-choice",
+          "question": "🤔 왜 \\"발\\"을 사용해 \\"사교성\\"을 표현했을까요?",
+          "options": [
+            "발은 사람을 만나러 다니는 신체 부위니까",
+            "발이 가장 큰 신체 부위라서",
+            "발은 빠르게 움직이니까",
+            "발이 두 개 있어서"
+          ],
+          "answer": "발은 사람을 만나러 다니는 신체 부위니까",
+          "explanation": "발이 닿는 곳이 많다 = 다양한 사람을 만난다는 비유."
         },
         {
           "type": "sentence-making",
           "question": "🤝 \\"발이 넓다\\"를 사용해서 짧은 문장을 만들어 보세요.",
           "answer": "우리 형은 발이 넓어서 어느 학원에 가도 아는 형이 한 명씩은 꼭 있어요.",
-          "explanation": "실제 인물 + \\"발이 넓다\\" 자연스럽게 결합!"
+          "explanation": "실제 인물 + 관용어 자연스럽게 결합!"
         }
       ]
     }
@@ -253,7 +299,7 @@ export const PROMPT_USER_PROVIDES_PHRASE = `너는 한국 초3~중1 학생용 "�
 - meta.grade: 3·4·5·6·7
 - title: "<관용어> 학습지"
 - tags: 1~3개
-- slots: 정확히 3개
+- slots: 정확히 8개 (type 순서 엄수)
 
 ${SHARED_OUTPUT_RULES}
 

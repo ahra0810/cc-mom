@@ -24,10 +24,28 @@ function validatePhraseMeta(meta: IdiomaticPhraseMeta): SetValidationError[] {
   return errors;
 }
 
-/* ─── 메타 → 슬롯 자동 동기화 ─── */
+/* ─── 메타 → 슬롯 자동 동기화 ───
+ * 슬롯 구성 (8슬롯, 2페이지):
+ *   페이지 1 — 인지·이해
+ *     [0] short-answer : 빈칸 채우기 (신체 부위 채우기)
+ *     [1] mc           : 친근한 뜻
+ *     [2] mc           : 교과서 정의
+ *     [3] mc           : 비슷한 관용어
+ *   페이지 2 — 적용·산출
+ *     [4] mc           : 어울리는 일상 상황
+ *     [5] mc           : 잘못 쓰인 예 찾기
+ *     [6] mc           : 비유의 의미 (왜 이 신체 부위?)
+ *     [7] sentence-making : 직접 응용 */
 function syncSlotFromPhraseMeta(slotIdx: number, slot: Question, meta: IdiomaticPhraseMeta): Question {
-  /* 슬롯 2 (서술형 응용): 빈 슬롯에만 hint 채움 */
-  if (slotIdx === 2) {
+  if (slotIdx === 0) {
+    if (slot.question) return slot;
+    if (!meta.phrase) return slot;
+    return {
+      ...slot,
+      question: `🌱 다음 빈칸을 채우세요: ${meta.phrase}`,
+    };
+  }
+  if (slotIdx === 7) {
     if (slot.question) return slot;
     if (!meta.phrase) return slot;
     return {
@@ -82,11 +100,22 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
   id: 'idiomatic-phrase',
   labels: IDIOMATIC_LABELS,
   slotConfig: {
-    /* 1페이지 구성: 풀폭 "관용어 학습 카드" (시각·단짝·일상)
-     *   + 미니 퀴즈 3문항 (객관식 뜻 / 객관식 상황 / 서술형 응용) */
-    count: 3,
-    requiredTypes: ['multiple-choice', 'multiple-choice', 'sentence-making'],
-    autoSyncedSlots: [2],
+    /* 2페이지 구성 (Bloom's Taxonomy):
+     *   페이지 1 (인지·이해): short-answer + mc 3개
+     *   페이지 2 (적용·산출): mc 3개 + sentence-making */
+    count: 8,
+    requiredTypes: [
+      'short-answer',
+      'multiple-choice', 'multiple-choice', 'multiple-choice',
+      'multiple-choice', 'multiple-choice', 'multiple-choice',
+      'sentence-making',
+    ],
+    autoSyncedSlots: [0, 7],
+    pageBreaks: [3],
+    pageHeaders: [
+      '📖 페이지 1 / 2 — 관용어 인지·이해',
+      '✏️ 페이지 2 / 2 — 일상 적용·응용',
+    ],
   },
   createEmptyMeta: () => ({
     domain: 'idiomatic-phrase',
@@ -106,7 +135,7 @@ export const idiomaticPhraseDomainConfig: DomainConfig<IdiomaticPhraseMeta> = {
   },
   defaultSets: IDIOMATIC_DEFAULT_SETS,
   editorHint:
-    '💡 시각 카드 + 일상 응용 학습지 (초3~중1, A4 1페이지). 헤더(관용어·이름칸) + \'뜻\' 박스 + 좌·우 2단(그림으로 보기·비슷한 관용어) + 일상에서 만나기 + 미니 퀴즈 3문항(객관식 2 + 서술형 1). **그림 필드(visualEmoji)에 이모지 만화로 미니 시나리오를** 그려 주세요.',
+    '💡 시각 카드 + 8문항 학습지 (초3~중1, A4 2페이지 — 양면 인쇄 권장). 페이지 1: 시각 카드 + 인지·이해 4문항(빈칸·친근뜻·교과서뜻·비슷한관용어). 페이지 2: 적용·산출 4문항(상황·잘못쓰인예·비유의미·직접 문장). **그림 필드(visualEmoji)에 이모지 만화**로 미니 시나리오를 그려 주세요.',
   recommendedTemplateId: 'phrase-festive',
   availableTemplateIds: ['phrase-festive', 'idiom-low-grade', 'idiom-classic'],
 };
