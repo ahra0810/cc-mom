@@ -101,10 +101,10 @@ export const proverbDomainConfig: DomainConfig<ProverbMeta> = {
   id: 'proverb',
   labels: PROVERB_LABELS,
   slotConfig: {
-    /* 2페이지 구성 (Bloom's Taxonomy) — 3+5 split:
-     *   페이지 1 (인지·이해): meta card + slots 0~2 (빈칸·친근뜻·교과서뜻)
-     *   페이지 2 (분석·적용·종합·산출): slots 3~7 (5문항, 페이지 가득 분배)
-     *   3+5 분할은 메타 카드(시각·단짝·일상)가 풍부할 때 페이지 1 잘림 방지 */
+    /* 2페이지 구성 — 1+7 split (템플릿 폰트가 커도 잘리지 않도록):
+     *   페이지 1: 풀폭 학습 카드 + 빈칸 채우기 1문항 (인지)
+     *   페이지 2: 나머지 7문항 (이해·분석·적용·종합·산출, 페이지 가득 분배)
+     *   메타 카드(시각·단짝·일상)가 어떤 템플릿에서도 페이지1을 넘지 않게 함 */
     count: 8,
     requiredTypes: [
       'short-answer',
@@ -113,10 +113,10 @@ export const proverbDomainConfig: DomainConfig<ProverbMeta> = {
       'sentence-making',
     ],
     autoSyncedSlots: [0, 7],
-    pageBreaks: [2],
+    pageBreaks: [0],
     pageHeaders: [
-      '📖 페이지 1 / 2 — 속담 인지·이해',
-      '✏️ 페이지 2 / 2 — 분석·적용·산출',
+      '📖 페이지 1 / 2 — 속담 만나기',
+      '✏️ 페이지 2 / 2 — 문제 풀기',
     ],
   },
   createEmptyMeta: () => ({
