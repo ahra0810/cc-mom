@@ -21,6 +21,7 @@
 import type { QuestionSet, SetSlots } from '../../types/sets';
 import type { Question } from '../../types';
 import { withMcAnswerAt } from '../../services/mcShuffle';
+import { PROVERB_SVG } from '../_shared/idiomSvg';
 
 const now = Date.now();
 
@@ -315,8 +316,8 @@ const set3Slots: SetSlots = [
   }),
 ] as const;
 
-/* ─── Set 객체 export ─── */
-export const PROVERB_DEFAULT_SETS: QuestionSet[] = [
+/* ─── Set 객체 (원본) ─── */
+const _PROVERB_RAW: QuestionSet[] = [
   {
     id: 'seed-pv-1',
     title: '가는 말이 고와야… 학습지',
@@ -390,3 +391,10 @@ export const PROVERB_DEFAULT_SETS: QuestionSet[] = [
     createdAt: now, updatedAt: now, source: 'preset',
   },
 ];
+
+/* 본문 일치 시 자체 제작 SVG 장면 그림 자동 주입 (없으면 visualEmoji fallback) */
+export const PROVERB_DEFAULT_SETS: QuestionSet[] = _PROVERB_RAW.map((s) => {
+  const m = s.meta as { proverb?: string };
+  const svg = m.proverb ? PROVERB_SVG[m.proverb] : undefined;
+  return svg ? { ...s, meta: { ...s.meta, visualSvg: svg } } : s;
+});

@@ -59,14 +59,16 @@ export function renderIdiomaticMetaBlock(meta: IdiomaticPhraseMeta, t: SetTempla
   </div>`;
 
   /* ─ 그림으로 보기 ─ */
-  const visualSection = (meta.visualEmoji || meta.visualExample)
+  const visualSection = (meta.visualSvg || meta.visualEmoji || meta.visualExample)
     ? `<div class="mcc-section mcc-visual">
         <div class="mcc-section-head">
           <span class="mcc-section-icon">🎨</span>
           <span class="mcc-section-title">그림으로 보기</span>
         </div>
         <div class="mcc-section-body">
-          ${meta.visualEmoji
+          ${meta.visualSvg
+            ? `<div class="mcc-visual-svg">${meta.visualSvg}</div>`
+            : meta.visualEmoji
             ? `<div class="mcc-visual-emoji">${escPre(meta.visualEmoji)}</div>`
             : ''}
           ${meta.visualExample

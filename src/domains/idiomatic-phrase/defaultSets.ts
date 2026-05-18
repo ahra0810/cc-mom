@@ -21,6 +21,7 @@
 import type { QuestionSet, SetSlots } from '../../types/sets';
 import type { Question } from '../../types';
 import { withMcAnswerAt } from '../../services/mcShuffle';
+import { PHRASE_SVG } from '../_shared/idiomSvg';
 
 const now = Date.now();
 
@@ -300,8 +301,8 @@ const set3Slots: SetSlots = [
   }),
 ] as const;
 
-/* ─── Set 객체 export ─── */
-export const IDIOMATIC_DEFAULT_SETS: QuestionSet[] = [
+/* ─── Set 객체 (원본) ─── */
+const _IDIOMATIC_RAW: QuestionSet[] = [
   {
     id: 'seed-ip-1',
     title: '발이 넓다 학습지',
@@ -375,3 +376,10 @@ export const IDIOMATIC_DEFAULT_SETS: QuestionSet[] = [
     createdAt: now, updatedAt: now, source: 'preset',
   },
 ];
+
+/* 본문 일치 시 자체 제작 SVG 장면 그림 자동 주입 (없으면 visualEmoji fallback) */
+export const IDIOMATIC_DEFAULT_SETS: QuestionSet[] = _IDIOMATIC_RAW.map((s) => {
+  const m = s.meta as { phrase?: string };
+  const svg = m.phrase ? PHRASE_SVG[m.phrase] : undefined;
+  return svg ? { ...s, meta: { ...s.meta, visualSvg: svg } } : s;
+});
