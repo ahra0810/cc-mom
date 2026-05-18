@@ -722,16 +722,16 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .rich-meta-card .mcc-header-row {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: 3mm;
+  gap: 2.5mm;
   align-items: stretch;
-  margin-bottom: 2.5mm;
+  margin-bottom: 1.6mm;
 }
 .rich-meta-card .mcc-header-left,
 .rich-meta-card .mcc-header-right {
   background: ${t.bgAccent};
   border: 1.2px solid ${t.accentColor}66;
   border-radius: 2mm;
-  padding: 2.5mm 3.5mm;
+  padding: 1.8mm 3mm;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -820,19 +820,19 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .rich-meta-card .mcc-body {
   display: flex;
   flex-direction: column;
-  gap: 2.5mm;
+  gap: 1.8mm;
 }
 .rich-meta-card .mcc-section {
   background: #ffffff;
   border: 1.2px solid ${t.textColor}33;
   border-radius: 2mm;
-  padding: 2.5mm 3mm 2.8mm 3mm;
+  padding: 1.8mm 2.6mm 2mm 2.6mm;
 }
 .rich-meta-card .mcc-section-head {
   display: flex;
   align-items: center;
   gap: 1.5mm;
-  margin-bottom: 3mm;       /* 헤더 — 본문 사이 여백 (이전 1.5 → 3mm) */
+  margin-bottom: 1.6mm;     /* 헤더 — 본문 사이 여백 (컴팩트) */
   padding-bottom: 1.2mm;
   border-bottom: 1px dashed ${t.accentColor}55;
 }
@@ -858,12 +858,12 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .rich-meta-card .mcc-definition .mcc-section-body {
   display: flex;
   flex-direction: column;
-  gap: 1.5mm;
+  gap: 1.2mm;
 }
 .rich-meta-card .mcc-def-row {
   display: grid;
-  grid-template-columns: 28mm 1fr;
-  gap: 3.5mm;
+  grid-template-columns: 26mm 1fr;
+  gap: 2.5mm;
   align-items: center;
 }
 .rich-meta-card .mcc-def-tag {
@@ -900,7 +900,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .rich-meta-card .mcc-row-2col {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-  gap: 2.5mm;
+  gap: 2mm;
   align-items: stretch;
 }
 .rich-meta-card .mcc-row-2col .mcc-section {
@@ -912,7 +912,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.5mm;
+  gap: 1.4mm;
   text-align: center;
   justify-content: flex-start;
 }
@@ -926,7 +926,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: 44mm;
+  max-height: 34mm;
 }
 .rich-meta-card .mcc-visual-emoji {
   /* 반듯한 Gowun Dodum — 깨끗하고 둥근 한글 폰트.
@@ -952,14 +952,14 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   font-size: ${baseFs}pt;
   font-weight: 400;
   color: ${t.textColor};
-  line-height: 1.55;
+  line-height: 1.4;
   letter-spacing: 0.1mm;
   font-style: normal;
   word-break: keep-all;
   /* 박스 가운데 자연스럽게 정렬되도록 살짝 강조 배경 */
   background: ${t.bgAccent}99;
   border-radius: 1.5mm;
-  padding: 1.5mm 3mm;
+  padding: 1mm 2.5mm;
   width: 100%;
   box-sizing: border-box;
 }
@@ -973,7 +973,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .rich-meta-card .mcc-friend-list {
   display: flex;
   flex-direction: column;
-  gap: 1.8mm;
+  gap: 1.3mm;
 }
 .rich-meta-card .mcc-friend-card {
   display: flex;
@@ -982,7 +982,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   background: ${t.accentColor}10;
   border-left: 2.5px solid ${t.accentColor};
   border-radius: 1.5mm;
-  padding: 1.8mm 2.5mm;
+  padding: 1.3mm 2.2mm;
 }
 .rich-meta-card .mcc-friend-emoji {
   /* 그림으로 보기 영역의 이모지(visualEmoji)와 시각 무게 통일 — baseFs+6 */
@@ -1009,7 +1009,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   font-family: 'Gaegu', 'Jua', 'Noto Sans KR', sans-serif;
   font-size: ${baseFs - 0.5}pt;
   color: ${t.textColor}dd;
-  line-height: 1.45;
+  line-height: 1.35;
   word-break: keep-all;
   text-align: center;
 }
@@ -1084,21 +1084,16 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   flex: 0 1 auto;
   display: flex;
   flex-direction: column;
-  margin-bottom: 5mm;
-  /* 페이지 가용 영역(269mm) 의 최대 70% 까지만 — 문항 영역 최소 30% 보장 */
-  max-height: calc(269mm * 0.70);
-  overflow: hidden;
+  margin-bottom: 4mm;
 }
 /* 1페이지 학습지(math-concept) 는 문항이 적으니 메타 카드가 더 자랄 수 있게 */
-.page.math-concept-page:not(.multi-page) .rich-meta-card {
-  max-height: calc(269mm * 0.85);
-}
+/* math-concept 1페이지: 컴팩트 여백으로 자연 배치 (별도 캡 불필요) */
 .page.math-concept-page .rich-meta-card .mcc-body,
 .page.proverb-page .rich-meta-card .mcc-body,
 .page.phrase-page .rich-meta-card .mcc-body {
   display: flex;
   flex-direction: column;
-  gap: 3mm;
+  gap: 2mm;
 }
 .page.math-concept-page .rich-meta-card .mcc-section,
 .page.proverb-page .rich-meta-card .mcc-section,
@@ -1126,6 +1121,15 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   gap: 4mm;
 }
 /* 메타 카드 없는 페이지(2페이지 이후)는 문항을 페이지 가득 분배 */
+/* 속담/관용어 2페이지: 페이지1 메타 카드가 크므로 SVG·여백 추가 압축 */
+.page.proverb-page .mcc-visual-svg svg,
+.page.phrase-page .mcc-visual-svg svg {
+  max-height: 28mm;
+}
+.page.proverb-page .rich-meta-card .mcc-visual .mcc-section-body,
+.page.phrase-page .rich-meta-card .mcc-visual .mcc-section-body {
+  gap: 1mm;
+}
 .page.no-meta-page .set {
   flex: 1 1 auto;
   justify-content: space-between;
