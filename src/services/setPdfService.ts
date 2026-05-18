@@ -916,6 +916,18 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   text-align: center;
   justify-content: flex-start;
 }
+.rich-meta-card .mcc-visual-svg {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.rich-meta-card .mcc-visual-svg svg {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 44mm;
+}
 .rich-meta-card .mcc-visual-emoji {
   /* 반듯한 Gowun Dodum — 깨끗하고 둥근 한글 폰트.
    * 상단 헤드라인(Jua, 굵은 굴림체)과 톤 차별화하면서도 손글씨 흔들림 없음. */

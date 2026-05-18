@@ -144,7 +144,9 @@ export interface MathConceptMeta {
   textbookDefinition?: string;
   /** 친근하게 풀어쓴 정의 (예: "도형 바깥쪽을 한 바퀴 도는 길의 길이") */
   definition: string;
-  /** 시각 보조 — 이모지·도형 문자로 그린 미니 그림 (선택) */
+  /** 시각 보조 — 자체 제작 SVG 도형 마크업 (선택, 최우선). 인라인 SVG 문자열. */
+  visualSvg?: string;
+  /** 시각 보조 — 이모지·도형 문자로 그린 미니 그림 (선택, visualSvg 없을 때) */
   visualEmoji?: string;
   /** 시각/구체 예시 — 일상 비유 + 수치 (선택, visualEmoji 옆에 함께 표시) */
   visualExample?: string;

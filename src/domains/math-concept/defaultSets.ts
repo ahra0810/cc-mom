@@ -14,6 +14,7 @@
 import type { QuestionSet, SetSlots, MathConceptMeta } from '../../types/sets';
 import type { Question, Difficulty } from '../../types';
 import { withMcAnswerAt } from '../../services/mcShuffle';
+import { MATH_SVG } from './mathSvg';
 
 const now = Date.now();
 
@@ -27,6 +28,7 @@ interface CS {
   tdef: string;          // 교과서 정의
   def: string;           // 친근한 정의
   emoji: string;         // visualEmoji (Gowun Dodum, **강조** 1~2개, ≤5줄)
+  svg?: string;          // 자체 제작 SVG 도형 (있으면 emoji 대신 우선 렌더)
   ex: string;            // visualExample (\n 으로 3~4줄)
   rel: [RT, RT, RT];     // 비슷한/관련 개념 3개
   tbx: string;           // 실제 발문 예
@@ -71,6 +73,7 @@ function buildSet(c: CS): QuestionSet {
     ...(c.engOrigin ? { englishOrigin: c.engOrigin } : {}),
     textbookDefinition: c.tdef,
     definition: c.def,
+    ...((c.svg || MATH_SVG[c.term]) ? { visualSvg: c.svg || MATH_SVG[c.term] } : {}),
     visualEmoji: c.emoji,
     visualExample: c.ex,
     relatedTerms: c.rel.map((r) => r[1]),
