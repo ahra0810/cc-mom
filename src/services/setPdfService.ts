@@ -1153,12 +1153,30 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 /* 속담/관용어 본문 헤드라인 — 멀리서도 한눈에 들어오게 크게.
  * 페이지1 = 카드 + 빈칸 1문항뿐이라 여유 충분(상·하 여백 균형 유지).
- * 긴 문장은 2줄까지 자연 줄바꿈, 줄간격은 적당히 유지. */
+ * 한 줄을 넘으면 어절(띄어쓰기) 단위로 2줄까지 자연 줄바꿈. */
 .page.proverb-page .rich-meta-card .mcc-h-term,
 .page.phrase-page .rich-meta-card .mcc-h-term {
   font-size: ${baseFs + 9}pt;
   letter-spacing: 0.4mm;
   line-height: 1.3;
+  /* 어절 단위 줄바꿈: 단어 중간 안 끊고 띄어쓰기에서만 줄바꿈 */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-align: center;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+/* ✨ 별이 단독 줄로 떨어지지 않게 — 별은 양옆 고정, 본문만 줄바꿈 */
+.page.proverb-page .rich-meta-card .mcc-header-main,
+.page.phrase-page .rich-meta-card .mcc-header-main {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2mm;
+}
+.page.proverb-page .rich-meta-card .mcc-h-stars,
+.page.phrase-page .rich-meta-card .mcc-h-stars {
+  flex: 0 0 auto;
 }
 .page.proverb-page .rich-meta-card .mcc-header-left,
 .page.phrase-page .rich-meta-card .mcc-header-left,
