@@ -1163,9 +1163,14 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: normal;
+  /* 두 줄로 넘어갈 때 줄 길이를 균형 있게 분배 (탐욕적 채우기 방지)
+   * 예: "가는 말이 고와야 / 오는 말이 곱다" */
+  text-wrap: balance;
   text-align: center;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
+  /* 좌우 여백을 줘 한 줄에 너무 길게 안 채우고 자연 분할 유도 */
+  padding: 0 4mm;
 }
 /* ✨ 별이 단독 줄로 떨어지지 않게 — 별은 양옆 고정, 본문만 줄바꿈 */
 .page.proverb-page .rich-meta-card .mcc-header-main,
