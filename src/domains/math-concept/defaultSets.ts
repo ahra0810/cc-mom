@@ -14,6 +14,7 @@
 import type { QuestionSet, SetSlots, MathConceptMeta } from '../../types/sets';
 import type { Question, Difficulty } from '../../types';
 import { withMcAnswerAt } from '../../services/mcShuffle';
+import { eulReul, iGa } from '../../services/koreanParticle';
 import { MATH_SVG } from './mathSvg';
 
 const now = Date.now();
@@ -84,14 +85,14 @@ function buildSet(c: CS): QuestionSet {
   const slots = [
     q({
       type: 'multiple-choice', difficulty: c.diff,
-      question: `"${c.term}"을(를) 가장 쉽게 풀어쓴 설명은?`,
+      question: `"${c.term}"${eulReul(c.term)} 가장 쉽게 풀어쓴 설명은?`,
       options: [...c.q1],
       answer: c.q1a,
       explanation: c.q1e,
     }),
     q({
       type: 'multiple-choice', difficulty: c.diff,
-      question: `🔍 다음 수학 문제에서 "${c.term}"이(가) 의미하는 것은?\n\n[문제] ${c.tbx}`,
+      question: `🔍 다음 수학 문제에서 "${c.term}"${iGa(c.term)} 의미하는 것은?\n\n[문제] ${c.tbx}`,
       options: [...c.q2],
       answer: c.q2a,
       explanation: c.q2e,

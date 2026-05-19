@@ -175,20 +175,39 @@ function renderMcSlot(q: Question, idx: number, showAnswer: boolean): string {
   return h;
 }
 
-/* ─── short-answer (예: 속담 빈칸 채우기) ─── */
+/* ─── short-answer (예: 속담·관용어 빈칸 채우기) ───
+ * 안내 문장(주문)은 q-text, 빈칸 제시 문장은 회색 박스(.q-context.q-blank),
+ * 답 쓰는 칸은 8번 문항처럼 넉넉한 쓰기 공간(.writing-lines). */
 function renderShortAnswerSlot(q: Question, idx: number, showAnswer: boolean): string {
+  const raw = q.question || '';
+  let main = raw;
+  let ctx = '';
+  const nl = raw.indexOf('\n');
+  if (nl !== -1) {
+    main = raw.slice(0, nl).trim();
+    ctx = raw.slice(nl + 1).trim();
+  } else {
+    /* "다음 빈칸을 채우세요: 가는 말이 ___ ..." → 콜론 뒤를 빈칸 문장으로 분리 */
+    const ci = raw.indexOf(': ');
+    if (ci !== -1 && ci < raw.length - 2) {
+      main = raw.slice(0, ci + 1).trim();
+      ctx = raw.slice(ci + 2).trim();
+    }
+  }
+
   let h = `<div class="q slot-short">`;
   h += `<div class="q-num">${String(idx + 1).padStart(2, '0')}</div>`;
   h += `<div class="q-body">`;
-  h += renderQuestionText(q);
+  h += `<p class="q-text">${esc(main)}</p>`;
+  if (ctx) h += `<div class="q-context q-blank">${esc(ctx)}</div>`;
 
-  /* 정답 라인 — 시험지에서는 빈 줄, 답안지에서는 정답 채워짐 */
-  h += `<div class="answer-row">`;
+  /* 답 쓰는 칸 — 8번 문항처럼 넉넉하게 */
+  h += `<div class="sa-answer">`;
   h += `<span class="answer-label">정답</span>`;
   if (showAnswer) {
     h += `<span class="answer-filled">${esc(q.answer || '')}</span>`;
   } else {
-    h += `<span class="answer-line"></span>`;
+    h += `<div class="writing-lines"></div>`;
   }
   h += `</div>`;
 
@@ -1084,7 +1103,8 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   flex: 0 1 auto;
   display: flex;
   flex-direction: column;
-  margin-bottom: 4mm;
+  /* 개념 카드 ↔ 1번 문항 사이 충분한 여백 */
+  margin-bottom: 8mm;
 }
 /* 1페이지 학습지(math-concept) 는 문항이 적으니 메타 카드가 더 자랄 수 있게 */
 /* math-concept 1페이지: 컴팩트 여백으로 자연 배치 (별도 캡 불필요) */
@@ -1118,7 +1138,8 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .page.phrase-page .set {
   flex: 0 0 auto;
   justify-content: flex-start;
-  gap: 4mm;
+  /* 문항 ↔ 문항 사이 충분한 여백 (예: 수학 1번↔2번) */
+  gap: 7mm;
 }
 /* 메타 카드 없는 페이지(2페이지 이후)는 문항을 페이지 가득 분배 */
 /* 속담/관용어 2페이지: 페이지1 메타 카드가 크므로 SVG·여백 추가 압축 */
@@ -1273,6 +1294,43 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
   color: ${t.textColor}cc;
   line-height: 1.5;
   white-space: pre-wrap;
+}
+/* 빈칸 채우기 제시 문장 — 회색 박스 안 가운데, 살짝 크게 (5번 보기 박스 톤) */
+.q-context.q-blank {
+  text-align: center;
+  font-size: ${baseFs + 1}pt;
+  color: ${t.textColor};
+  font-weight: 600;
+  padding: 3mm 3mm;
+  margin: 2mm 0 0 0;
+  border-left: none;
+  background: ${t.textColor}10;
+  border: 1px solid ${t.textColor}26;
+  border-radius: 3px;
+  letter-spacing: 0.3mm;
+}
+/* short-answer 답란 — "정답" 라벨 + 8번 문항 같은 넉넉한 쓰기 공간 */
+.sa-answer {
+  margin-top: 4mm;
+}
+.sa-answer .answer-label {
+  display: inline-block;
+  font-size: ${baseFs - 1.5}pt;
+  font-weight: 800;
+  color: ${t.primaryColor};
+  margin-bottom: 1mm;
+}
+.sa-answer .writing-lines {
+  margin-top: 1.5mm;
+}
+.sa-answer .answer-filled {
+  display: inline-block;
+  margin-left: 3mm;
+  font-size: ${baseFs}pt;
+  font-weight: 700;
+  color: ${t.primaryColor};
+  border-bottom: 1.5px solid ${t.primaryColor};
+  padding: 0 4mm 1px;
 }
 
 /* ─── 1번 본문: [한자 박스 | 한글음 답란] 2단 그리드 ─── */
