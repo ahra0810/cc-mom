@@ -1151,13 +1151,14 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 .page.phrase-page .rich-meta-card .mcc-visual .mcc-section-body {
   gap: 1mm;
 }
-/* 속담/관용어 본문은 긴 문장 — 헤드라인이 baseFs+12 면 다줄로 거대.
- * 본문 길이에 맞춰 축소 + 줄간격 압축 (어떤 템플릿에서도 헤더가 과대해지지 않게) */
+/* 속담/관용어 본문 헤드라인 — 멀리서도 한눈에 들어오게 크게.
+ * 페이지1 = 카드 + 빈칸 1문항뿐이라 여유 충분(상·하 여백 균형 유지).
+ * 긴 문장은 2줄까지 자연 줄바꿈, 줄간격은 적당히 유지. */
 .page.proverb-page .rich-meta-card .mcc-h-term,
 .page.phrase-page .rich-meta-card .mcc-h-term {
-  font-size: ${baseFs + 4}pt;
-  letter-spacing: 0.3mm;
-  line-height: 1.25;
+  font-size: ${baseFs + 9}pt;
+  letter-spacing: 0.4mm;
+  line-height: 1.3;
 }
 .page.proverb-page .rich-meta-card .mcc-header-left,
 .page.phrase-page .rich-meta-card .mcc-header-left,
