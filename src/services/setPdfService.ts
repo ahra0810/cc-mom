@@ -1322,6 +1322,7 @@ body { font-size: ${baseFs}pt; line-height: 1.6; }
 }
 .sa-answer .writing-lines {
   margin-top: 1.5mm;
+  height: 13mm; /* 1번 답은 짧음 — 1줄로 충분 */
 }
 .sa-answer .answer-filled {
   display: inline-block;
